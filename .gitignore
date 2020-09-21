@@ -1,6 +1,8 @@
 *.aux
+*.out
+*.gz
+*.toc
 *.log
 *.done
-*.tex
 *.swp
 *.swo
