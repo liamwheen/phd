@@ -1,0 +1,58 @@
+\documentclass[a4paper]{article}
+\setlength{\parskip}{\baselineskip}
+
+% First load extension packages
+\usepackage[a4paper,margin=25mm]{geometry}    % page layout
+\usepackage{setspace} \onehalfspacing         % line spacing
+\usepackage{amsfonts,amssymb,amsmath}         % useful math extensions
+\usepackage{graphicx}                         % graphics import
+\graphicspath{{./figs/}}
+\pdfpageattr{/Group << /S /Transparency /I true /CS /DeviceRGB>>}
+\usepackage[colorlinks=true, allcolors=black]{hyperref}
+\usepackage{hhline}
+\usepackage{subcaption}
+\let\oldbibliography\thebibliography
+\renewcommand{\thebibliography}[1]{%
+  \oldbibliography{#1}%
+  \setlength{\itemsep}{0pt}%
+}
+\DeclareMathOperator*{\argmin}{arg\,min}
+% Change paragraph indentation
+\setlength{\parskip}{10pt}
+\setlength{\parindent}{0pt}
+\usepackage[toc]{multitoc}
+%\renewcommand*{\multicolumntoc}{2}
+\setlength{\columnsep}{36pt}
+% User-defined commands
+\newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
+% topmatter
+\title{\vspace{-50pt}\huge\bfseries Developing a Coarse-Grained Climate Model
+to Investigate Long-Term Behaviour}
+
+\author{Liam Wheen \\ Supervised by Dr O.\ Benjamin}
+
+\date{\today}
+\pagenumbering{gobble}
+% main body
+\begin{document}
+\begin{titlepage}
+\maketitle
+\hrule
+\vspace{-10pt}
+\begin{abstract}
+\noindent
+This is the abstract.
+\end{abstract}
+\hrule
+\end{titlepage}
+%\vspace{20pt}
+\newpage
+\pagenumbering{gobble}
+%\begin{spacing}{0.6}
+\tableofcontents
+%\end{spacing}
+\newpage
+\pagenumbering{arabic}
+\section{Introduction}
+This is the introduction
+\end{document}
