@@ -2,73 +2,80 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-sec2year = 3.154e+7 #Translate time dependent units to 'per year' instead of 'per second'
+year2sec = 3.154e+7 #Translate time dependent units to 'per year' instead of 'per second'
 
 alpha_1 = 0.32
 alpha_2 = 0.62
-A = 202*sec2year**3 #Wm^-2
-B = 1.9*sec2year**3 #Wm^-2
-C = 3.04*sec2year**3 #Wm^-2 K^-1
+A = 202 #Wm^-2
+B = 1.9 #Wm^-2
+C = 3.04 #Wm^-2 K^-1
 T_ice = -10 #degC
-R = 4*10**9*sec2year**2 #J m^-2 K^-1
+R = 4*10**8 #some say e9 some say e8 #J m^-2 K^-1
 S = 2.5*10**12
-Q_0 = 343*sec2year**3 #Wm^-2
+Q_0 = 343 #Wm^-2
 eps = 0.0167 #(eccentricity)
 Q_e = Q_0/(np.sqrt(1-eps**2))
 beta = 0.4091 #(obliquity) radians
 c_b = (5/16)*(3*np.sin(beta)**2 - 2)
+
+num_steps = 1*10**4
+frame_refr = num_steps//(1*10**3)
         
 class Budyko:
     def __init__(self):
-        self.y_span = np.linspace(0,1,1001)
+        self.y_span = np.linspace(0,1,10000)
         self.y_delta = self.y_span[1]
-        self.tspan = np.linspace(0,10,101) #years
+        self.tspan = np.linspace(0,40000*year2sec,num_steps) #years
         self.delta = self.tspan[1]
-        T0 = 0 # Initial temperature all over
-        n0 = 0.9 # Initial iceline
-        #self.Tj = T0*np.ones(self.y_span.size) #T initial
-        self.Tj = 34 - 44*self.y_span**2 #T initial (quadratic distribution)
+        #T0 = 0 # Initial temperature all over
+        n0 = 0.2 # Initial iceline
+        #self.Tj = 34 - 44*self.y_span**2 #T initial (quadratic distribution)
         self.n = n0 #n initial
-        #self.Tjp1 = np.zeros(self.y_span.size) #T next iter
+        self.Tj = self.T_star(self.y_span) #set temp profile to eq profile
+        #self.Tj = np.zeros(self.y_span.size)
+        self.Tnj = self.T_y(self.T_star(self.y_span), self.n)
 
     def s_b(self, y):
         return 1 + 0.5*c_b*(3*y**2 - 1)
 
     def a_n(self, y):
-        return ((y!=self.n)*0.5+0.5)*((y<=self.n)*alpha_1+(y>=self.n)*alpha_2)
+        #round_n = self.y_delta*np.round(self.n/self.y_delta) 
+        #round_y = self.y_delta*np.round(y/self.y_delta) 
+        #return ((round_y!=round_n)*0.5+0.5)*((round_y<=round_n)*alpha_1+(round_y>=round_n)*alpha_2)
         # Using Widiasih's smooth a_n
-        #M = 25
-        #return 0.47 + 0.15 * (np.tanh(M*(y - self.n)))
+        M = 25
+        return 0.47 + 0.15 * (np.tanh(M*(y - self.n)))
 
     def int_T(self):
+        #Currently always uses actual T rather than the equilibrium T, not sure
+        #if thats right...
         return np.sum(self.Tj)*self.y_delta
 
-    def dT_dt(self, y):
-        f = Q_e*self.s_b(y)*(1 - self.a_n(y)) - (A + B*self.Tj) - C*(self.Tj - self.int_T())
-        f[[0,-1]] = f[[1,-2]] # Force dT/dy = 0 at ends, as should be the case for a cymmetric earth
+    # TEMPORARY
+    def T_star(self, y):
+        In = np.sum(self.s_b(y)*(1-self.a_n(y)))*self.y_delta
+        T_bar = (Q_e*In - A)/B
+        T_star = (Q_e*self.s_b(y)*(1 - self.a_n(y)) - A + C*T_bar)/(B + C)
+        return T_star
+
+    def dT_dt(self, T, y):
+        f = Q_e*self.s_b(y)*(1 - self.a_n(y)) - (A + B*T) - C*(T - self.int_T())
         return f/R
 
-    def dn_dt(self):
-        return T_y(self.n) - T_ice
-
-    def T_y(self, y):
-        rad = np.arcsin(y)
-        ratio = 2*rad/np.pi
-        ind = np.round(ratio*self.Tj.size).astype(int)-1
-        return self.Tj[ind]
+    def T_y(self, T, y):
+        ind = np.clip(np.round(y*T.size),0,T.size-1).astype(int)
+        return T[ind]
      
     def iter_func(self):
         #Iter over all time points
-        for t in range(1, len(self.tspan)+1):
-            #Iter over all inner latitude points
-            #for lat in range(1, len(self.y_span)):
-            #    self.Tj[lat] += self.delta*self.dT_dt(self.y_span[lat])
-            self.Tj += self.delta*self.dT_dt(self.y_span)
-            self.n += self.delta*(self.T_y(self.n) - T_ice)/S
-            yield self.tspan[t-1]
+        for t in range(len(self.tspan)):
+            self.Tj += self.delta*self.dT_dt(self.Tj, self.y_span)
+            self.Tnj += self.delta*self.dT_dt(self.Tnj, self.n)
+            self.n = np.clip(self.n + self.delta*(self.Tnj - T_ice)/S,0,1)
+            if t%frame_refr==0: yield self.tspan[t]
 
     def update(self, t):
-        self.ax.set_ylabel('T(y, {:.1e})'.format(t))
+        self.ax.set_ylabel('T(y, {:.1e})'.format(t/year2sec))
         self.ax.set_xlabel('y = sin(Latitude)')
         self.temp.set_xdata(self.y_span)
         self.temp.set_ydata(self.Tj)
@@ -83,7 +90,7 @@ class Budyko:
         self.temp, = self.ax.plot([], [], 'g-', label='Temperature Profile')
         self.ice, = self.ax.plot([], [], 'b-', label='sin(Iceline Position)')
         self.ax.set_xlim(self.y_span[0], self.y_span[-1])
-        ani = FuncAnimation(self.fig, self.update, frames=self.iter_func, interval=50, repeat=False)
+        ani = FuncAnimation(self.fig, self.update, frames=self.iter_func, interval=1, repeat=False)
         plt.show()
 
 model = Budyko()
