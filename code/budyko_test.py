@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
@@ -19,16 +20,16 @@ beta = 0.4091 #(obliquity) radians
 c_b = (5/16)*(3*np.sin(beta)**2 - 2)
 
 num_steps = 1*10**4
-frame_refr = num_steps//(1*10**2)
+frame_refr = num_steps//(3*10**2)
         
 class Budyko:
     def __init__(self):
         self.y_span = np.linspace(0,1,10000)
         self.y_delta = self.y_span[1]
-        self.tspan = np.linspace(0,10*year2sec,num_steps) #years
+        self.tspan = np.linspace(0,9000*year2sec,num_steps) #years
         self.delta = self.tspan[1]
-        #n0 = 0.24879494 # Initial iceline
-        n0 = 0.8
+        #n0 = 0.2487 # Initial iceline
+        n0 = 0.4
         self.n = n0 #n initial
         #self.Tj = self.T_star(self.y_span) #set temp profile to eq profile
         self.Tj = np.zeros(self.y_span.size)
@@ -46,9 +47,11 @@ class Budyko:
         #M = 25
         #return 0.47 + 0.15 * (np.tanh(M*(y - self.n)))
 
-    def int_T(self):
-        #Currently always uses actual T rather than the equilibrium T, not sure
-        #if thats right...
+    def int_T(self, T):
+        if isinstance(T,float):
+            # Tnj passed so will integrate over T_star
+            return np.sum(self.T_star(self.y_span))*self.y_delta
+
         return np.sum(self.Tj)*self.y_delta
 
     def T_star(self, y):
@@ -58,7 +61,7 @@ class Budyko:
         return T_star
 
     def dT_dt(self, T, y):
-        f = Q_e*self.s_b(y)*(1 - self.a_n(y)) - (A + B*T) - C*(T - self.int_T())
+        f = Q_e*self.s_b(y)*(1 - self.a_n(y)) - (A + B*T) - C*(T - self.int_T(T))
         #if not isinstance(T,float):
             #f[[0,-1]] = f[[1,-2]]
         return f/R
@@ -82,21 +85,24 @@ class Budyko:
         self.temp.set_xdata(self.y_span)
         self.temp.set_ydata(self.Tj)
         self.ice.set_xdata(self.n)
-        self.equil.set_xdata(self.n)
-        self.equil.set_ydata(self.Tnj)
+        self.equil_n.set_xdata(self.n)
+        self.equil_n.set_ydata(self.Tnj)
+        #self.equil_T.set_xdata(self.y_span)
+        #self.equil_T.set_ydata(self.T_star(self.y_span))
         #self.ax.set_ylim(min(self.Tj),max(self.Tj))
         self.ax.set_ylim(-50,50)
         self.ice.set_ydata(self.ax.get_ylim())
-        self.grad.set_xdata(self.y_span[1:])
-        self.grad.set_ydata(10000*np.diff(self.Tj))
+        #self.grad.set_xdata(self.y_span[1:])
+        #self.grad.set_ydata(10000*np.diff(self.Tj))
 
     def animate(self):
         self.fig, self.ax = plt.subplots()
         self.ydata, self.Tdata = [], []
         self.temp, = self.ax.plot([], [], 'g-', label='Temperature Profile')
         self.ice, = self.ax.plot([], [], 'b-', label='sin(Iceline Position)')
-        self.equil, = self.ax.plot([], [], 'ro', label='Equilibrium Temperature at Iceline')
-        self.grad, = self.ax.plot([], [], 'k', linewidth=0.5, label='Gradient (scaled)')
+        self.equil_n, = self.ax.plot([], [], 'ro', label='Equilibrium Temperature at Iceline')
+        #self.equil_T, = self.ax.plot([], [], 'm-', label='Equilibrium Temperature Profile')
+        #self.grad, = self.ax.plot([], [], 'k', linewidth=0.5, label='Gradient (scaled)')
         self.ax.set_xlim(self.y_span[0], self.y_span[-1])
         self.fig.legend(framealpha=1)
         ani = FuncAnimation(self.fig, self.update, frames=self.iter_func, interval=1, repeat=False)
