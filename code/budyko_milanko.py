@@ -30,8 +30,8 @@ class Budyko:
         self.y_delta = self.y_span[1]
         self.t_span = np.linspace(0,tmax*year2sec,num_steps) #years
         self.T_record = np.zeros((self.t_span.size,self.y_span.size)) 
-        self.eps_func = interp1d(milanko.t[:1+max(1,tmax//1000)], milanko.ecc[:1+max(1,tmax//1000)])
-        self.beta_func = interp1d(milanko.t[:1+max(1,tmax//1000)], milanko.obliq[:1+max(1,tmax//1000)])
+        self.eps_func = interp1d(milanko_params.t[:1+max(1,tmax//1000)], milanko_params.ecc[:1+max(1,tmax//1000)])
+        self.beta_func = interp1d(milanko_params.t[:1+max(1,tmax//1000)], milanko_params.obliq[:1+max(1,tmax//1000)])
         self.Q_e = Q_0/(np.sqrt(1-self.eps_func(0)**2))
         self.c_b = (5/16)*(3*np.sin(self.beta_func(0))**2 - 2)
         self.delta = self.t_span[1]
