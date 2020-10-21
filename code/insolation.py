@@ -4,6 +4,7 @@ from scipy.interpolate import interp1d
 from scipy.optimize import root
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+import insol_sympy
 
 """
 https://en.wikipedia.org/wiki/Solar_constant#Relationship_to_other_measurements
@@ -32,16 +33,81 @@ class Insolation:
         self.pos = self.polar_pos(0)
 
     def milanko_update(self, t):
-        self.eps = eps_func(t/k2day/1000)
-        self.beta = beta_func(t/k2day/1000)
-        self.l_peri = l_peri_func(t/k2day/1000)
+        self.eps = float(eps_func(t/k2day/1000))
+        self.beta = float(beta_func(t/k2day/1000))
+        self.l_peri = float(l_peri_func(t/k2day/1000))
         self.rho = (3/2)*np.pi - self.l_peri
         self.a = self.ellipse_axes(self.eps)[0]
         self.insol = q/self.polar_pos(t)[0]**2
         return self.insol
 
+    def I_lat_ave(self, lat, t):
+        """ Daily average insolation recieved at lat on Earth on day 't'"""
+        R  = self.rotate_mat(self.beta, self.rho)
+        R_inv = np.linalg.inv(R)
+        lat = lat*np.pi/180
+        earth_unit = self.pol2cart(1,self.polar_pos(t)[1]) 
+        lons = np.linspace(-np.pi, np.pi, 1000)
+        #I_ave = -self.insol*2*np.pi*np.cos(theta-self.rho)*np.sin(lat)*np.sin(self.beta)
+        u = R.dot(self.latlon2unit(0,0))
+        u[2] = 0 # Only need the x-y component of earths rotated x-axis
+        u = u/np.linalg.norm(u)
+        r = self.pol2cart(*self.polar_pos(t))
+        r = r/np.linalg.norm(r)
+        phi = np.pi - np.arccos(u.dot(r))
+        min_alph, max_alph = phi - np.pi/2, phi + np.pi/2 
+        
+        #ax.scatter([min_vec[0], max_vec[0]],[min_vec[1], max_vec[1]],[min_vec[2], max_vec[2]])
+        ax.set_xlim([-1,1])
+        ax.set_ylim([-1,1])
+        ax.set_zlim([-1,1])
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+        ax.view_init(89,-90)
+        #circ = [self.latlon2unit(lat, lon) for lon in
+        #        np.linspace(-np.pi,np.pi,100)]
+        #circ = [R_inv.dot(item) for item in circ]
+        #xs = [circ[i][0] for i in range(len(circ))]
+        #ys = [circ[i][1] for i in range(len(circ))]
+        #zs = [circ[i][2] for i in range(len(circ))]
+        #ax.plot(xs,ys,zs)
+        
+        alpha = np.linspace(-np.pi,np.pi,100)
+        theta = self.polar_pos(t)[1]
+        rad = np.cos(lat) # Radius of the circl of const latitude
+        height = np.sin(lat)
+        i, j, k = np.eye(3)
+        circ = lambda a: height*k + rad*np.cos(a)*i + rad*np.sin(a)*j
+        circ_points = [circ(a) for a in alpha]
+        rot_circ = [R.dot(circ_point) for circ_point in circ_points]
+        xs = [rot_circ[i][0] for i in range(len(rot_circ))]
+        ys = [rot_circ[i][1] for i in range(len(rot_circ))]
+        zs = [rot_circ[i][2] for i in range(len(rot_circ))]
+        ax.plot(xs,ys,zs)
+        u_hat = R.dot(self.latlon2unit(0,0))
+        ax.plot([0,u_hat[0]],[0,u_hat[1]],[0,u_hat[2]])
+
+        daily_insol = insol_sympy.calculate_daily_insol(theta, self.rho, self.beta, lat)
+            
+        a,b,c = np.array([np.cos(theta),np.sin(theta),0])
+        yy,zz = np.meshgrid(np.linspace(-1,1,10),np.linspace(-1,1,10))
+        xx = -(b*yy+c*zz)/a
+        ax.plot_surface(xx,yy,zz,alpha=0.5)
+
+        return 
+
+        #I_vals = np.zeros(lons.size)
+        #for i, lon in enumerate(lons):
+        #    latlon_unit = self.latlon2unit(lat, lon)
+            #I_vals[i] = max(0,-self.insol*earth_unit.dot(Up.dot(Ub.dot(latlon_unit))))
+           
+        #I_ave = np.sum(I_vals)/lons.size
+        #return I_ave
+
     def I_latlon(self, lat, lon, t):
-        """ Daily average insolation recieved at (lat,lon) on Earth on day 't'"""
+        #PROBABLY NOT NEEDED
+        """ Insolation recieved at (lat,lon) on Earth on day 't'"""
         lat, lon = lat*np.pi/180, lon*np.pi/180
         earth_unit = self.pol2cart(1,self.polar_pos(t)[1]) 
         latlon_unit = self.latlon2unit(lat, lon)
@@ -53,22 +119,23 @@ class Insolation:
         return I
     
     def latlon2unit(self, lat, lon):
-        """ Turn lat/lon coords into unit vector with Earth's centre as origin"""
+        """ Turn lat/lon coords into unit vector with Earth's centre as origin
+            Gives in Earth based axes, not inertial axes"""
         return np.array([np.cos(lat)*np.cos(lon), 
                          np.cos(lat)*np.sin(lon), 
                          np.sin(lat)            ])
 
-    def U_beta(self):
-        b = self.beta
-        return np.array([[np.cos(b) , 0, np.sin(b)],
-                         [0            , 1, 0           ],
-                         [-np.sin(b), 0, np.cos(b)]])
+    def rotate_mat(self, b, p):
+        """ Combined rotation matrix for Earth vectors to account for obliquity and precession"""
+        Ub = np.array([[np.cos(b) , 0, np.sin(b)],
+                       [0         , 1, 0        ],
+                       [-np.sin(b), 0, np.cos(b)]])
 
-    def U_rho(self):
-        p = self.rho
-        return np.array([[np.cos(p) , -np.sin(p), 0],
-                         [np.sin(p) , np.cos(p) , 0],
-                         [0           , 0           , 1]])
+        Up = np.array([[np.cos(p) , -np.sin(p), 0],
+                       [np.sin(p) , np.cos(p) , 0],
+                       [0         , 0         , 1]])
+
+        return Up.dot(Ub)
 
     def midpoint_E(self, M, eps):
         E_func = lambda E: E - eps*np.sin(E) - M
@@ -118,8 +185,7 @@ class Insolation:
         for frame, t in enumerate(self.t_span):
             self.milanko_update(t)
             self.pos = self.polar_pos(t)
-            self.insol_vals.append([self.I_latlon(50,i,t) for i in
-                range(180,540,10)])
+            self.insol_vals.append(self.I_lat_ave(60,t))
             if frame%frame_refr==0 or t==self.t_span[-1]:
                 yield t
 
@@ -136,9 +202,9 @@ class Insolation:
         self.earth.set_xdata(earthx)
         self.earth.set_ydata(earthy)
         latlon_unit = self.latlon2unit(0,0)
-        lon0x, lon0y, _ = self.U_rho().dot(self.U_beta().dot(latlon_unit))
-        self.latlon0.set_xdata([earthx,earthx+3e11*lon0x])
-        self.latlon0.set_ydata([earthy,earthy+3e11*lon0y])
+        lon0x, lon0y, _ = self.rotate_mat(self.beta, self.rho).dot(latlon_unit)
+        self.latlon0.set_xdata([earthx,earthx+1e11*lon0x])
+        self.latlon0.set_ydata([earthy,earthy+1e11*lon0y])
 
     def animate(self):
         self.fig, self.ax = plt.subplots()
@@ -154,9 +220,17 @@ class Insolation:
         ani = FuncAnimation(self.fig, self.update,
                 frames=self.iter_func, interval=1, repeat=False)
         plt.show()
-
+import time
+from mpl_toolkits.mplot3d import Axes3D
 model = Insolation()
-model.animate()
-plt.figure()
-plt.plot(model.t_span,model.insol_vals[1:])
+Fig = plt.figure()
+ax = Fig.add_subplot(111, projection='3d')
+ax.set_box_aspect([1,1,1])
+[model.I_lat_ave(i,0) for i in [69]]
+
 plt.show()
+#model.animate()
+#print(np.sum(model.insol_vals)/len(model.insol_vals))
+#plt.figure()
+#plt.plot(model.t_span,model.insol_vals[1:])
+#plt.show()
