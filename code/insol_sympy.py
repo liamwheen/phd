@@ -1,9 +1,10 @@
-from sympy import cos, sin, sqrt, tan, symbols
+from sympy import pi, cos, sin, sqrt, atan, tan, symbols, Matrix
+import numpy as np
 
-#longitude, obliquity, latitude, precession, solar angle
+#longitude, obliquity, latitude, precession, polar coord of earth
 alpha,      beta,      phi,      rho,        theta = symbols('alpha beta phi rho theta')
 
-lim_a = ((-sqrt(cos(2*beta) + 2*cos(2*phi) - cos(2*rho - 2*theta) + cos(2*beta
+sym_lim_end = ((-sqrt(cos(2*beta) + 2*cos(2*phi) - cos(2*rho - 2*theta) + cos(2*beta
     - 2*rho + 2*theta)/2 + cos(2*beta + 2*rho - 2*theta)/2 +
     1)*cos(beta)*cos(rho - theta)/(2*(sin(rho - theta)**2 +
         cos(beta)**2*cos(rho - theta)**2)) - sin(beta)*sin(phi)*sin(rho -
@@ -16,7 +17,7 @@ lim_a = ((-sqrt(cos(2*beta) + 2*cos(2*phi) - cos(2*rho - 2*theta) + cos(2*beta
                     sin(beta)*sin(phi)*sin(rho - theta)*cos(rho -
                         theta)/(sin(beta)**2*cos(rho - theta)**2 - 1))
 
-lim_b = ((sqrt(cos(2*beta) + 2*cos(2*phi) - cos(2*rho - 2*theta) + cos(2*beta -
+sym_lim_start = ((sqrt(cos(2*beta) + 2*cos(2*phi) - cos(2*rho - 2*theta) + cos(2*beta -
     2*rho + 2*theta)/2 + cos(2*beta + 2*rho - 2*theta)/2 + 1)*cos(beta)*cos(rho
         - theta)/(2*(sin(rho - theta)**2 + cos(beta)**2*cos(rho - theta)**2)) -
     sin(beta)*sin(phi)*sin(rho - theta)*cos(rho - theta)/(sin(beta)**2*cos(rho
@@ -27,30 +28,35 @@ lim_b = ((sqrt(cos(2*beta) + 2*cos(2*phi) - cos(2*rho - 2*theta) + cos(2*beta -
         - sin(beta)*sin(phi)*sin(rho - theta)*cos(rho -
             theta)/(sin(beta)**2*cos(rho - theta)**2 - 1))
 
-integral = alpha*sin(beta)*sin(phi)*cos(rho - theta) + (sin(alpha)*cos(beta)*cos(rho - theta) + sin(rho - theta)*cos(alpha))*cos(phi)
+sym_integral = alpha*sin(beta)*sin(phi)*cos(rho - theta) + (sin(alpha)*cos(beta)*cos(rho - theta) + sin(rho - theta)*cos(alpha))*cos(phi)
 
-def calculate_daily_insol(theta_, rho_, beta_, phi_):
+def calculate_daily_insol(theta_, rho_, beta_, phi_, point_on_circ):
     vals = {theta:theta_,rho:rho_, beta:beta_, phi:phi_}
-    lim_a_x, lim_a_y = lim_a[0].evalf(subs=vals), lim_a[1].evalf(subs=vals)
-    lim_b_x, lim_b_y = lim_b[0].evalf(subs=vals), lim_b[1].evalf(subs=vals)
-    lim_a_z, lim_b_z = 2*[sin(phi_)]
-    lim_a, lim_b = [lim_a_x, lim_a_y, lim_a_z], [lim_b_x, lim_b_y, lim_b_z]
-    if isinstance(lim_a_x,sympy.core.add.Add):
-        print('ITS COMPLEX')
-    ---------finish this to check that the circle intersects or doest (if
-            complex) in which case maybe do similar check to dot product theta
-    and rotate latlon=0 vec for pos/neg value if its day/night
-    ---------get the lims into the form of longitude (may need to rotation
-            matrix the limit vectors) then use 'integral' and sub in the values
-            of alpha
+    lim_end_x, lim_end_y = sym_lim_end[0].evalf(subs=vals), sym_lim_end[1].evalf(subs=vals)
+    lim_start_x, lim_start_y = sym_lim_start[0].evalf(subs=vals), sym_lim_start[1].evalf(subs=vals)
+    lim_end_z, lim_start_z = 2*[sin(phi_)]
+    lim_end, lim_start = Matrix([lim_end_x, lim_end_y, lim_end_z]), Matrix([lim_start_x, lim_start_y, lim_start_z])
+    if not lim_end_x.is_real:
+        # This means the circle does not intersect with the day/night plane
+        n = Matrix([cos(theta_), sin(theta_), 0])
+        day = max(0,-n.dot(point_on_circ))
+        if day:
+            alpha_lim_start, alpha_lim_end = 0, 2*np.pi 
+        else:
+            return 0
+    else:
+        alpha_lim_end = np.arctan2(float(lim_end[1]),float(lim_end[0]))#%(2*np.pi)
+        alpha_lim_start = np.arctan2(float(lim_start[1]),float(lim_start[0]))#%(2*np.pi)
 
-#def integral(theta_, rho_, beta_, phi_, lims):
-
-
-#Here is the code used to generate the integral and lims above
+    val_list = [(k,v) for k,v in vals.items()]
+    integral_end = sym_integral.subs(val_list+[(alpha,alpha_lim_end)])
+    integral_start = sym_integral.subs(val_list+[(alpha,alpha_lim_start)])
+    return integral_end - integral_start
 
 
 """
+#Here is the code used to generate the integral and lims above
+
 from sympy import *
 init_printing()
 beta, rho, alpha = symbols('beta rho alpha')
