@@ -45,12 +45,17 @@ def calculate_daily_insol(theta_, rho_, beta_, phi_, point_on_circ):
         else:
             return 0
     else:
-        alpha_lim_end = np.arctan2(float(lim_end[1]),float(lim_end[0]))#%(2*np.pi)
-        alpha_lim_start = np.arctan2(float(lim_start[1]),float(lim_start[0]))#%(2*np.pi)
+        alpha_lim_end = np.arctan2(float(lim_end[1]),float(lim_end[0]))
+        alpha_lim_start = np.arctan2(float(lim_start[1]),float(lim_start[0]))
+    
+    # Alter long vals to avoid integrating the wrong way round the earth 
+    if alpha_lim_end < alpha_lim_start: alpha_lim_end+=2*np.pi
+    if alpha_lim_end - alpha_lim_start > 2*np.pi: alpha_lim_end-=2*np.pi
 
-    val_list = [(k,v) for k,v in vals.items()]
-    integral_end = sym_integral.subs(val_list+[(alpha,alpha_lim_end)])
-    integral_start = sym_integral.subs(val_list+[(alpha,alpha_lim_start)])
+    integral_subbed = sym_integral.subs(vals)
+    integral_end = integral_subbed.subs(alpha, alpha_lim_end)
+    integral_start = integral_subbed.subs(alpha, alpha_lim_start)
+
     return integral_end - integral_start
 
 
