@@ -14,9 +14,9 @@ http://lasp.colorado.edu/lisird/ #This is specific data, but not really worth wh
 k2day = 365250
 au = 149597870700 # metres
 q = 152096508529**2*1.321e3 # scaled irradiance const such that this over R**2 is irradiance at atmosphere
-tmax = 352 # days
-num_steps = 1*10**3
-frame_refr = num_steps//(1*10**2)
+tmax = 700 # days
+num_steps = 2*10**2
+frame_refr = 1#num_steps//(4*10**2)
 
 # Interpolate milankovitch data to fit timescale
 # Assumes milanko is positive time datta
@@ -28,7 +28,7 @@ class Insolation:
 
     def __init__(self):
         self.t_span = np.linspace(0,tmax,num_steps)
-        self.insol_vals = []
+        self.insol_vals = np.zeros((num_steps,2))
         self.milanko_update(0)
         self.pos = self.polar_pos(0)
 
@@ -47,9 +47,9 @@ class Insolation:
         R  = self.rotate_mat(self.beta, self.rho)
         theta = self.polar_pos(t)[1]
         point_on_circ = R.dot(self.latlon2unit(lat,0))
-        insol_ratio = -self.insol*insol_sympy.calculate_daily_insol(theta, self.rho,
+        insol_ave = -self.insol*insol_sympy.calculate_daily_insol(theta, self.rho,
                 self.beta, lat, point_on_circ) / (2*np.pi)
-        return insol_ratio
+        return insol_ave
 
     def latlon2unit(self, lat, lon):
         """ Turn lat/lon coords into unit vector with Earth's centre as origin
@@ -118,7 +118,7 @@ class Insolation:
         for frame, t in enumerate(self.t_span):
             self.milanko_update(t)
             self.pos = self.polar_pos(t)
-            self.insol_vals.append(self.I_lat_ave(60,t))
+            self.insol_vals[frame,:] = [self.I_lat_ave(-70,t),self.I_lat_ave(70,t)]
             if frame%frame_refr==0 or t==self.t_span[-1]:
                 yield t
 
@@ -138,20 +138,31 @@ class Insolation:
         lon0x, lon0y, _ = self.rotate_mat(self.beta, self.rho).dot(latlon_unit)
         self.latlon0.set_xdata([earthx,earthx+1e11*lon0x])
         self.latlon0.set_ydata([earthy,earthy+1e11*lon0y])
+        self.insol_plot.set_xdata(np.linspace(0,tmax,len(self.insol_vals)))
+        self.insol_plot2.set_xdata(np.linspace(0,tmax,len(self.insol_vals)))
+        self.insol_plot.set_ydata(self.insol_vals[:,0])
+        self.insol_plot2.set_ydata(self.insol_vals[:,1])
+        self.insol_ax.set_xlim([0,max(t,1)])
 
-    def animate(self):
-        self.fig, self.ax = plt.subplots()
-        self.ellipse, = plt.plot([],[],'m--',linewidth=0.5)
-        self.earth, = plt.plot([],[],'co')
-        self.latlon0, = plt.plot([],[],'b')
-        self.sun, = plt.plot([],[],'yo',linewidth=4)
-        self.sun.set_ydata(0)
-        self.sun.set_xdata(0)
+    def init(self):
+        self.ellipse, = self.ax.plot([],[],'m--',linewidth=0.5)
+        self.earth, = self.ax.plot([],[],'co')
+        self.latlon0, = self.ax.plot([],[],'b')
+        self.insol_ax = self.fig.add_subplot(333)
+        self.insol_plot, = self.insol_ax.plot([],[],'r')
+        self.insol_plot2, = self.insol_ax.plot([],[],'b')
+        self.ax.plot([0],[0],'yo',linewidth=4)
         self.ax.set_xlim([-1.5*au,1.5*au])
         self.ax.set_ylim([-1.5*au,1.5*au])
         self.ax.set_aspect('equal')
+        self.insol_ax.set_ylim([0,600])
+        return self.ellipse, self.earth, self.latlon0, self.insol_plot
+
+    def animate(self):
+        self.fig = plt.figure()
+        self.ax = self.fig.add_subplot(111)
         ani = FuncAnimation(self.fig, self.update,
-                frames=self.iter_func, interval=1, repeat=False)
+                frames=self.iter_func, init_func=self.init, interval=1, repeat=False)
         plt.show()
 
 model = Insolation()
