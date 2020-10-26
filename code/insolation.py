@@ -1,5 +1,5 @@
 import numpy as np
-import milanko_params
+from data import milanko_params
 from scipy.interpolate import interp1d
 from scipy.optimize import root
 import matplotlib.pyplot as plt
@@ -14,32 +14,35 @@ http://lasp.colorado.edu/lisird/ #This is specific data, but not really worth wh
 k2day = 365250
 au = 149597870700 # metres
 q = 152096508529**2*1.321e3 # scaled irradiance const such that this over R**2 is irradiance at atmosphere
-tmax = 700 # days
-num_steps = 2*10**2
-frame_refr = 1#num_steps//(4*10**2)
+tmin = 0# how far in the future to start
+tmax = tmin + 356# days
+num_steps = 1*10**2
+frame_refr = num_steps//(1*10**2)
 
 # Interpolate milankovitch data to fit timescale
-# Assumes milanko is positive time datta
-eps_func = interp1d(milanko_params.t[:1+max(1,tmax//k2day)], milanko_params.ecc[:1+max(1,tmax//k2day)])
-beta_func = interp1d(milanko_params.t[:1+max(1,tmax//k2day)], milanko_params.obliq[:1+max(1,tmax//k2day)])
-l_peri_func = interp1d(milanko_params.t[:1+max(1,tmax//k2day)], milanko_params.l_peri[:1+max(1,tmax//k2day)])
+# Assumes milanko is positive time data
+# NB: Given timescale these could actually just be the time appropriate constants
+#     Because of this, milanko is not updated apart from at the start of simulation
+krange = range(tmin//k2day,2+max(1,tmax//k2day))
+eps_func = interp1d(milanko_params.t[krange], milanko_params.ecc[krange])
+beta_func = interp1d(milanko_params.t[krange], milanko_params.obliq[krange])
+l_peri_func = interp1d(milanko_params.t[krange], milanko_params.l_peri[krange])
 
 class Insolation:
 
     def __init__(self):
-        self.t_span = np.linspace(0,tmax,num_steps)
-        self.insol_vals = np.zeros((num_steps,2))
-        self.milanko_update(0)
-        self.pos = self.polar_pos(0)
+        self.t_span = np.linspace(tmin,tmax,num_steps)
+        self.insol_vals = np.array([[None]*2]*num_steps)
+        self.milanko_update(tmin)
+        self.pos = self.polar_pos(tmin)
 
     def milanko_update(self, t):
-        self.eps = float(eps_func(t/k2day/1000))
-        self.beta = float(beta_func(t/k2day/1000))
-        self.l_peri = float(l_peri_func(t/k2day/1000))
+        self.eps = float(eps_func(t/k2day))
+        self.beta = float(beta_func(t/k2day))
+        self.l_peri = float(l_peri_func(t/k2day))
         self.rho = (3/2)*np.pi - self.l_peri
         self.a = self.ellipse_axes(self.eps)[0]
-        self.insol = q/self.polar_pos(t)[0]**2
-        return self.insol
+        insol_sympy.set_milanko(self.rho, self.beta)
 
     def I_lat_ave(self, lat, t):
         """ Daily average insolation recieved at lat on Earth on day 't'"""
@@ -47,8 +50,7 @@ class Insolation:
         R  = self.rotate_mat(self.beta, self.rho)
         theta = self.polar_pos(t)[1]
         point_on_circ = R.dot(self.latlon2unit(lat,0))
-        insol_ave = -self.insol*insol_sympy.calculate_daily_insol(theta, self.rho,
-                self.beta, lat, point_on_circ) / (2*np.pi)
+        insol_ave = -self.insol*insol_sympy.calculate_daily_insol(theta, lat, point_on_circ)/(2*np.pi)
         return insol_ave
 
     def latlon2unit(self, lat, lon):
@@ -93,7 +95,7 @@ class Insolation:
     def ellipse_axes(self, eps):
         """ Estimates ellipse min and major axes using assumption that the
         perimeter remains the same all the time, Ramanujan approx used"""
-        eps0 = eps_func(0)
+        eps0 = milanko_params.ecc[0]
         a0 = au
         b0 = a0*np.sqrt(1-eps0**2)
         p = self.ellipse_perim(a0,b0)
@@ -116,7 +118,8 @@ class Insolation:
 
     def iter_func(self):
         for frame, t in enumerate(self.t_span):
-            self.milanko_update(t)
+            #self.milanko_update(t)
+            self.insol = q/self.polar_pos(t)[0]**2
             self.pos = self.polar_pos(t)
             self.insol_vals[frame,:] = [self.I_lat_ave(-70,t),self.I_lat_ave(70,t)]
             if frame%frame_refr==0 or t==self.t_span[-1]:
@@ -138,17 +141,20 @@ class Insolation:
         lon0x, lon0y, _ = self.rotate_mat(self.beta, self.rho).dot(latlon_unit)
         self.latlon0.set_xdata([earthx,earthx+1e11*lon0x])
         self.latlon0.set_ydata([earthy,earthy+1e11*lon0y])
-        self.insol_plot.set_xdata(np.linspace(0,tmax,len(self.insol_vals)))
-        self.insol_plot2.set_xdata(np.linspace(0,tmax,len(self.insol_vals)))
+        self.insol_plot.set_xdata(np.linspace(tmin,tmax,len(self.insol_vals)))
+        self.insol_plot2.set_xdata(np.linspace(tmin,tmax,len(self.insol_vals)))
         self.insol_plot.set_ydata(self.insol_vals[:,0])
         self.insol_plot2.set_ydata(self.insol_vals[:,1])
-        self.insol_ax.set_xlim([0,max(t,1)])
+        self.insol_ax.set_xlim([tmin,max(t,tmin+1)])
 
     def init(self):
         self.ellipse, = self.ax.plot([],[],'m--',linewidth=0.5)
         self.earth, = self.ax.plot([],[],'co')
         self.latlon0, = self.ax.plot([],[],'b')
         self.insol_ax = self.fig.add_subplot(333)
+        self.insol_ax.set_xlabel('Days Since Present')
+        self.insol_ax.set_ylabel('Ave Insol')
+        self.insol_ax.yaxis.tick_right()
         self.insol_plot, = self.insol_ax.plot([],[],'r')
         self.insol_plot2, = self.insol_ax.plot([],[],'b')
         self.ax.plot([0],[0],'yo',linewidth=4)

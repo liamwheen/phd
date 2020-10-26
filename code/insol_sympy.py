@@ -30,12 +30,19 @@ sym_lim_start = ((sqrt(cos(2*beta) + 2*cos(2*phi) - cos(2*rho - 2*theta) + cos(2
 
 sym_integral = alpha*sin(beta)*sin(phi)*cos(rho - theta) + (sin(alpha)*cos(beta)*cos(rho - theta) + sin(rho - theta)*cos(alpha))*cos(phi)
 
-def calculate_daily_insol(theta_, rho_, beta_, phi_, point_on_circ):
-    vals = {theta:theta_,rho:rho_, beta:beta_, phi:phi_}
-    lim_end_x, lim_end_y = sym_lim_end[0].evalf(subs=vals), sym_lim_end[1].evalf(subs=vals)
-    lim_start_x, lim_start_y = sym_lim_start[0].evalf(subs=vals), sym_lim_start[1].evalf(subs=vals)
-    lim_end_z, lim_start_z = 2*[sin(phi_)]
-    lim_end, lim_start = Matrix([lim_end_x, lim_end_y, lim_end_z]), Matrix([lim_start_x, lim_start_y, lim_start_z])
+def set_milanko(rho_, beta_):
+    global subd_sym_lim_start, subd_sym_lim_end, subd_sym_integral
+    vals = {rho:rho_, beta:beta_}
+    subd_sym_lim_start = [elem.subs(vals) for elem in sym_lim_start]
+    subd_sym_lim_end = [elem.subs(vals) for elem in sym_lim_end]
+    subd_sym_integral = sym_integral.subs(vals)
+
+
+
+def calculate_daily_insol(theta_, phi_, point_on_circ):
+    vals = {theta:theta_, phi:phi_}
+    lim_end_x, lim_end_y = [elem.subs(vals) for elem in subd_sym_lim_end]
+    lim_start_x, lim_start_y = [elem.subs(vals) for elem in subd_sym_lim_start]
     if not lim_end_x.is_real:
         # This means the circle does not intersect with the day/night plane
         n = Matrix([cos(theta_), sin(theta_), 0])
@@ -45,14 +52,14 @@ def calculate_daily_insol(theta_, rho_, beta_, phi_, point_on_circ):
         else:
             return 0
     else:
-        alpha_lim_end = np.arctan2(float(lim_end[1]),float(lim_end[0]))
-        alpha_lim_start = np.arctan2(float(lim_start[1]),float(lim_start[0]))
+        alpha_lim_end = np.arctan2(float(lim_end_y),float(lim_end_x))
+        alpha_lim_start = np.arctan2(float(lim_start_y),float(lim_start_x))
     
     # Alter long vals to avoid integrating the wrong way round the earth 
     if alpha_lim_end < alpha_lim_start: alpha_lim_end+=2*np.pi
     if alpha_lim_end - alpha_lim_start > 2*np.pi: alpha_lim_end-=2*np.pi
 
-    integral_subbed = sym_integral.subs(vals)
+    integral_subbed = subd_sym_integral.subs(vals)
     integral_end = integral_subbed.subs(alpha, alpha_lim_end)
     integral_start = integral_subbed.subs(alpha, alpha_lim_start)
 
