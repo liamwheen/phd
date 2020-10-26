@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 from matplotlib.animation import FuncAnimation
-import milanko_params # Values given in 1000 year time steps
+from data import milanko_params # Values given in 1000 year time steps
 
 year2sec = 3.154e+7 #Translate time dependent units to 'per year' instead of 'per second'
 
@@ -18,8 +18,8 @@ S = 2.5*10**12
 Q_0 = 343 #Wm^-2
         
 #n0 = 0.2487 # Unstable equilibrium initial iceline
-eta0 = 0.25 # Initial Iceline
-tmax = 40000 # Years
+eta0 = 0.49 # Initial Iceline
+tmax = 40 # Years
 
 num_steps = 1*10**4
 frame_refr = num_steps//(3*10**2)
@@ -45,12 +45,12 @@ class Budyko:
 
     def a_eta(self, y):
         # Account for fp errors in ice line positions
-        #round_eta = self.y_delta*np.round(self.eta/self.y_delta) 
-        #round_y = self.y_delta*np.round(y/self.y_delta) 
-        #return ((round_y!=round_eta)*0.5+0.5)*((round_y<=round_eta)*alpha_1+(round_y>=round_eta)*alpha_2)
+        round_eta = self.y_delta*np.round(self.eta/self.y_delta) 
+        round_y = self.y_delta*np.round(y/self.y_delta) 
+        return ((round_y!=round_eta)*0.5+0.5)*((round_y<=round_eta)*alpha_1+(round_y>=round_eta)*alpha_2)
         # Using Widiasih's smooth a_eta
-        M = 100
-        return 0.47 + 0.15 * (np.tanh(M*(y - self.eta)))
+        #M = 100
+        #return 0.47 + 0.15 * (np.tanh(M*(y - self.eta)))
 
     def int_T(self, T):
         if isinstance(T,float):
@@ -70,7 +70,8 @@ class Budyko:
         return f/R
 
     def T_y(self, T, y):
-        ind = np.clip(np.round(y*T.size),0,T.size-1).astype(int)
+        shift = -1 if y>0.5 else 0
+        ind = np.clip(np.round(y*T.size),0,T.size-1).astype(int) + shift
         return T[ind]
 
     def milanko_update(self, t):
@@ -98,8 +99,8 @@ class Budyko:
         self.ice.set_xdata(self.eta)
         self.T_star_eta.set_xdata(self.eta)
         self.T_star_eta.set_ydata(self.T_eta)
-        #self.equil_T.set_xdata(self.y_span)
-        #self.equil_T.set_ydata(self.T_star(self.y_span))
+        self.equil_T.set_xdata(self.y_span)
+        self.equil_T.set_ydata(self.T_star(self.y_span))
         #self.ax.set_ylim(min(self.T),max(self.T))
         self.ax.set_ylim(-50,50)
         self.ice.set_ydata(self.ax.get_ylim())
@@ -112,7 +113,7 @@ class Budyko:
         self.temp, = self.ax.plot([], [], 'g-', label='Temperature Profile')
         self.ice, = self.ax.plot([], [], 'b-', label='sin(Iceline Position)')
         self.T_star_eta, = self.ax.plot([], [], 'ro', label='Equilibrium Temperature at Iceline')
-        #self.equil_T, = self.ax.plot([], [], 'm-', label='Equilibrium Temperature Profile')
+        self.equil_T, = self.ax.plot([], [], 'm-', label='Equilibrium Temperature Profile')
         #self.grad, = self.ax.plot([], [], 'k', linewidth=0.5, label='Gradient (scaled)')
         self.ax.set_xlim(self.y_span[0], self.y_span[-1])
         self.fig.legend(framealpha=1)
@@ -123,20 +124,20 @@ model = Budyko()
 model.animate()
 plt.show()
 
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import cm
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-x = model.t_span/year2sec
-y = model.y_span
-X, Y = np.meshgrid(x,y)
-ax.plot_surface(X,Y,model.T_record.T, cmap=cm.coolwarm,
-                       linewidth=0, antialiased=False)
-ax.set_xlabel('Time (Years)')
-ax.set_ylabel('sin(Latitude)')
-ax.set_zlabel('Temperature (deg)')
+#from mpl_toolkits.mplot3d import Axes3D
+#from matplotlib import cm
+#fig = plt.figure()
+#ax = fig.add_subplot(111, projection='3d')
+#x = model.t_span/year2sec
+#y = model.y_span
+#X, Y = np.meshgrid(x,y)
+#ax.plot_surface(X,Y,model.T_record.T, cmap=cm.coolwarm,
+#                       linewidth=0, antialiased=False)
+#ax.set_xlabel('Time (Years)')
+#ax.set_ylabel('sin(Latitude)')
+#ax.set_zlabel('Temperature (deg)')
 
-plt.show()
+#plt.show()
 
 
 #plt.plot(model.y_span, model.s_b(model.y_span))
