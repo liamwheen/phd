@@ -14,10 +14,10 @@ http://lasp.colorado.edu/lisird/ #This is specific data, but not really worth wh
 k2day = 365250
 au = 149597870700 # metres
 q = 152096508529**2*1.321e3 # scaled irradiance const such that this over R**2 is irradiance at atmosphere
-tmin = 0# how far in the future to start
-tmax = tmin + 356# days
-num_steps = 1*10**2
-frame_refr = num_steps//(1*10**2)
+tmin = 352#1015*k2day# how far in the future to start
+tmax = tmin + 500*k2day# days
+num_steps = 501
+frame_refr = 1#num_steps//(1*10**2)
 
 # Interpolate milankovitch data to fit timescale
 # Assumes milanko is positive time data
@@ -32,15 +32,19 @@ class Insolation:
 
     def __init__(self):
         self.t_span = np.linspace(tmin,tmax,num_steps)
-        self.insol_vals = np.array([[None]*2]*num_steps)
+        self.insol_vals = np.array([[None]*1]*num_steps)
         self.milanko_update(tmin)
         self.pos = self.polar_pos(tmin)
+#        print('Eccentricity: ',self.eps)
+#        print('Obliquity: ',self.beta)
+#        print('Precession: ', self.rho)
 
     def milanko_update(self, t):
         self.eps = float(eps_func(t/k2day))
         self.beta = float(beta_func(t/k2day))
         self.l_peri = float(l_peri_func(t/k2day))
-        self.rho = (3/2)*np.pi - self.l_peri
+        # Here we shift from (vernal eq to perihelion) to (aphelion to summer eq)
+        self.rho = ((1/2)*np.pi - self.l_peri)%(2*np.pi) - np.pi
         self.a = self.ellipse_axes(self.eps)[0]
         insol_sympy.set_milanko(self.rho, self.beta)
 
@@ -96,7 +100,7 @@ class Insolation:
         """ Estimates ellipse min and major axes using assumption that the
         perimeter remains the same all the time, Ramanujan approx used"""
         eps0 = milanko_params.ecc[0]
-        a0 = au
+        a0 = au #Assumes the semimajor axis is initially 1au (very close)
         b0 = a0*np.sqrt(1-eps0**2)
         p = self.ellipse_perim(a0,b0)
         a,b = self.midpoint_a_b(p, eps)
@@ -116,12 +120,21 @@ class Insolation:
         mid_ab = root(ab_func, [au,au*np.sqrt(1-eps**2)])
         return mid_ab.x
 
+    def last_sum_solst(self, t):
+        """ Tracks back over the past year to find the day of the summer solstice"""
+        while True:
+            theta = self.polar_pos(t)[1]
+            if abs((np.pi-self.rho) - (2*np.pi-theta)) < 0.02:
+                return t
+            t-=1
+
     def iter_func(self):
         for frame, t in enumerate(self.t_span):
-            #self.milanko_update(t)
+            self.milanko_update(t)
+            t = self.last_sum_solst(t)
             self.insol = q/self.polar_pos(t)[0]**2
             self.pos = self.polar_pos(t)
-            self.insol_vals[frame,:] = [self.I_lat_ave(-70,t),self.I_lat_ave(70,t)]
+            self.insol_vals[frame,:] = [self.I_lat_ave(lat,t) for lat in [65]]
             if frame%frame_refr==0 or t==self.t_span[-1]:
                 yield t
 
@@ -142,21 +155,22 @@ class Insolation:
         self.latlon0.set_xdata([earthx,earthx+1e11*lon0x])
         self.latlon0.set_ydata([earthy,earthy+1e11*lon0y])
         self.insol_plot.set_xdata(np.linspace(tmin,tmax,len(self.insol_vals)))
-        self.insol_plot2.set_xdata(np.linspace(tmin,tmax,len(self.insol_vals)))
+#        self.insol_plot2.set_xdata(np.linspace(tmin,tmax,len(self.insol_vals)))
         self.insol_plot.set_ydata(self.insol_vals[:,0])
-        self.insol_plot2.set_ydata(self.insol_vals[:,1])
+#        self.insol_plot2.set_ydata(self.insol_vals[:,1])
         self.insol_ax.set_xlim([tmin,max(t,tmin+1)])
+        self.insol_ax.set_ylim([400,600])
 
     def init(self):
         self.ellipse, = self.ax.plot([],[],'m--',linewidth=0.5)
         self.earth, = self.ax.plot([],[],'co')
         self.latlon0, = self.ax.plot([],[],'b')
         self.insol_ax = self.fig.add_subplot(333)
-        self.insol_ax.set_xlabel('Days Since Present')
+        self.insol_ax.set_xlabel('Days')
         self.insol_ax.set_ylabel('Ave Insol')
         self.insol_ax.yaxis.tick_right()
         self.insol_plot, = self.insol_ax.plot([],[],'r')
-        self.insol_plot2, = self.insol_ax.plot([],[],'b')
+#        self.insol_plot2, = self.insol_ax.plot([],[],'b')
         self.ax.plot([0],[0],'yo',linewidth=4)
         self.ax.set_xlim([-1.5*au,1.5*au])
         self.ax.set_ylim([-1.5*au,1.5*au])
