@@ -29,7 +29,7 @@ class Insolation:
 
     def __init__(self):
         self.t_span = np.linspace(tmin,tmax,num_steps)
-        self.insol_vals = np.array([[None]*1]*num_steps)
+        self.insol_vals = np.array([[None]*2]*num_steps)
         self.milanko_update(tmin)
         self.pos = self.polar_pos(tmin)
 
@@ -114,7 +114,7 @@ class Insolation:
             t = self.last_sum_solst(t)
             self.insol = q/self.polar_pos(t)[0]**2
             self.pos = self.polar_pos(t)
-            self.insol_vals[frame,:] = [self.I_lat_ave(lat,t) for lat in [65]]
+            self.insol_vals[frame,:] = [self.I_lat_ave(lat,t) for lat in [0,65]]
             if frame%frame_refr==0 or t==self.t_span[-1]:
                 yield t
 
@@ -134,20 +134,23 @@ class Insolation:
         lon0x, lon0y, _ = self.rotate_mat(self.beta, self.rho).dot(latlon_unit)
         self.latlon0.set_xdata([earthx,earthx+1e11*lon0x])
         self.latlon0.set_ydata([earthy,earthy+1e11*lon0y])
-        self.insol_plot.set_xdata(np.linspace(tmin,tmax,len(self.insol_vals)))
+        self.insol_plot.set_xdata(np.linspace(tmin/365,tmax/365,len(self.insol_vals)))
         self.insol_plot.set_ydata(self.insol_vals[:,0])
-        self.insol_ax.set_xlim([tmin,max(t,tmin+1)])
-        self.insol_ax.set_ylim([400,600])
+        self.insol_plot2.set_xdata(np.linspace(tmin/365,tmax/356,len(self.insol_vals)))
+        self.insol_plot2.set_ydata(self.insol_vals[:,1])
+        self.insol_ax.set_xlim([tmin/365,max(t/365,tmin/365+1)])
+        self.insol_ax.set_ylim([0,600])
 
     def init(self):
         self.ellipse, = self.ax.plot([],[],'m--',linewidth=0.5)
         self.earth, = self.ax.plot([],[],'co')
         self.latlon0, = self.ax.plot([],[],'b')
         self.insol_ax = self.fig.add_subplot(333)
-        self.insol_ax.set_xlabel('Days')
+        self.insol_ax.set_xlabel('Years')
         self.insol_ax.set_ylabel('Ave Insol')
         self.insol_ax.yaxis.tick_right()
-        self.insol_plot, = self.insol_ax.plot([],[],'r')
+        self.insol_plot, = self.insol_ax.plot([],[],'b')
+        self.insol_plot2, = self.insol_ax.plot([],[],'r')
         self.ax.plot([0],[0],'yo',linewidth=4)
         self.ax.set_xlim([-1.5*au,1.5*au])
         self.ax.set_ylim([-1.5*au,1.5*au])
@@ -164,5 +167,3 @@ class Insolation:
 
 model = Insolation()
 model.animate()
-plt.plot(model.t_span,model.a_vals/au)
-plt.show()
