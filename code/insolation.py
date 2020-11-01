@@ -19,11 +19,12 @@ num_steps = 501
 frame_refr = 1#num_steps//(1*10**2)
 
 # Interpolate milankovitch data to fit timescale
-# Assumes milanko is positive time data
+# Loads milanko data for future
+milanko_t, milanko_ecc, milanko_obliq, milanko_l_peri = milanko_params.load_forward_milanko()
 krange = range(tmin//k2day,2+max(1,tmax//k2day))
-eps_func = interp1d(milanko_params.t[krange], milanko_params.ecc[krange])
-beta_func = interp1d(milanko_params.t[krange], milanko_params.obliq[krange])
-l_peri_func = interp1d(milanko_params.t[krange], milanko_params.l_peri[krange])
+eps_func = interp1d(milanko_t[krange], milanko_ecc[krange])
+beta_func = interp1d(milanko_t[krange], milanko_obliq[krange])
+l_peri_func = interp1d(milanko_t[krange], milanko_l_peri[krange])
 
 class Insolation:
 
