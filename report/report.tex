@@ -1,22 +1,21 @@
 \documentclass[a4paper]{article}
 \setlength{\parskip}{\baselineskip}
+\let\oldbibliography\thebibliography
+\renewcommand{\thebibliography}[1]{%
+  \oldbibliography{#1}%
+  \setlength{\itemsep}{0pt}%
+}
 
 % First load extension packages
 \usepackage[a4paper,margin=25mm]{geometry}    % page layout
 \usepackage{setspace} \onehalfspacing         % line spacing
 \usepackage{amsfonts,amssymb,amsmath}         % useful math extensions
 \usepackage{graphicx}                         % graphics import
-\graphicspath{{./figs/}}
+\graphicspath{{../figs/}}
 \pdfpageattr{/Group << /S /Transparency /I true /CS /DeviceRGB>>}
 \usepackage[colorlinks=true, allcolors=black]{hyperref}
 \usepackage{hhline}
 \usepackage{subcaption}
-\let\oldbibliography\thebibliography
-\renewcommand{\thebibliography}[1]{%
-  \oldbibliography{#1}%
-  \setlength{\itemsep}{0pt}%
-}
-\DeclareMathOperator*{\argmin}{arg\,min}
 % Change paragraph indentation
 \setlength{\parskip}{10pt}
 \setlength{\parindent}{0pt}
@@ -54,5 +53,140 @@ This is the abstract.
 \newpage
 \pagenumbering{arabic}
 \section{Introduction}
-This is the introduction
+\section{Budyko Model}
+The Budyko model is an energy balance model (EBM) that explores the positive
+feedback effect of polar ice cap albedo. The increased reflectivity of polar
+ice caps causes Earth to receive less net energy from the sun across these
+regions. If a sufficient amount of Earth's surface is covered in ice, 
+global temperatures drop and the polar ice caps advance towards the equator.
+Conversely, if the ice caps only exist at very high latitudes, then the reduced
+reflectivity will cause Earth's temperature to rise, and this ice-line to
+recede further.
+
+A number of assumptions are made in order for this EBM to work. Temperature
+is modelled as varying only across latitude, reducing the domain of the
+system from a spherical surface, to a 1-dimensional temperature profile. In
+order to simplify integral that span the latitudes, the
+domain is described using $y = \sin(\varphi)$, where $\varphi$ is latitude.
+To simplify the system further, the Earth is treated as an entirely water-based
+planet. This allows for the differences in ground reflectivity to be ignored,
+focusing only on the albedo of water, and ice. The Earth is also modelled as
+symmetric across the equator, allowing for only one half of the domain to be
+considered, i.e. $y\in [0,1]$. The impact of this last assumption is
+investigated in section ----add ref----.
+
+The dynamical equation for temperature consists of three components. They
+describe the flow of energy into, out of, and around Earth.
+The first of these is incoming solar radiation, insolation.
+This depends on the irradiance given out by the sun, as well as the distance
+and orientation of the Earth to the sun. The amount of insolation experienced
+at different latitudes varies proportional to the
+cosine of the angle between the ecliptic plane and the corresponding point on
+Earth. This is why the poles remain permanently colder than the equator. 
+
+The next component is the outgoing infra-red radiation.
+This is approximated to linearly depend on the temperature of Earth. Although
+the energy flow occurring within Earth's atmosphere is far more complex, 
+empirical data was used to establish the net flow of heat from
+Earth to the first order.
+
+The final component of energy flow is the transport of energy around Earth, from
+the hot equator to the relatively cooler poles. This depends on the difference
+between the average temperature of the earth and the temperature at each
+latitude.
+
+Combining these elements gives the dynamical equation for temperature to be
+
+\[
+  R\frac{\partial T(y,t)}{\partial t} = \underbrace{Qs(y) (1-\alpha(y,\eta))}_{\text{Insolation}}
+  - \underbrace{(A+BT(y,t))}_{\text{Reradiation}}
+  + \underbrace{C(\bar{T}-T(y,t))}_{\text{Transport}},
+\]
+
+where $A, B, C,$ and $R$ are constants found using empirical data, $Q$ is the
+annually averaged solar insolation experienced across the Earth, distributed
+according to latitude with the function 
+
+\[
+  s(y) = 1+ \frac{1}{2}c_\beta(3y^2-1) 
+\]
+
+where $c_\beta = \frac{5}{16}(3\sin^2\beta - 2)$ and $\beta$ is Earth's axial
+tilt or obliquity.
+
+
+\begin{figure}
+\centering
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{demo_budyko_0.pdf}
+  \caption{0 Years}
+  \label{fig:sub1}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{demo_budyko_1.pdf}
+  \caption{10 Years}
+  \label{fig:sub2}
+\end{subfigure}
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{demo_budyko_2.pdf}
+  \caption{3000 Years}
+  \label{fig:sub3}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{demo_budyko_3.pdf}
+  \caption{10000 Years}
+  \label{fig:sub4}
+\end{subfigure}
+\caption{A figure with two subfigures}
+\label{fig:test}
+\end{figure}
+
+
+\section{Insolation}
+To implement an asymmetrical version of the Budyko model, the difference
+between the northern and southern hemispheres must first be established.
+Insolation is solar irradiance per unit time. It is the first component that must be
+modelled to help identify how the two hemispheres differ. This simulation takes
+the values for eccentricity, obliquity, and precession from the
+forecasted data produced by Laskar \cite{milanko_data}.
+
+With this data, the simulation can show how daily insolation varies across
+latitudes and time. Figure \ref{fig:daily_ave_insol_all_lats} shows
+insolation across all latitudes during the year 2000. The Earth's orbital
+parameters at this point are shown in Table \ref{tab:orbital_params}.
+
+
+\begin{table}[h]
+  \centering
+  \caption{Earth's orbital parameters on the year 2000.}
+\label{tab:orbital_params}
+\begin{tabular}{lllll}
+\multicolumn{1}{l|}{Eccentricity:} & 0.0167 &  &  &  \\ \cline{1-2}
+\multicolumn{1}{l|}{Obliquity:}    & 0.4091 radians &  &  &  \\ \cline{1-2}
+\multicolumn{1}{l|}{Precession:}   & 2.9161 radians &  &  &  \\
+                                   &        &  &  &
+\end{tabular}
+\end{table}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\linewidth]{both_daily_ave_insolation_all_lats.pdf}
+  \caption{Contours showing the daily average irradiance (W/m$^2$) arriving at
+    the atmosphere for different latitudes over a year period. The left plot is
+  based on current orbital parameters, as shown in Table
+\ref{tab:orbital_params}, the right plot is how the irradiance will be
+distributed 1.015$\times10^6$ years from now, when eccentricity is 0.0582}
+  \label{fig:daily_ave_insol_all_lats}
+\end{figure}
+
+\begin{thebibliography}{30}
+  \bibitem{milanko_data}
+    Laskar J, Robutel P, Joutel F, Gastineau M, Correia AC, Levrard B. A
+    long-term numerical solution for the insolation quantities of the Earth.
+    Astronomy \& Astrophysics. 2004 Dec 1;428(1):261-85.
+\end{thebibliography}
 \end{document}
