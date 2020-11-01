@@ -1,4 +1,4 @@
-from sympy import pi, cos, sin, sqrt, atan, tan, symbols, Matrix
+from sympy import pi, cos, sin, sqrt, atan, tan, symbols, Matrix, lambdify
 import numpy as np
 
 #longitude, obliquity, latitude, precession, polar coord of earth
@@ -30,19 +30,25 @@ sym_lim_start = ((sqrt(cos(2*beta) + 2*cos(2*phi) - cos(2*rho - 2*theta) + cos(2
 
 sym_integral = alpha*sin(beta)*sin(phi)*cos(rho - theta) + (sin(alpha)*cos(beta)*cos(rho - theta) + sin(rho - theta)*cos(alpha))*cos(phi)
 
+# Lambda functions for the above symbolic equations
+lam_lim_start = lambdify([rho, beta, theta, phi], sym_lim_start, 'sympy')
+lam_lim_end= lambdify([rho, beta, theta, phi], sym_lim_end, 'sympy')
+lam_integral = lambdify([rho, beta, theta, phi, alpha], sym_integral, 'sympy')
+
 def set_milanko(rho_, beta_):
-    global subd_sym_lim_start, subd_sym_lim_end, subd_sym_integral
-    vals = {rho:rho_, beta:beta_}
-    subd_sym_lim_start = [elem.subs(vals) for elem in sym_lim_start]
-    subd_sym_lim_end = [elem.subs(vals) for elem in sym_lim_end]
-    subd_sym_integral = sym_integral.subs(vals)
-
-
+    """ Partially substitute (just milanko vals) into sym equations to save
+    having to do it every iteration (not necessary on a daily/yearly basis)"""
+    global subd_lam_lim_start, subd_lam_lim_end, subd_lam_integral
+    subd_lam_lim_start = lambdify([theta, phi],
+            lam_lim_start(rho_,beta_,theta,phi))
+    subd_lam_lim_end = lambdify([theta, phi],
+            lam_lim_end(rho_,beta_,theta,phi))
+    subd_lam_integral = lambdify([theta, phi, alpha],
+            lam_integral(rho_,beta_,theta,phi,alpha), 'sympy')
 
 def calculate_daily_insol(theta_, phi_, point_on_circ):
-    vals = {theta:theta_, phi:phi_}
-    lim_end_x, lim_end_y = [elem.subs(vals) for elem in subd_sym_lim_end]
-    lim_start_x, lim_start_y = [elem.subs(vals) for elem in subd_sym_lim_start]
+    lim_end_x, lim_end_y = subd_lam_lim_start(theta_, phi_)
+    lim_start_x, lim_start_y = subd_lam_lim_end(theta_, phi_)
     if not lim_end_x.is_real:
         # This means the circle does not intersect with the day/night plane
         n = Matrix([cos(theta_), sin(theta_), 0])
@@ -59,9 +65,8 @@ def calculate_daily_insol(theta_, phi_, point_on_circ):
     if alpha_lim_end < alpha_lim_start: alpha_lim_end+=2*np.pi
     if alpha_lim_end - alpha_lim_start > 2*np.pi: alpha_lim_end-=2*np.pi
 
-    integral_subbed = subd_sym_integral.subs(vals)
-    integral_end = integral_subbed.subs(alpha, alpha_lim_end)
-    integral_start = integral_subbed.subs(alpha, alpha_lim_start)
+    integral_end = subd_lam_integral(theta_, phi_, alpha_lim_end)
+    integral_start = subd_lam_integral(theta_, phi_, alpha_lim_start)
 
     return integral_end - integral_start
 
