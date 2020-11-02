@@ -1,9 +1,11 @@
-from sympy import pi, cos, sin, sqrt, atan, tan, symbols, Matrix, lambdify
-import numpy as np
+from sympy import pi, cos, sin, sqrt, atan2, tan, symbols, Matrix, lambdify, Piecewise
 
 #longitude, obliquity, latitude, precession, polar coord of earth
 alpha,      beta,      phi,      rho,        theta = symbols('alpha beta phi rho theta')
 
+# (x,y) coords for points over which to integrate (where there is daylight).
+# These are in the fixed axes with earth considered upright (unrotated) but the
+# sun (and so the day-night plane) is rotated inversely. 
 sym_lim_end = ((-sqrt(cos(2*beta) + 2*cos(2*phi) - cos(2*rho - 2*theta) + cos(2*beta
     - 2*rho + 2*theta)/2 + cos(2*beta + 2*rho - 2*theta)/2 +
     1)*cos(beta)*cos(rho - theta)/(2*(sin(rho - theta)**2 +
@@ -28,51 +30,35 @@ sym_lim_start = ((sqrt(cos(2*beta) + 2*cos(2*phi) - cos(2*rho - 2*theta) + cos(2
         - sin(beta)*sin(phi)*sin(rho - theta)*cos(rho -
             theta)/(sin(beta)**2*cos(rho - theta)**2 - 1))
 
+# Symbolic integral wrt longitude (alpha) of the equation for insol at specific
+# point taken from "A Paleoclimate Model of Ice-Albedo..." - Richard McGehee et al
 sym_integral = alpha*sin(beta)*sin(phi)*cos(rho - theta) + (sin(alpha)*cos(beta)*cos(rho - theta) + sin(rho - theta)*cos(alpha))*cos(phi)
 
-# Lambda functions for the above symbolic equations
-lam_lim_start = lambdify([rho, beta, theta, phi], sym_lim_start, 'sympy')
-lam_lim_end= lambdify([rho, beta, theta, phi], sym_lim_end, 'sympy')
-lam_integral = lambdify([rho, beta, theta, phi, alpha], sym_integral, 'sympy')
+# Condition such that if this is less than 0, the limits will be complex and the
+# circle of constant latitude must lie entirely on one side of the day/night plane
+real_condition = -sin(beta)**2*sin(phi)**2*cos(rho - theta)**2 + sin(rho -
+        theta)**2*cos(phi)**2 + cos(beta)**2*cos(phi)**2*cos(rho - theta)**2
 
-def set_milanko(rho_, beta_):
-    """ Partially substitute (just milanko vals) into sym equations to save
-    having to do it every iteration (not necessary on a daily/yearly basis)"""
-    global subd_lam_lim_start, subd_lam_lim_end, subd_lam_integral
-    subd_lam_lim_start = lambdify([theta, phi],
-            lam_lim_start(rho_,beta_,theta,phi))
-    subd_lam_lim_end = lambdify([theta, phi],
-            lam_lim_end(rho_,beta_,theta,phi))
-    subd_lam_integral = lambdify([theta, phi, alpha],
-            lam_integral(rho_,beta_,theta,phi,alpha), 'sympy')
+# Condition such that if 'real_condition' is < 0 i.e. limits are complex, then
+# this will be negative if its entirely day and positive if its all night
+day_night = cos(beta - phi)*cos(rho - theta)
 
-def calculate_daily_insol(theta_, phi_, point_on_circ):
-    lim_end_x, lim_end_y = subd_lam_lim_start(theta_, phi_)
-    lim_start_x, lim_start_y = subd_lam_lim_end(theta_, phi_)
-    if not lim_end_x.is_real:
-        # This means the circle does not intersect with the day/night plane
-        n = Matrix([cos(theta_), sin(theta_), 0])
-        day = max(0,-n.dot(point_on_circ))
-        if day:
-            alpha_lim_start, alpha_lim_end = 0, 2*np.pi 
-        else:
-            return 0
-    else:
-        alpha_lim_end = np.arctan2(float(lim_end_y),float(lim_end_x))
-        alpha_lim_start = np.arctan2(float(lim_start_y),float(lim_start_x))
-    
-    # Alter long vals to avoid integrating the wrong way round the earth 
-    if alpha_lim_end < alpha_lim_start: alpha_lim_end+=2*np.pi
-    if alpha_lim_end - alpha_lim_start > 2*np.pi: alpha_lim_end-=2*np.pi
+# Turn x-y coords for limits into corresponding longitude
+alpha_lim_start = atan2(*sym_lim_start[::-1])
+alpha_lim_end = atan2(*sym_lim_end[::-1])
 
-    integral_end = subd_lam_integral(theta_, phi_, alpha_lim_end)
-    integral_start = subd_lam_integral(theta_, phi_, alpha_lim_start)
+# Make piecewise limits since integral should be 0 if entirely night and over
+# [0,2pi] if entirely day, otherwise calculated limits used.
+lim_end = Piecewise((alpha_lim_end,real_condition>0),(0,day_night>0),(2*pi,day_night<0))
+lim_start = Piecewise((alpha_lim_start,real_condition>0),(0,True))
 
-    return integral_end - integral_start
+# Final integral given by I(end)-I(start) and turned into lambda function for use
+final_integral = sym_integral.subs(alpha,lim_end) - sym_integral.subs(alpha,lim_start)
+daily_insol_ratio = lambdify([rho,beta,theta,phi],final_integral/(2*pi))
 
 
-"""
-#Here is the code used to generate the integral and lims above
+'''
+#Here is the code used to generate the integral and cartesian lims above
 
 from sympy import *
 init_printing()
@@ -108,4 +94,4 @@ plane = a*x + b*y + c*z
 plane = trigsimp(plane.subs(z, sin(phi)))
 circ = x**2 + y**2 - cos(phi)**2
 sol = solve([plane, circ], [x, y], check=False)
-"""
+'''
