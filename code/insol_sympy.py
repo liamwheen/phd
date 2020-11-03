@@ -46,15 +46,23 @@ day_night = cos(beta - phi)*cos(rho - theta)
 # Turn x-y coords for limits into corresponding longitude
 alpha_lim_start = atan2(*sym_lim_start[::-1])
 alpha_lim_end = atan2(*sym_lim_end[::-1])
+# Fix long limits so intetgration goes the right way round
+# Should possible to do this better as it slows down simulation a lot
+alpha_lim_end = Piecewise((alpha_lim_end - 2*pi, alpha_lim_end-alpha_lim_start>2*pi),
+                          (alpha_lim_end + 2*pi, alpha_lim_end<alpha_lim_start),
+                          (alpha_lim_end,True))
+
+                          
+                          
 
 # Make piecewise limits since integral should be 0 if entirely night and over
 # [0,2pi] if entirely day, otherwise calculated limits used.
-lim_end = Piecewise((alpha_lim_end,real_condition>0),(0,day_night>0),(2*pi,day_night<0))
+lim_end = Piecewise((alpha_lim_end,real_condition>0),(0,day_night>0),(2*pi,day_night<=0))
 lim_start = Piecewise((alpha_lim_start,real_condition>0),(0,True))
 
 # Final integral given by I(end)-I(start) and turned into lambda function for use
 final_integral = sym_integral.subs(alpha,lim_end) - sym_integral.subs(alpha,lim_start)
-daily_insol_ratio = lambdify([rho,beta,theta,phi],final_integral/(2*pi))
+daily_insol_ratio = lambdify([rho,beta,theta,phi],final_integral/(2*pi),'sympy')
 
 
 '''
