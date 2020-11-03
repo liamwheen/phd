@@ -13,28 +13,23 @@ https://en.wikipedia.org/wiki/Solar_constant#Relationship_to_other_measurements
 k2day = 365250
 au = 149597870700 # metres
 q = 152096508529**2*1.321e3 # scaled irradiance const such that this over R**2 is irradiance at atmosphere
-tmin = 0#30*k2day#1015*k2day# how far in the future to start
-tmax = tmin + 500*k2day# days
-num_steps = 501
-
-# Interpolate milankovitch data to fit timescale
-# Loads milanko data for future
-milanko_t, milanko_ecc, milanko_obliq, milanko_l_peri = milanko_params.load_forward_milanko()
-krange = range(tmin//k2day,2+max(1,tmax//k2day))
-eps_func = interp1d(milanko_t[krange], milanko_ecc[krange])
-beta_func = interp1d(milanko_t[krange], milanko_obliq[krange])
-l_peri_func = interp1d(milanko_t[krange], milanko_l_peri[krange])
 
 class Insolation:
 
-    def __init__(self):
-        self.t_span = np.linspace(tmin,tmax,num_steps)
+    def __init__(self, tmin, tmax, milanko_direction='forward'):
+        # Interpolate milankovitch data to fit timescale
+        # Loads milanko data for future
+        milanko_t, milanko_ecc, milanko_obliq, milanko_l_peri = milanko_params.load_milanko(milanko_direction)
+        krange = range(tmin//k2day,2+max(1,tmax//k2day))
+        self.eps_func = interp1d(milanko_t[krange], milanko_ecc[krange])
+        self.beta_func = interp1d(milanko_t[krange], milanko_obliq[krange])
+        self.l_peri_func = interp1d(milanko_t[krange], milanko_l_peri[krange])
         self.milanko_update(tmin)
 
     def milanko_update(self, t):
-        self.eps = float(eps_func(t/k2day))
-        self.beta = float(beta_func(t/k2day))
-        self.l_peri = float(l_peri_func(t/k2day))
+        self.eps = float(self.eps_func(t/k2day))
+        self.beta = float(self.beta_func(t/k2day))
+        self.l_peri = float(self.l_peri_func(t/k2day))
         # Here we shift from (vernal eq to perihelion) to (aphelion (x-axis) to summer eq)
         self.rho = ((1/2)*np.pi - self.l_peri)%(2*np.pi) - np.pi
         self.a = self.ellipse_axes(self.eps)[0]
@@ -44,7 +39,6 @@ class Insolation:
         lat = lat*np.pi/180
         R  = self.rotate_mat(self.beta, self.rho)
         theta = self.polar_pos(t)[1]
-        point_on_circ = R.dot(self.latlon2unit(lat,0))
         insol_ave = -self.insol*insol_sympy.daily_insol_ratio(self.rho, self.beta, theta, lat)
         return insol_ave
 
@@ -107,14 +101,18 @@ class Insolation:
 
     def update(self, t):
             self.milanko_update(t)
-            t = self.last_sum_solst(t)
+            #t = self.last_sum_solst(t)
             self.insol = q/self.polar_pos(t)[0]**2
-            return [self.I_lat_ave(65,t)]
+            return [self.I_lat_ave(85,t)]
 
 if __name__ =="__main__":
-    model = Insolation()
+    tmin = -10*k2day
+    tmax = 0
+    num_steps = 51
+    t_span = np.linspace(tmin,tmax,num_steps)
+    model = Insolation(tmin, tmax, 'backward')
     insol_vals = np.array([None]*num_steps)
-    for i, t in enumerate(model.t_span):
+    for i, t in enumerate(t_span):
         insol_vals[i] = model.update(t)[0]
 
     #np.savetxt('insol_vals.csv',insol_vals,delimiter=',')

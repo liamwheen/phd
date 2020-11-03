@@ -3,22 +3,22 @@ from matplotlib.animation import FuncAnimation
 import numpy as np
 import insolation
 
-frame_refr = 1
+frame_refr = 5
 k2day = 365250
 tmin = 0 # days
-tmax = tmin + 500*k2day
+tmax = tmin + 500
 num_steps = 501
 t_span = np.linspace(tmin,tmax,num_steps)
 
 class Animate:
     def __init__(self):
-        self.sim = insolation.Insolation()
-        self.insol_vals = np.array([[None]*1]*insolation.num_steps)
+        self.sim = insolation.Insolation(tmin, tmax, milanko_direction='forward')
+        self.insol_vals = np.array([[None]*1]*num_steps)
 
     def iter_func(self):
         for frame, t in enumerate(t_span):
             self.insol_vals[frame,:] = self.sim.update(t)
-            if frame%frame_refr==0 or t==self.t_span[-1]:
+            if frame%frame_refr==0 or t==t_span[-1]:
                 yield t
 
     def update(self, t):
@@ -42,7 +42,7 @@ class Animate:
         #self.insol_plot2.set_xdata(np.linspace(tmin/365,tmax/356,len(self.sim.insol_vals)))
         #self.insol_plot2.set_ydata(self.sim.insol_vals[:,1])
         self.insol_ax.set_xlim([tmin/365,max(t/365,tmin/365+1)])
-        self.insol_ax.set_ylim([400,600])
+        #self.insol_ax.set_ylim([400,600])
 
     def init(self):
         self.ellipse, = self.ax.plot([],[],'m--',linewidth=0.5)
