@@ -4,19 +4,18 @@ from scipy.interpolate import interp1d
 from scipy.optimize import root
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-import insol_sympy
-
-"""
-https://en.wikipedia.org/wiki/Solar_constant#Relationship_to_other_measurements
-"""
+from insol_sympy import calc_daily_average
 
 k2day = 365250
 au = 149597870700 # metres
-q = 152096508529**2*1.321e3 # scaled irradiance const such that this over R**2 is irradiance at atmosphere
+# scaled irradiance const such that this over R**2 is irradiance at atmosphere
+# using aphelion as 1.52e11 and irradiance at equator atmosphere as 1.321e3
+# min irradiance val taken from https://en.wikipedia.org/wiki/Solar_constant#Relationship_to_other_measurements
+q = 152096508529**2*1.321e3
 
 class Insolation:
 
-    def __init__(self, tmin, tmax, milanko_direction='forward'):
+    def __init__(self, tmin=0, tmax=100*k2day, milanko_direction='forward'):
         # Interpolate milankovitch data to fit timescale
         # Loads milanko data for future
         milanko_t, milanko_ecc, milanko_obliq, milanko_l_peri = milanko_params.load_milanko(milanko_direction)
@@ -25,21 +24,24 @@ class Insolation:
         self.beta_func = interp1d(milanko_t[krange], milanko_obliq[krange])
         self.l_peri_func = interp1d(milanko_t[krange], milanko_l_peri[krange])
         self.milanko_update(tmin)
+        # Using approximation that max axis remains constant as shown in Laskar '04 pg273
+        self.a = au
 
     def milanko_update(self, t):
         self.eps = float(self.eps_func(t/k2day))
         self.beta = float(self.beta_func(t/k2day))
         self.l_peri = float(self.l_peri_func(t/k2day))
-        # Here we shift from (vernal eq to perihelion) to (aphelion (x-axis) to summer eq)
+        # Here we shift from (vernal eq to perihelion) to (aphelion (x-axis) to
+        # north pole direction in ecliptic plane)
         self.rho = ((1/2)*np.pi - self.l_peri)%(2*np.pi) - np.pi
-        self.a = self.ellipse_axes(self.eps)[0]
 
-    def I_lat_ave(self, lat, t):
+    def I_lat_ave(self, lats, t):
         """ Daily average insolation recieved at lat on Earth on day 't'"""
-        lat = lat*np.pi/180
+        lats = np.array(lats)*np.pi/180
         R  = self.rotate_mat(self.beta, self.rho)
         theta = self.polar_pos(t)[1]
-        insol_ave = -self.insol*insol_sympy.daily_insol_ratio(self.rho, self.beta, theta, lat)
+        insol_ave = calc_daily_average(self.rho, self.beta,
+                theta, lats, self.eps)
         return insol_ave
 
     def latlon2unit(self, lat, lon):
@@ -84,14 +86,6 @@ class Insolation:
     def pol2cart(self, r, theta):
         return np.array([r*np.cos(theta), r*np.sin(theta), 0])
 
-    def ellipse_axes(self, eps):
-        """ Estimates ellipse min axis using approximation that max axis
-        remains constant as shown in Laskar '04 pg273"""
-        ecc = self.eps
-        a = au #Assumes the semimajor axis is 1au
-        b = a*np.sqrt(1-ecc**2)
-        return a, b
-
     def last_sum_solst(self, t):
         """ Tracks back over the past year to find the day of the summer solstice"""
         for t_summer in np.linspace(t,t-365,366):
@@ -99,20 +93,21 @@ class Insolation:
             if abs((np.pi-self.rho) - (2*np.pi-theta)) < 0.02:
                 return t_summer
 
-    def update(self, t):
-            self.milanko_update(t)
-            #t = self.last_sum_solst(t)
-            self.insol = q/self.polar_pos(t)[0]**2
-            return [self.I_lat_ave(85,t)]
+    def update(self, t, lats):
+        self.milanko_update(t)
+        #t = self.last_sum_solst(t)
+        self.insol = q/self.polar_pos(t)[0]**2
+        return self.I_lat_ave(lats,t)
 
 if __name__ =="__main__":
-    tmin = -10*k2day
+    tmin = -150*k2day
     tmax = 0
-    num_steps = 51
+    num_steps = 151
     t_span = np.linspace(tmin,tmax,num_steps)
     model = Insolation(tmin, tmax, 'backward')
-    insol_vals = np.array([None]*num_steps)
+    insol_vals = np.array([[None]*91]*num_steps)
     for i, t in enumerate(t_span):
-        insol_vals[i] = model.update(t)[0]
+        insol_vals[i,:] = model.update(t,np.linspace(-90,90,91))
+        print(t/365.26)
 
     #np.savetxt('insol_vals.csv',insol_vals,delimiter=',')

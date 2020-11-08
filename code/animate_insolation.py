@@ -3,30 +3,32 @@ from matplotlib.animation import FuncAnimation
 import numpy as np
 import insolation
 
-frame_refr = 5
-k2day = 365250
-tmin = 0 # days
+frame_refr = 1
+year = 365.25
+k2day = int(year*1000)
+tmin = 0
 tmax = tmin + 500
-num_steps = 501
+num_steps = 200
 t_span = np.linspace(tmin,tmax,num_steps)
 
 class Animate:
     def __init__(self):
         self.sim = insolation.Insolation(tmin, tmax, milanko_direction='forward')
-        self.insol_vals = np.array([[None]*1]*num_steps)
+        self.insol_vals = np.array([[None]*2]*num_steps)
 
     def iter_func(self):
         for frame, t in enumerate(t_span):
-            self.insol_vals[frame,:] = self.sim.update(t)
+            self.insol_vals[frame,:] = self.sim.update(t, [-30,30])
             if frame%frame_refr==0 or t==t_span[-1]:
                 yield t
 
     def update(self, t):
-        self.ax.set_title('Days Since Aphelion: {:.1f}'.format(t%365.25))
+        self.ax.set_title('Days Since Aphelion: {:.1f}'.format(t%year))
         self.ax.set_ylabel('Semi-minor axis')
         self.ax.set_xlabel('Semi-major axis')
         theta = np.linspace(0, 2*np.pi, 100)
-        a,b = self.sim.ellipse_axes(self.sim.eps)
+        a = self.sim.a
+        b = a*np.sqrt(1-self.sim.eps**2)
         sun = np.sqrt(a**2-b**2)
         self.ellipse.set_xdata(sun+a*np.cos(theta))
         self.ellipse.set_ydata(b*np.sin(theta))
@@ -37,11 +39,11 @@ class Animate:
         lon0x, lon0y, _ = self.sim.rotate_mat(self.sim.beta, self.sim.rho).dot(latlon_unit)
         self.latlon0.set_xdata([earthx,earthx+1e11*lon0x])
         self.latlon0.set_ydata([earthy,earthy+1e11*lon0y])
-        self.insol_plot.set_xdata(np.linspace(tmin/365,tmax/365,len(self.insol_vals)))
+        self.insol_plot.set_xdata(np.linspace(tmin/year,tmax/year,len(self.insol_vals)))
         self.insol_plot.set_ydata(self.insol_vals[:,0])
-        #self.insol_plot2.set_xdata(np.linspace(tmin/365,tmax/356,len(self.sim.insol_vals)))
-        #self.insol_plot2.set_ydata(self.sim.insol_vals[:,1])
-        self.insol_ax.set_xlim([tmin/365,max(t/365,tmin/365+1)])
+        self.insol_plot2.set_xdata(np.linspace(tmin/year,tmax/year,len(self.insol_vals)))
+        self.insol_plot2.set_ydata(self.insol_vals[:,1])
+        self.insol_ax.set_xlim([tmin/year,max(t/year,tmin/year+1)])
         #self.insol_ax.set_ylim([400,600])
 
     def init(self):
@@ -53,7 +55,7 @@ class Animate:
         self.insol_ax.set_ylabel('Ave Insol')
         self.insol_ax.yaxis.tick_right()
         self.insol_plot, = self.insol_ax.plot([],[],'b')
-        #self.insol_plot2, = self.insol_ax.plot([],[],'r')
+        self.insol_plot2, = self.insol_ax.plot([],[],'r')
         self.ax.plot([0],[0],'yo',linewidth=4)
         au = insolation.au
         self.ax.set_xlim([-1.5*au,1.5*au])
