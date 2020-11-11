@@ -3,8 +3,8 @@ from scipy.integrate import quad_vec
 # This is done to prevent the warning that appears when the sqrt of a negative
 # is taken. This complex value is never used (due to the piecewise condition)
 # but is still calculated before being checked.
-import warnings
-warnings.filterwarnings("ignore")
+#import warnings
+#warnings.filterwarnings("ignore")
 
 def calc_daily_average(rho, beta, theta, phi, eps):
     x0 = rho - theta
@@ -45,9 +45,9 @@ def calc_daily_average(rho, beta, theta, phi, eps):
     return (x28*(x25*x7 + x26*cos(x25) + x27*sin(x25)) - x28*(x26*cos(x32) + x27*sin(x32) + x32*x7))/(2*pi)
 
 
-def calc_yearly_average(rho, beta, phi, eps):
+def calc_yearly_average(beta, phi, eps):
     def g(theta):
-        x0 = rho - theta
+        x0 = 1-theta
         x1 = sin(x0)
         x2 = sin(beta)
         x3 = cos(x0)
@@ -60,7 +60,7 @@ def calc_yearly_average(rho, beta, phi, eps):
         x10 = cos(beta)
         x11 = x10**2*x4
         x12 = 2*beta
-        x13 = 2*rho
+        x13 = 2
         x14 = 2*theta
         x15 = x13 - x14
         x16 = x10*x3
@@ -76,7 +76,7 @@ def calc_yearly_average(rho, beta, phi, eps):
         x26 = x1*x24
         x27 = eps**2
         x28 = (eps*cos(theta) - 1)**2
-        x29 = 1365.49615900093*x28/(x27 - 1)**2
+        x29 = 1372.5450774496085*x28/(x27 - 1)**2
         x30 = x29*(x18*x23*x25 + x21*x23*x26 + x22*x7)
         x31 = 2*pi
         x32 = -x17 + x8
@@ -195,7 +195,7 @@ yearly_average = Integral(daily_average*dtheta_coef, (theta,0,2*pi))
 calc_yearly_average = lambdify([rho, beta, phi, eps],
         yearly_average,'sympy')
 
-# Then use sympy.cse to get the decomposition of the yearly lambda function for
+# Then use sympy.cse to get the decomposition of yearly_average for
 # much faster substitution
-"""
 
+"""
