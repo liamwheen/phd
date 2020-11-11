@@ -7,14 +7,35 @@ frame_refr = 1
 year = 365.25
 k2day = int(year*1000)
 tmin = 0
-tmax = tmin + 500
-num_steps = 200
+tmax = tmin + year*2
+num_steps = 100
 t_span = np.linspace(tmin,tmax,num_steps)
 
 class Animate:
     def __init__(self):
         self.sim = insolation.Insolation(tmin, tmax, milanko_direction='forward')
         self.insol_vals = np.array([[None]*2]*num_steps)
+
+    def pol2cart(self, r, theta):
+        return np.array([r*np.cos(theta), r*np.sin(theta), 0])
+
+    def rotate_mat(self, b, p):
+        """ Combined rotation matrix for Earth vectors to account for obliquity and precession"""
+        Ub = np.array([[np.cos(b) , 0, np.sin(b)],
+                       [0         , 1, 0        ],
+                       [-np.sin(b), 0, np.cos(b)]])
+
+        Up = np.array([[np.cos(p) , -np.sin(p), 0],
+                       [np.sin(p) , np.cos(p) , 0],
+                       [0         , 0         , 1]])
+        return Up.dot(Ub)
+
+    def latlon2unit(self, lat, lon):
+        """ Turn lat/lon coords into unit vector with Earth's centre as origin
+            Gives in Earth based axes, not inertial axes"""
+        return np.array([np.cos(lat)*np.cos(lon),
+                         np.cos(lat)*np.sin(lon),
+                         np.sin(lat)            ])
 
     def iter_func(self):
         for frame, t in enumerate(t_span):
@@ -32,11 +53,11 @@ class Animate:
         sun = np.sqrt(a**2-b**2)
         self.ellipse.set_xdata(sun+a*np.cos(theta))
         self.ellipse.set_ydata(b*np.sin(theta))
-        earthx, earthy, _ = self.sim.pol2cart(*self.sim.polar_pos(t))
+        earthx, earthy, _ = self.pol2cart(*self.sim.polar_pos(t))
         self.earth.set_xdata(earthx)
         self.earth.set_ydata(earthy)
-        latlon_unit = self.sim.latlon2unit(0,0)
-        lon0x, lon0y, _ = self.sim.rotate_mat(self.sim.beta, self.sim.rho).dot(latlon_unit)
+        latlon_unit = self.latlon2unit(0,0)
+        lon0x, lon0y, _ = self.rotate_mat(self.sim.beta, self.sim.rho).dot(latlon_unit)
         self.latlon0.set_xdata([earthx,earthx+1e11*lon0x])
         self.latlon0.set_ydata([earthy,earthy+1e11*lon0y])
         self.insol_plot.set_xdata(np.linspace(tmin/year,tmax/year,len(self.insol_vals)))
@@ -68,7 +89,7 @@ class Animate:
         self.fig = plt.figure()
         self.ax = self.fig.add_subplot(111)
         ani = FuncAnimation(self.fig, self.update,
-                frames=self.iter_func, init_func=self.init, interval=1, repeat=False)
+                frames=self.iter_func, init_func=self.init, interval=50, repeat=False)
         plt.show()
 
 anim = Animate()

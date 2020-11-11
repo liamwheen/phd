@@ -11,7 +11,9 @@ au = 149597870700 # metres
 # scaled irradiance const such that this over R**2 is irradiance at atmosphere
 # using aphelion as 1.52e11 and irradiance at equator atmosphere as 1.321e3
 # min irradiance val taken from https://en.wikipedia.org/wiki/Solar_constant#Relationship_to_other_measurements
-q = 152096508529**2*1.321e3
+#q = 152096508529**2*1.321e3
+q = 3.86e+26/(4*np.pi) #Suns total irradiance over 4pi, needs dividing by r^2
+
 
 class Insolation:
 
@@ -38,30 +40,10 @@ class Insolation:
     def I_lat_ave(self, lats, t):
         """ Daily average insolation recieved at lat on Earth on day 't'"""
         lats = np.array(lats)*np.pi/180
-        R  = self.rotate_mat(self.beta, self.rho)
         theta = self.polar_pos(t)[1]
         insol_ave = calc_daily_average(self.rho, self.beta,
                 theta, lats, self.eps)
         return insol_ave
-
-    def latlon2unit(self, lat, lon):
-        """ Turn lat/lon coords into unit vector with Earth's centre as origin
-            Gives in Earth based axes, not inertial axes"""
-        return np.array([np.cos(lat)*np.cos(lon), 
-                         np.cos(lat)*np.sin(lon), 
-                         np.sin(lat)            ])
-
-    def rotate_mat(self, b, p):
-        """ Combined rotation matrix for Earth vectors to account for obliquity and precession"""
-        Ub = np.array([[np.cos(b) , 0, np.sin(b)],
-                       [0         , 1, 0        ],
-                       [-np.sin(b), 0, np.cos(b)]])
-
-        Up = np.array([[np.cos(p) , -np.sin(p), 0],
-                       [np.sin(p) , np.cos(p) , 0],
-                       [0         , 0         , 1]])
-
-        return Up.dot(Ub)
 
     def midpoint_E(self, M, eps):
         E_func = lambda E: E - eps*np.sin(E) - M
@@ -83,9 +65,6 @@ class Insolation:
         r = self.a*(1 - self.eps*np.cos(E))
         return r, theta
 
-    def pol2cart(self, r, theta):
-        return np.array([r*np.cos(theta), r*np.sin(theta), 0])
-
     def last_sum_solst(self, t):
         """ Tracks back over the past year to find the day of the summer solstice"""
         for t_summer in np.linspace(t,t-365,366):
@@ -100,14 +79,13 @@ class Insolation:
         return self.I_lat_ave(lats,t)
 
 if __name__ =="__main__":
-    tmin = -150*k2day
+    tmin = -365.25
     tmax = 0
-    num_steps = 151
+    num_steps = 1000
     t_span = np.linspace(tmin,tmax,num_steps)
     model = Insolation(tmin, tmax, 'backward')
-    insol_vals = np.array([[None]*91]*num_steps)
+    insol_vals = np.array([[None]*181]*num_steps)
     for i, t in enumerate(t_span):
         insol_vals[i,:] = model.update(t,np.linspace(-90,90,91))
-        print(t/365.26)
 
     #np.savetxt('insol_vals.csv',insol_vals,delimiter=',')
