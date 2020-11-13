@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 from matplotlib.animation import FuncAnimation
 from data import milanko_params # Values given in 1000 year time steps
+from insol_sympy import calc_yearly_average
 
 year2sec = 3.154e+7 #Translate time dependent units to 'per year' instead of 'per second'
 
@@ -18,11 +19,12 @@ S = 2.5*10**12
 Q_0 = 343 #Wm^-2
         
 #n0 = 0.2487 # Unstable equilibrium initial iceline
-eta0 = 0.49 # Initial Iceline
-tmax = 40 # Years
+eta0 = 0.5#0.49 # Initial Iceline
+tmin = 0
+tmax = 10 # Years
 
-num_steps = 1*10**4
-frame_refr = num_steps//(3*10**2)
+num_steps = 100
+frame_refr = 1
         
 class Budyko:
     def __init__(self):
@@ -30,13 +32,16 @@ class Budyko:
         self.y_delta = self.y_span[1]
         self.t_span = np.linspace(0,tmax*year2sec,num_steps) #years
         self.T_record = np.zeros((self.t_span.size,self.y_span.size)) 
-        self.eps_func = interp1d(milanko_params.t[:1+max(1,tmax//1000)], milanko_params.ecc[:1+max(1,tmax//1000)])
-        self.beta_func = interp1d(milanko_params.t[:1+max(1,tmax//1000)], milanko_params.obliq[:1+max(1,tmax//1000)])
-        self.Q_e = Q_0/(np.sqrt(1-self.eps_func(0)**2))
-        self.c_b = (5/16)*(3*np.sin(self.beta_func(0))**2 - 2)
+        milanko_t, milanko_ecc, milanko_obliq, milanko_l_peri = milanko_params.load_milanko('forward')
+        krange = range(tmin//1000,2+max(1,tmax//1000))
+        self.eps_func = interp1d(milanko_t[krange], milanko_ecc[krange])
+        self.beta_func = interp1d(milanko_t[krange], milanko_obliq[krange])
+        self.l_peri_func = interp1d(milanko_t[krange], milanko_l_peri[krange])
+        self.c_b = (5/16)*(3*np.sin(0.4091)**2 - 2)#(5/16)*(3*np.sin(self.beta_func(0))**2 - 2)
         self.delta = self.t_span[1]
         self.eta = eta0 #n initial
-        #self.T = self.T_star(self.y_span) #set temp profile to eq profile
+        self.milanko_update(0)
+#self.T = self.T_star(self.y_span) #set temp profile to eq profile
         self.T = np.zeros(self.y_span.size)
         self.T_eta = self.T_y(self.T_star(self.y_span), self.eta)
 
@@ -70,15 +75,18 @@ class Budyko:
         return f/R
 
     def T_y(self, T, y):
-        shift = -1 if y>0.5 else 0
+        shift = -1*(y>0.5)
         ind = np.clip(np.round(y*T.size),0,T.size-1).astype(int) + shift
         return T[ind]
 
     def milanko_update(self, t):
-        self.eps = self.eps_func(t/year2sec/1000)
-        self.beta = self.beta_func(t/year2sec/1000)
-        self.Q_e =  Q_0/(np.sqrt(1-self.eps**2))
-        self.c_b = (5/16)*(3*np.sin(self.beta)**2 - 2)
+        self.eps = float(self.eps_func(t/year2sec/1000))
+        self.beta = float(self.beta_func(t/year2sec/1000))
+        self.l_peri = float(self.l_peri_func(t/year2sec/1000))
+        # Here we shift from (vernal eq to perihelion) to (aphelion (x-axis) to
+        # north pole direction in ecliptic plane)
+        self.rho = ((1/2)*np.pi - self.l_peri)%(2*np.pi) - np.pi
+        self.Q_e = Q_0/(np.sqrt(1-self.eps**2))
      
     def iter_func(self):
         #Iter over all time points
@@ -92,15 +100,14 @@ class Budyko:
                 yield t
 
     def update(self, t):
-        self.ax.set_ylabel('T(y, {:.1e} years) (°C)'.format(t/year2sec))
-        self.ax.set_xlabel('y = sin(Latitude)')
+        self.ax.set_ylabel('$T(y$, {:.1e} years) (°C)'.format(t/year2sec))
         self.temp.set_xdata(self.y_span)
         self.temp.set_ydata(self.T)
         self.ice.set_xdata(self.eta)
-        self.T_star_eta.set_xdata(self.eta)
-        self.T_star_eta.set_ydata(self.T_eta)
-        self.equil_T.set_xdata(self.y_span)
-        self.equil_T.set_ydata(self.T_star(self.y_span))
+        #self.T_star_eta.set_xdata(self.eta)
+        #self.T_star_eta.set_ydata(self.T_eta)
+        #self.equil_T.set_xdata(self.y_span)
+        #self.equil_T.set_ydata(self.T_star(self.y_span))
         #self.ax.set_ylim(min(self.T),max(self.T))
         self.ax.set_ylim(-50,50)
         self.ice.set_ydata(self.ax.get_ylim())
@@ -110,12 +117,13 @@ class Budyko:
     def animate(self):
         self.fig, self.ax = plt.subplots()
         self.ydata, self.Tdata = [], []
-        self.temp, = self.ax.plot([], [], 'g-', label='Temperature Profile')
-        self.ice, = self.ax.plot([], [], 'b-', label='sin(Iceline Position)')
-        self.T_star_eta, = self.ax.plot([], [], 'ro', label='Equilibrium Temperature at Iceline')
-        self.equil_T, = self.ax.plot([], [], 'm-', label='Equilibrium Temperature Profile')
+        self.temp, = self.ax.plot([], [], 'r-', label='Temperature Profile',linewidth=3)
+        self.ice, = self.ax.plot([], [], 'b-', label='sin(iceline)',linewidth=3)
+        #self.T_star_eta, = self.ax.plot([], [], 'ro', label='Temperature at Iceline')
+        #self.equil_T, = self.ax.plot([], [], 'm-', label='Equilibrium Temperature Profile')
         #self.grad, = self.ax.plot([], [], 'k', linewidth=0.5, label='Gradient (scaled)')
         self.ax.set_xlim(self.y_span[0], self.y_span[-1])
+        self.ax.set_xlabel('y = sin(latitude)')
         self.fig.legend(framealpha=1)
         ani = FuncAnimation(self.fig, self.update, frames=self.iter_func, interval=1, repeat=False)
         plt.show()
@@ -123,23 +131,3 @@ class Budyko:
 model = Budyko()
 model.animate()
 plt.show()
-
-#from mpl_toolkits.mplot3d import Axes3D
-#from matplotlib import cm
-#fig = plt.figure()
-#ax = fig.add_subplot(111, projection='3d')
-#x = model.t_span/year2sec
-#y = model.y_span
-#X, Y = np.meshgrid(x,y)
-#ax.plot_surface(X,Y,model.T_record.T, cmap=cm.coolwarm,
-#                       linewidth=0, antialiased=False)
-#ax.set_xlabel('Time (Years)')
-#ax.set_ylabel('sin(Latitude)')
-#ax.set_zlabel('Temperature (deg)')
-
-#plt.show()
-
-
-#plt.plot(model.y_span, model.s_b(model.y_span))
-#plt.plot(model.y, model.y.size*[1])
-#plt.plot(model.y, np.cumsum(model.s_b(model.y))*model.y_delta)
