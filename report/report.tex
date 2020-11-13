@@ -82,7 +82,8 @@ This depends on the irradiance given out by the sun, as well as the distance
 and orientation of the Earth to the sun. The amount of insolation experienced
 at different latitudes varies proportional to the
 cosine of the angle between the ecliptic plane and the corresponding point on
-Earth. This is why the poles remain permanently colder than the equator. 
+Earth. This is why the poles receive less insolation over the year than the
+equator.
 
 The next component is the outgoing infra-red radiation.
 This is approximated to linearly depend on the temperature of Earth. Although
@@ -121,41 +122,168 @@ tilt or obliquity.
   \centering
   \includegraphics[width=\linewidth]{demo_budyko_0.pdf}
   \caption{0 Years}
-  \label{fig:sub1}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
   \centering
   \includegraphics[width=\linewidth]{demo_budyko_1.pdf}
   \caption{10 Years}
-  \label{fig:sub2}
 \end{subfigure}
 \begin{subfigure}{.5\textwidth}
   \centering
   \includegraphics[width=\linewidth]{demo_budyko_2.pdf}
   \caption{3000 Years}
-  \label{fig:sub3}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
   \centering
   \includegraphics[width=\linewidth]{demo_budyko_3.pdf}
-  \caption{10000 Years}
-  \label{fig:sub4}
+  \caption{10\,000 Years}
 \end{subfigure}
-\caption{A figure with two subfigures}
-\label{fig:test}
+\caption{Snapshots of a Budyko simulation starting with 0$^\circ$C at all
+latitudes and the ice line at $y=0.5$. The orbital parameters used are shown in
+Table \ref{tab:orbital_params}. We first see the temperature profile
+equilibrate within 10 years. The ice line then recedes 
+towards the stable equilibrium point at $y=0.9544$, taking 10\,000 years to get
+within 3\% of this point.}
+\label{fig:budyko_demo}
 \end{figure}
 
 
 \section{Insolation}
 To implement an asymmetrical version of the Budyko model, the difference
 between the northern and southern hemispheres must first be established.
-Insolation is solar irradiance per unit time. It is the first component that must be
-modelled to help identify how the two hemispheres differ. This simulation takes
-the values for eccentricity, obliquity, and precession from the
-forecasted data produced by Laskar \cite{milanko_data}.
+Insolation is solar irradiance integrated over time, however we are usually
+interested in the average insolation over a given time period, hence the units
+for both irradiance and average insolation are W\,m$^{-2}$. Insolation will first
+be modelled on a daily basis to see how insolation varies throughout a year at
+different latitudes, then on a yearly basis. All simulations that depend on the
+Milankovitch cycles take this data from Laskar \cite{milanko_data}.
 
-With this data, the simulation can show how daily insolation varies across
-latitudes and time. Figure \ref{fig:daily_ave_insol_all_lats} shows
+To model insolation as a function of orbital parameters, we must first
+establish two frames of reference. The ``ecliptic frame''
+places Earth's orbit in the $x$-$y$ plane with the $x$-axis directed along the
+orbit's semi-major axis towards the aphelion (the farthest point from the sun
+on Earth's orbit). Using a sun centred coordinate system, we can represent
+Earth's position using polar coordinates $\theta$ and $r$. The ``Earth-fixed
+frame'' changes with Earth, according to axial tilt (obliquity) and precession. With an
+Earth centred coordinate system in this frame, we can utilise spherical
+coordinates to describe a point on Earth with the unit vector
+\[
+  \boldsymbol{u} = \begin{bmatrix}\cos\varphi\cos\gamma\\\cos\varphi\sin\gamma\\\sin\varphi\end{bmatrix}
+\]
+which points towards latitude $\varphi$ and longitude $\gamma$ on Earth, hence
+$(\varphi,\gamma)$ = (0,0) lies along the positive $x$-axis, whilst the north
+pole aligns with the positive $z$-axis.
+
+We now introduce two matrices to describe the rotation of Earth centred axes,
+from the ecliptic frame to the Earth fixed frame. These are
+\[
+  U_{\beta} = \begin{bmatrix}\cos{\beta} & 0 & \sin{\beta}\\0 & 1 & 0\\-
+  \sin{\beta} & 0 & \cos{\beta}\end{bmatrix},\quad\quad
+  U_{\rho} = \begin{bmatrix}\cos{\rho} & - \sin{\rho} & 0\\\sin{\rho} &
+  \cos{\rho} & 0\\0 & 0 & 1\end{bmatrix}
+\]
+for obliquity and precession respectively. $U_{\beta}$ acts first,
+rotating around the ecliptic $y$-axis, followed by $U_{\rho}$, acting
+around the ecliptic $z$-axis. These are combined to give the single orientation matrix
+\[
+  U_{\rho\beta} = \begin{bmatrix}\cos{\beta} \cos{\rho} & - \sin{\rho} & \sin{\beta}
+  \cos{\rho}\\\sin{\rho} \cos{\beta} & \cos{\rho} & \sin{\beta} \sin{\rho}\\-
+\sin{\beta} & 0 & \cos{\beta}\end{bmatrix}.
+\]
+
+We now require an expression for irradiance at ($\varphi,\gamma$) given
+$\theta, r, \beta,$ and $\rho$. For this we will use an Earth centred
+coordinate system in the Earth fixed frame.
+
+Firstly, we express the irradiance at Earth's atmosphere as the total solar
+output, $K$, divided by the surface area of an imaginary sphere with a radius
+equal to Earth's distance from the sun. This gives
+\[
+  \frac{K}{4\pi r^2}\,\,\mathrm{Wm^{-2}}.
+\]
+
+The irradiance at ($\varphi,\gamma$) is proportional to the cosine of
+the angle between $\boldsymbol{u}$ and the vector that
+points from Earth to the sun. The latter vector uses $\theta$, Earth's angle
+around the sun in ecliptic polar coordinates, expressed in this frame as
+$U_{\rho\beta}^{-1}[-\cos\theta\,\,-\sin\theta\,\,0]^\top$. Multiplying the dot product of
+these two vectors by irradiance gives
+\[
+  -\frac{K}{4\pi r^2}\, \boldsymbol{u}^\top\,U_{\rho\beta}^{-1}
+  \begin{bmatrix}\cos\theta\\\sin\theta\\0\end{bmatrix}.
+\]
+
+This expression is only valid for positive values, since the irradiance value
+for the dark side of Earth will be negative, when it should be 0. To
+calculate the average daily insolation, we can treat the orbital parameters as
+constant and integrate over the longitude, $\gamma$. However, since this
+expression is only valid for positive values, where the sun is reaching Earth,
+we must specify the integration limits to span only this range. To find
+these limits in terms of the orbital parameters, we consider a plane passing
+through the origin, separating the light and dark hemispheres of Earth,
+rotating so that its normal vector always points towards the sun. This can be
+expressed as
+\[
+  U_{\rho\beta}^{-1}\begin{bmatrix}\cos\theta\\\sin\theta\\0\end{bmatrix}
+  \cdot \begin{bmatrix}x\\y\\z\end{bmatrix} = 0.
+\]
+Next consider a circle of constant latitude $\varphi$, lying parallel to the
+$x$-$y$ plane such that
+\[
+  x^2+y^2 = \cos^2\varphi.
+\]
+The intersections of this circle with the plane separating day and night
+indicate the range over which integration should be performed for the given
+latitude and orbital parameters. An example of this can be seen in Figure
+\ref{fig:circ_plane_intercept}.
+
+Using the final condition that 
+\[
+  z = \sin\varphi,
+\]
+we find the two intersection points to be
+\[
+  \frac{1}{a^2 + b^2}\begin{bmatrix}- a c \sin{\varphi} \pm b \sqrt{a^2 \cos^2{\varphi
+  } + b^2 \cos^2{\varphi} - c^2 \sin^2{\varphi}}\\
+  - b c \sin{\varphi}\pm a \sqrt{a^2 \cos^2{\varphi} + b^2 \cos^2{\varphi
+  } - c^2 \sin^2{\varphi}}\\
+(a^2 + b^2)\sin{\varphi}\end{bmatrix},\numberthis
+\label{eq:integration_limits}
+\]
+where 
+\[
+  \begin{bmatrix}a\\b\\c\end{bmatrix} = U_{\rho\beta}^{-1}
+  \begin{bmatrix}\cos\theta\\\sin\theta\\0\end{bmatrix}.
+\]
+
+Looking at (\ref{eq:integration_limits}), we see the solutions are only real for 
+\[
+  a^2 \cos^2{\varphi} + b^2 \cos^2{\varphi} - c^2 \sin^2{\varphi} \ge 0.
+\]
+If this condition is not met then there is no intersection between the circle
+of constant latitude and the day-night plane. Hence all points on the circle of
+latitude $\varphi$ will lie entirely in darkness or in sunlight. 
+
+To determine which case it is, we take the dot product of a vector pointing to
+some point on the circle and vector pointing to the sun. If this is (less
+than?)
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.6\linewidth]{circ_plane_intercept.pdf}
+  \caption{Diagram showing the day-night plane (yellow) that passes through the
+    origin at Earth's centre and rotates to face the sun, and the circle of
+    constant latitude $\varphi$. The points where the circle intersects the plane
+    (green) indicate the range of longitudes for which sunlight will reach Earth
+  at latitude $\varphi$ (red) whilst longitudes on the opposite side of the
+plane (blue) are in darkness.}
+  \label{fig:circ_plane_intercept}
+\end{figure}
+
+
+
+
+Figure \ref{fig:daily_ave_insol_all_lats} shows
 insolation across all latitudes during the year 2000. The Earth's orbital
 parameters at this point are shown in Table \ref{tab:orbital_params}.
 
@@ -175,12 +303,22 @@ parameters at this point are shown in Table \ref{tab:orbital_params}.
 \begin{figure}
   \centering
   \includegraphics[width=\linewidth]{both_daily_ave_insolation_all_lats.pdf}
-  \caption{Contours showing the daily average irradiance (W/m$^2$) arriving at
+  \caption{Contours showing the daily average insolation arriving at
     the atmosphere for different latitudes over a year period. The left plot is
   based on current orbital parameters, as shown in Table
 \ref{tab:orbital_params}, the right plot is how the irradiance will be
 distributed 1.015$\times10^6$ years from now, when eccentricity is 0.0582}
   \label{fig:daily_ave_insol_all_lats}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.7\linewidth]{yearly_average_insol_150kN.pdf}
+  \caption{Contour showing the difference in yearly average insolation from the
+  average insolation over the 150k year period at each latitude. The lower
+  plot shows how these fluctuations in yearly insolation correlate with Earth's
+  obliquity.}
+  \label{fig:yearly_ave_insol_all_lats}
 \end{figure}
 
 \begin{thebibliography}{30}

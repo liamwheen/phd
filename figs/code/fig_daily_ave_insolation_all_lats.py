@@ -1,10 +1,11 @@
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FormatStrFormatter
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 from matplotlib import rc
 rc('text', usetex=True)
-rc('font', family='serif',size=17)
+rc('font', family='serif',size=22)
 """
 #3D plot
 fig = plt.figure()
@@ -36,14 +37,19 @@ e58insol = np.loadtxt('../data/E_0.058_ave_insolation.csv',delimiter=',')
 yy, xx = np.meshgrid(np.linspace(-90,90,insol.shape[1]),np.linspace(0,366,insol.shape[0]))
 cont = axes[0].contourf(xx,yy,insol,cmap=cm.coolwarm)
 e58cont = axes[1].contourf(xx,yy,e58insol,cmap=cm.coolwarm)
-fig.colorbar(e58cont)
+cbar = fig.colorbar(e58cont)
+cbar.set_label('Insolation (W/m$^2$)',rotation=270,labelpad=25)
 axes[0].set_aspect(2.022099447513812)
 axes[1].set_aspect(2.022099447513812)
-axes[1].set_yticks([])
+axes[0].set_yticks([-90,-60,-30,0,30,60,90])
+axes[1].set_yticks([-90,-60,-30,0,30,60,90])
+axes[0].yaxis.set_major_formatter(FormatStrFormatter('%g$^\circ$'))
+axes[1].yaxis.set_major_formatter(FormatStrFormatter('%g$^\circ$'))
+#axes[1].set_yticks([])
 #ax = fig.add_subplot(111)
 #ax.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=False)
 #ax.set_xlabel('Days Since Aphelion')
-axes[0].set_ylabel('Latitude (Deg)')
+axes[0].set_ylabel('Latitude')
 axes[0].set_xlabel('Days Since Aphelion')
 axes[1].set_xlabel('Days Since Aphelion')
 plt.tight_layout()
