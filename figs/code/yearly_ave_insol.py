@@ -30,7 +30,6 @@ class Insolation:
         self.milanko_update(tmin)
 
     def milanko_update(self, t):
-        print(t)
         self.eps = float(self.eps_func(t/k2day))
         self.beta = float(self.beta_func(t/k2day))
         self.l_peri = float(self.l_peri_func(t/k2day))
@@ -41,7 +40,8 @@ class Insolation:
     def I_lat_ave(self, t, lats):
         """ Daily average insolation recieved at lat on Earth on day 't'"""
         lats = lats*np.pi/180
-        insol_ave = insol_sympy.calc_yearly_average(self.beta, lats, self.eps)
+        theta = self.polar_pos(t)[1]
+        insol_ave = insol_sympy.calc_daily_average(self.rho, self.beta,theta, lats, self.eps)
         return insol_ave
 
     def midpoint_E(self, M, eps):
@@ -78,14 +78,18 @@ class Insolation:
         return self.I_lat_ave(t, lats)
 
 if __name__ =="__main__":
-    tmin = -300*k2day
-    tmax = 0
-    num_steps = 301
+    tmin = int(1016.73*k2day)
+    tmax = tmin+366
+    num_steps = 366
     t_span = np.linspace(tmin,tmax,num_steps)
-    model = Insolation(tmin, tmax, 'backward')
+    model = Insolation(tmin, tmax)
+    print(model.beta)
+    print(model.rho)
+    print(model.eps)
     yearly_ave_insol = np.zeros((num_steps,181))
     lats = np.linspace(-90,90,181)
     for i, t in enumerate(t_span):
         yearly_ave_insol[i,:] = model.update(t,lats)
 
-    np.savetxt('yearly_insol_vals.csv',yearly_ave_insol,delimiter=',')
+    #np.savetxt('../data/E_0.058_ave_insolation.csv',yearly_ave_insol,delimiter=',')
+    np.savetxt('ave_insolation.csv',yearly_ave_insol,delimiter=',')
