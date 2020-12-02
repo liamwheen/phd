@@ -190,12 +190,13 @@ data from Laskar \cite{laskar2004}.
 To model the average insolation over a chosen period, we first express
 the irradiance arriving at a given point on Earth, in terms of the orbital
 parameters, latitude, and longitude. We will use two frames of reference to
-derive this expression. The ``ecliptic frame''
-places Earth's orbit in the $x$-$y$ plane with the $x$-axis directed along the
+derive this expression. The \textit{ecliptic frame}
+relates to the ecliptic plane, in which Earth's orbit lies. The $x$-axis points along the
 orbit's semi-major axis towards the aphelion (the farthest point from the sun
-on Earth's orbit). Using a sun centred coordinate system, we can represent
-Earth's position using polar coordinates $\theta$ and $r$. The ``Earth-fixed
-frame'' changes with Earth, according to obliquity and precession. With an
+on Earth's orbit), with the $y$-axis pointing along the semi-minor axis of the
+orbit. Using a sun centred coordinate system, we can represent
+Earth's position using polar coordinates $\theta$ and $r$. The \textit{Earth-fixed
+frame} changes with Earth, according to obliquity and precession. With an
 Earth centred coordinate system in this frame, we can utilise spherical
 coordinates to describe a point on Earth with the unit vector
 \[
@@ -511,7 +512,7 @@ latitude to be
 Importantly, this expression is even in $\varphi$, meaning that yearly
 insolation is symmetric across the equator. This can be seen
 in Figure \ref{fig:yearly_ave_insol_present} which uses current orbital
-parameters shown given in Table \ref{tab:orbital_params}.
+parameters given in Table \ref{tab:orbital_params}.
 \begin{figure}
   \centering
   \includegraphics[width=0.6\linewidth]{yearly_average_insol_present.pdf}
@@ -562,8 +563,9 @@ the orbit, at latitude $-\varphi$ over the same range. This results in the annua
 insolation being symmetric about the equator.
 
 To express insolation over the orbital range $\psi$, we integrate over
-$\theta$, but also the longitude, $\gamma$. It is useful to separate our
-expression for irradiance at a given point into two components, such that
+$\theta$. We again treat Earth as non-rotating, instead integrating over
+longitude, $\gamma$. It is useful to separate our expression for irradiance at
+a given point into two components, such that
 \[
   I(r,\theta,\beta,\rho,\varphi,\gamma) =
   \frac{K}{4\pi r^2}S(\theta,\beta,\rho,\varphi,\gamma),
@@ -574,11 +576,11 @@ where
   \theta)}-\cos{\beta} \cos{\gamma} \cos{(\rho-\theta)})\cos{\varphi}
   -\sin{\beta}\sin{\varphi} \cos{(\rho -\theta)}.
 \]
-The insolation over the range $\psi$, centred on the northern summer soltice is
+The insolation over the range $\psi$, centred on the northern summer sosltice is
 therefore
 \[
   Q_{\mathrm{N}} = \int_{t(\theta_{\mathrm{N}}-\frac{\psi}{2})}^{t(\theta_{\mathrm{N}}+\frac{\psi}{2})}
-  \int_{\gamma_1}^{\gamma_2}
+  \int_{\gamma_1^{\mathrm{N}}}^{\gamma_2^{\mathrm{N}}}
   \frac{K}{4\pi r^2} S(\theta,\beta,\rho,\varphi,\gamma)\, \mathrm{d}\gamma\,\mathrm{d}t,
 \]
 where $t(\theta)$ is the time that corresponds to orbital angle $\theta$. Note
@@ -589,61 +591,65 @@ regions in Figure \ref{fig:gamma_limits}.
 Changing the variable of integration to $\theta$, we obtain
 \begin{align*}
     Q_{\mathrm{N}} &= \int_{\theta_{\mathrm{N}}-\frac{\psi}{2}}^{\theta_{\mathrm{N}}+\frac{\psi}{2}}
-  \int_{\gamma_1}^{\gamma_2}
+    \int_{\gamma_1^{\mathrm{N}}}^{\gamma_2^{\mathrm{N}}}
   \frac{K}{4\pi r^2}S(\theta,\beta,\rho,\varphi,\gamma)\,\mathrm{d}\gamma\,\frac{\mathrm{d}t}{\mathrm{d}\theta}\,\mathrm{d}\theta\\
-  &=\int_{\theta_{\mathrm{N}}-\frac{\psi}{2}}^{\theta_{\mathrm{N}}+\frac{\psi}{2}}\int_{\gamma_1}^{\gamma_2}
+  &=\int_{\theta_{\mathrm{N}}-\frac{\psi}{2}}^{\theta_{\mathrm{N}}+\frac{\psi}{2}}\int_{\gamma_1^{\mathrm{N}}}^{\gamma_2^{\mathrm{N}}}
   \frac{K}{4\pi r^2}\frac{Pr^2}{2\pi a b}S(\theta,\beta,\rho,\varphi,\gamma)\, \mathrm{d}\gamma\,\mathrm{d}\theta\\
-  &=\frac{KP}{8\pi^2 a b}\int_{\theta_{\mathrm{N}}-\frac{\psi}{2}}^{\theta_{\mathrm{N}}+\frac{\psi}{2}} \int_{\gamma_1}^{\gamma_2}
+  &=\frac{KP}{8\pi^2 a
+  b}\int_{\theta_{\mathrm{N}}-\frac{\psi}{2}}^{\theta_{\mathrm{N}}+\frac{\psi}{2}}
+  \int_{\gamma_1^{\mathrm{N}}}^{\gamma_2^{\mathrm{N}}}
   S(\theta,\beta,\rho,\varphi,\gamma)\, \mathrm{d}\gamma \,\mathrm{d}\theta\\
   &=\frac{KP}{8\pi^2 a b}\biggl[\Bigl[\gamma \sin{\beta} \sin{\varphi}
   \sin(\rho - \theta) \\
  &\quad\quad\quad\quad + (\sin{\gamma} \sin{(\rho - \theta)} \cos{\beta}
--\cos{\gamma}\cos(\rho - \theta))\cos{\varphi}\Bigr]_{\gamma_1}^{\gamma_2}
+-\cos{\gamma}\cos(\rho -
+\theta))\cos{\varphi}\Bigr]_{\gamma_1^{\mathrm{N}}}^{\gamma_2^{\mathrm{N}}}
 \biggr]_{\theta_{\mathrm{N}}-\frac{\psi}{2}}^{\theta_{\mathrm{N}}+\frac{\psi}{2}}\numberthis\label{eq:north_summer_solstice}
 \end{align*}
 
 \begin{figure}
   \centering
   \includegraphics[width=0.9\linewidth]{gamma_limits.pdf}
-  \caption{Two points during Earth's orbit from a top-down perspective in the
-    ecliptic frame based on current orbital parameters. The two dashed
-    circles in each plot lie at latitude $\varphi$ in the northern
-    hemisphere and $-\varphi$ in the southern hemisphere. The case on the right 
-    occurs when Earth is at its aphelion and the sun is to the left of the
-    black dotted line. The longitudinal range of where the sun reaches the
-    northern circle (red) spans from $\gamma_1$ to $\gamma_2$. The diagram on
-    the left occurs when Earth is at its perihelion and the sun is to the
-    right of the dotted line. Here the longitudinal limits are
-  $\pi-\gamma_1$ and $\pi-\gamma_2$.}
+  \caption{Diagrams of Earth at its perihelion (left) and aphelion (right) from a top-down perspective
+    of the ecliptic plane with the north pole pointing out of the page. The two dashed
+    circles in each diagram lie at latitudes $\varphi$ and $-\varphi$ in the
+    northern and southern hemispheres respectively. The yellow line separates
+    the day and night on Earth, with an imagined sun in the centre of the
+    figure, illuminating the red sections of the circles. The longitudinal boundaries for
+    these sections (green) are measured from the prime meridian, pointed to by
+  the projection of north pole in the ecliptic plane.}
   \label{fig:gamma_limits}
 \end{figure}
 
-If we now compare this to the same angle range of the orbit centred around the southern
+If we now compare this to the same orbital angle range, centred around the southern
 hemisphere's summer solstice, at latitude $-\varphi$, we will see they are equivalent. 
 
-The southern summer solstice occurs at an angle of $\theta_{\mathrm{N}}+\pi$.
-This causes the range over which $S$ is positive to change, as shown in the left
-diagram of Figure \ref{fig:gamma_limits}. Due to symmetry, the circles of
+The southern summer solstice occurs at an orbital angle of $\theta_{\mathrm{N}}+\pi$.
+This causes the range over which $S$ is positive to change. Due to symmetry, the circles of
 constant latitude in each hemisphere will experience an equal amount of
-sunlight at opposite sides of the orbit. However, longitude is measured from
-the same point throughout the orbit, where the north pole points in the
-ecliptic $x$-$y$ plane. This means the longitudinal limits in the southern
-hemisphere are offset to the northern hemisphere's limits by $\pi$.
+sunlight at opposite sides of the orbit, as shown in
+Figure \ref{fig:gamma_limits}. Since Earth is treated as non-rotating, the prime meridian
+always aligns with the projection of the north pole in the ecliptic plane.
+Because of this, the limits in the southern hemisphere are offset from the
+northern limits by $\pi$, hence we define the southern limits as
+$\gamma_1^{\mathrm{S}}=\pi-\gamma_1^{\mathrm{N}}$ and
+$\gamma_2^{\mathrm{S}}=\pi-\gamma_2^{\mathrm{N}}$.
 
 Following the same steps as before, we find the insolation for the
 southern hemisphere to be
 \[
 \begin{split}
   Q_{\mathrm{S}} &=\frac{KP}{8\pi^2 a b}\int_{\theta_{\mathrm{N}}+\pi-\frac{\psi}{2}}^{
-  \theta_{\mathrm{N}}+\pi+\frac{\psi}{2}}\int_{\pi-\gamma_1}^{\pi-\gamma_2}S(\theta,
+  \theta_{\mathrm{N}}+\pi+\frac{\psi}{2}}\int_{\pi-\gamma_1^{\mathrm{N}}}^{\pi-\gamma_2^{\mathrm{N}}}S(\theta,
   \beta,\rho,-\varphi,\gamma)\,\mathrm{d}\gamma \,\mathrm{d}\theta\\
   &= \frac{KP}{8\pi^2 a b}\int_{\theta_{\mathrm{N}}-\frac{\psi}{2}}^{\theta_{\mathrm{N}}+\frac{\psi}{2}}
-  \int_{\gamma_1}^{\gamma_2} S((\theta+\pi),\beta,\rho,-\varphi,(\pi-\gamma))\,
+  \int_{\gamma_1^{\mathrm{N}}}^{\gamma_2^{\mathrm{N}}} S((\theta+\pi),\beta,\rho,-\varphi,(\pi-\gamma))\,
   \mathrm{d}\gamma \,\mathrm{d}\theta\\
   &= \frac{KP}{8\pi^2 a b}\biggl[\Bigl[(\gamma-\pi) \sin{\beta} \sin{\varphi}
   \sin(\rho - \theta) \\
   &\quad\quad\quad\quad+ (\sin{\gamma} \sin{(\rho - \theta)} \cos{\beta} -
-\cos{\gamma} \cos(\rho - \theta))\cos{\varphi}\Bigr]_{\gamma_1}^{\gamma_2}
+\cos{\gamma} \cos(\rho -
+\theta))\cos{\varphi}\Bigr]_{\gamma_1^{\mathrm{N}}}^{\gamma_2^{\mathrm{N}}}
 \biggr]_{\theta_{\mathrm{N}}-\frac{\psi}{2}}^{\theta_{\mathrm{N}}+\frac{\psi}{2}},
 \end{split}
 \]
