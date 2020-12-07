@@ -49,6 +49,7 @@ This is the abstract.
 \pagenumbering{arabic}
 \section{Introduction}
 \section{Budyko Model}
+\label{sec:budyko}
 The Budyko model is an energy balance model (EBM) that explores the positive
 feedback effect of polar ice cap albedo. The increased reflectivity of polar
 ice caps reduces the net energy that Earth can absorb from the sun across these
@@ -68,6 +69,17 @@ planet. This allows for the differences in ground reflectivity to be ignored,
 focusing only on the albedo of water and ice. The Earth is also modelled as
 symmetric across the equator, allowing for only one half of the domain to be
 considered, i.e. $y \in [0,1]$.
+\begin{figure}
+  \centering
+  \includegraphics[width=0.8\linewidth]{budyko_domain.pdf}
+  \caption{The change of domain used for the Budyko model, latitude $\varphi$
+    becomes $y = \sin\varphi$ with only the northern hemisphere being
+    considered. The ice line lies at latitude $\varphi_\eta$ and
+    separates the water from the ice caps. This becomes $\eta$ in the new
+    domain, which has range $[0,1]$. The albedo of sea is represented by
+    $\alpha_1$, whilst the polar ice has albedo $\alpha_2$.}
+  \label{fig:budyko_domain}
+\end{figure}
 
 The dynamical equation for temperature consists of three components. They
 describe the flow of energy into, out of, and around Earth.
@@ -76,15 +88,23 @@ $Q_\varepsilon s(y) (1-\alpha_\eta(y))$. This consists of the average yearly ins
 Earth, $Q_\varepsilon$, which varies according to the eccentricity of Earth's
 orbit, $\varepsilon$, such that $Q_\varepsilon = Q_0/\sqrt{(1-\varepsilon^2)}$ where $Q_0$ is
 a constant found using empirical data. This insolation is then distributed
-according to latitude, using the function
+according to latitude. The full derivation of this even function is shown in
+Section \ref{sec:insolation}. However, for this model we will use Widiasih's
+approximation, which is within 2\% of the actual function, and is made up of
+the even Legendre polynomials,
 \[
-  s(y) = 1+ \frac{1}{2}c_\beta(3y^2-1),
+  p_0(y) = 1,\quad\quad\quad\quad p_2(y) = \frac{1}{2}(3y^2-1),
 \]
-where $c_\beta = \frac{5}{16}(3\sin^2\beta - 2)$ and $\beta$ is obliquity.
-This is finally multiplied by $(1-\alpha_\eta(y))$, which describes the degree
-to which heat is absorbed at a given latitude. This depends on the albedo of
-the surface, which in this case is either water or ice. The albedo over the
-domain is therefore given as
+to give
+\[
+    s(y) = 1 + \frac{1}{2}c_\beta(3y^2-1),
+\]
+where $c_\beta = \frac{5}{16}(3\sin^2\beta - 2)$ and $\beta$ is obliquity
+\cite{c_beta}. This can be seen alongside the actual function in Figure
+\ref{fig:yearly_ave_insol_present}. This is finally multiplied by $(1-\alpha_\eta(y))$, which
+describes the degree to which heat is absorbed at a given latitude. This
+depends on the albedo of the surface, which in this case is either water or
+ice. The albedo over the domain is therefore given as
 \[
   \alpha_\eta(y) = \begin{cases} \alpha_1, & y<\eta\\
                                  \alpha_2, & y>\eta\\
@@ -96,13 +116,15 @@ also determined through empirical data. This results in less heat being
 absorbed over the range where ice is present due to the increased reflectivity.
 
 The next component of the equation is the outgoing infra-red radiation.
-This is approximated to linearly depend on the temperature of Earth to give
+Although the energy flow occurring at the boundary between Earth and space is
+complex, North \textit{et al.} performed linear regression on satellite data to
+establish the net flow of long-wave radiation leaving Earth to the first order
+\cite{linear_reradiation}. This is gives
 \[
-  A+BT(y,t).
+  A+BT(y,t),
 \]
-Although the energy flow occurring within Earth's atmosphere is far more
-complex, satellite data was used to establish the net flow of heat from Earth
-to the first order \cite{linear_reradiation}.
+where, with average cloud cover, $A=202.1$ and $B=1.9$ with a correlation
+coefficient of 0.90.
 
 The final component describes the transport of energy around Earth, from
 the hot equator to the relatively cooler poles. The heat transport at a given
@@ -132,7 +154,24 @@ A dynamic ice line was later introduced to the model by Widiasih
   S\frac{\mathrm{d}\eta(t)}{\mathrm{d}t} = T_\eta(\eta,t) - T_{\mathrm{ice}}
 \]
 where $T_{\mathrm{ice}}$ is an estimate for the critical temperature at which
-an ice sheet can form. Budyko
+an ice sheet can form.
+
+\begin{table}[h]
+  \centering
+\begin{tabular}{c|c|c|cl}
+Parameter          & Value         & Unit        & Source &  \\ \hline\hline
+$A$                & 0.0167        & Wm$^{-2}$   & North \cite{linear_reradiation}  \\\hline
+$B$                & 0.4091        & Wm$^{-2}$\,$^\circ$C$^{-1}$ &  North \cite{linear_reradiation} \\\hline
+$C$                & 2.9161        & Wm$^{-2}$\,$^\circ$C$^{-1}$ &  Tung \cite{tung2007topics}\\\hline
+$Q_0$              & 341           & Wm$^{-2}$  & Kopp \cite{solar_constant} \\\hline
+$T_{\mathrm{ice}}$ & -10           & $^\circ$C         &        \\\hline
+$R$                & $4\times10^8$ & Jm$^{-2}$\,$^\circ$C$^{-1}$ &         \\\hline
+$\alpha_1$         & 0.32          & None               &          \\\hline
+$\alpha_2$         & 0.63          & None               &         
+\end{tabular}
+\end{table}
+
+[Need to justify the 340, mention how Tung is using too large solar constant]
 [Here discuss the introduction of the dynamic iceline from widiasih, the
   dynamics of the model, the equilibrium points, the stability, how this
   doesn't get effected by the milankovitch params much at all, the lack of any
@@ -176,6 +215,7 @@ value after 10\,000 years.}
 
 
 \section{Insolation}
+\label{sec:insolation}
 To implement an asymmetrical version of the Budyko model, the difference
 between the northern and southern hemispheres must first be established. We
 will therefore be looking at the variation of insolation over different
@@ -515,10 +555,12 @@ in Figure \ref{fig:yearly_ave_insol_present} which uses current orbital
 parameters given in Table \ref{tab:orbital_params}.
 \begin{figure}
   \centering
-  \includegraphics[width=0.6\linewidth]{yearly_average_insol_present.pdf}
-  \caption{The average yearly insolation for current orbital parameters, as
-    shown in Table \ref{tab:orbital_params}. This is symmetric about 0$^\circ$,
-    meaning that over a year period, both hemispheres receive equal insolation.}
+  \includegraphics[width=0.5\linewidth]{yearly_average_insol_present.pdf}
+  \caption{The average yearly insolation, $Q_{\mathrm{year}}$, for current orbital parameters, as
+    shown in Table \ref{tab:orbital_params}. The dashed line shows the
+    approximation for yearly insolation used in the Budyko model as discussed
+  in Section \ref{sec:budyko}. The shape of $Q_\varepsilon s(y)$ has been warped here
+to fit the domain of $\varphi$, as opposed to $y=\sin\varphi$.}
   \label{fig:yearly_ave_insol_present}
 \end{figure}
 This may appear counter-intuitive at first since the two hemispheres experience
