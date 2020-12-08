@@ -68,7 +68,9 @@ To simplify the system further, the Earth is treated as an entirely water-based
 planet. This allows for the differences in ground reflectivity to be ignored,
 focusing only on the albedo of water and ice. The Earth is also modelled as
 symmetric across the equator, allowing for only one half of the domain to be
-considered, i.e. $y \in [0,1]$.
+considered, i.e. $y \in [0,1]$. This simplified domain is shown in Figure
+\ref{fig:budyko_domain}. 
+
 \begin{figure}
   \centering
   \includegraphics[width=0.8\linewidth]{budyko_domain.pdf}
@@ -76,7 +78,7 @@ considered, i.e. $y \in [0,1]$.
     becomes $y = \sin\varphi$ with only the northern hemisphere being
     considered. The ice line lies at latitude $\varphi_\eta$ and
     separates the water from the ice caps. This becomes $\eta$ in the new
-    domain, which has range $[0,1]$. The albedo of sea is represented by
+    domain with range $[0,1]$. The albedo of sea is represented by
     $\alpha_1$, whilst the polar ice has albedo $\alpha_2$.}
   \label{fig:budyko_domain}
 \end{figure}
@@ -87,7 +89,26 @@ The first of these is incoming solar radiation, expressed by the term
 $Q_\varepsilon s(y) (1-\alpha_\eta(y))$. This consists of the average yearly insolation reaching
 Earth, $Q_\varepsilon$, which varies according to the eccentricity of Earth's
 orbit, $\varepsilon$, such that $Q_\varepsilon = Q_0/\sqrt{(1-\varepsilon^2)}$ where $Q_0$ is
-a constant found using empirical data. This insolation is then distributed
+a constant found using empirical data. 
+
+The average yearly insolation uses the
+solar constant, which is the solar irradiance per unit area arriving
+at Earth's atmosphere, one astronomical unit from the sun. This
+irradiance is spread equally over the entire surface of Earth, $S = 4\pi r^2$,
+where $r$ is the radius of the Earth. However Earth only intercepts the sun's
+irradiance over an area equal to Earth's cross-section, $\frac{S}{4}\pi r^2$.
+Hence the average yearly insolation is the solar constant divided by 4.
+In similar work, this has been 343\,Wm$^{-2}$
+\cite{widiasih2013,c_beta,insol_latlon} which is based on Tung's work in 2007
+\cite{tung2007topics}. However, this is based on a solar constant of
+1372\,Wm$^{-2}$, which is now considered significantly above the actual value.
+Work done in 2011 by Kopp showed the current solar constant to be approximately
+1361.5\,Wm$^{-2}$ \cite{solar_constant}, which would give
+$Q_\varepsilon=340.375$, hence $Q_0 = Q_\varepsilon \sqrt{(1-\varepsilon^2)} =
+340.327$ given the current value for $\varepsilon$, as shown in Table
+\ref{tab:orbital_params}.
+
+This insolation is then distributed
 according to latitude. The full derivation of this even function is shown in
 Section \ref{sec:insolation}. However, for this model we will use Widiasih's
 approximation, which is within 2\% of the actual function, and is made up of
@@ -100,7 +121,7 @@ to give
     s(y) = 1 + \frac{1}{2}c_\beta(3y^2-1),
 \]
 where $c_\beta = \frac{5}{16}(3\sin^2\beta - 2)$ and $\beta$ is obliquity
-\cite{c_beta}. This can be seen alongside the actual function in Figure
+\cite{c_beta}. This can approximation can be seen alongside the actual function in Figure
 \ref{fig:yearly_ave_insol_present}. This is finally multiplied by $(1-\alpha_\eta(y))$, which
 describes the degree to which heat is absorbed at a given latitude. This
 depends on the albedo of the surface, which in this case is either water or
@@ -119,58 +140,121 @@ The next component of the equation is the outgoing infra-red radiation.
 Although the energy flow occurring at the boundary between Earth and space is
 complex, North \textit{et al.} performed linear regression on satellite data to
 establish the net flow of long-wave radiation leaving Earth to the first order
-\cite{linear_reradiation}. This is gives
+\cite{linear_reradiation}. This gives
 \[
   A+BT(y,t),
 \]
-where, with average cloud cover, $A=202.1$ and $B=1.9$ with a correlation
-coefficient of 0.90.
+where, for average cloud cover, $A=202.1$\,Wm$^{-2}$ and
+$B=1.9$\,Wm$^{-2}\,^\circ$C$^{-1}$ with a correlation coefficient of 0.90.
 
 The final component describes the transport of energy around Earth, from
 the hot equator to the relatively cooler poles. The heat transport at a given
 latitude is determined by the difference in temperature at this latitude and
 the global average temperature, written as
 \[
-  C(\bar{T}-T(y,t)),
+  C(\bar{T}(t)-T(y,t)),
 \]
 where
 \[
-  \bar{T} = \int_0^1 T(y,t) \,\mathrm{d}t.
+  \bar{T}(t) = \int_0^1 T(y,t) \,\mathrm{d}y.
 \]
-By calculating the equilibrium solution for the temperature, $C$ can be chosen
+By calculating the equilibrium temperature, $C$ can be chosen
 such that the equilibrium matches current climatic conditions. Tung's work on
-this yielded the relation $C=1.6B$ \cite{tung2007topics}.
+this yielded the relation $C=1.6B=3.04$\,Wm$^{-2}\,^\circ$C$^{-1}$ \cite{tung2007topics}.
 Combining these components of heat flow gives the dynamical equation for temperature to be
 \[
-  R\frac{\partial T(y,t)}{\partial t} = \underbrace{Qs(y) (1-\alpha_\eta(y))}_{\text{Insolation}}
+  R\frac{\partial T(y,t)}{\partial t} = \underbrace{Q_\varepsilon s(y) (1-\alpha_\eta(y))}_{\text{Insolation}}
   - \underbrace{(A+BT(y,t))}_{\text{Reradiation}}
-  + \underbrace{C(\bar{T}-T(y,t))}_{\text{Transport}},
+  + \underbrace{C(\bar{T}(t)-T(y,t))}_{\text{Transport}}.
 \]
-where $R$ represents the heat capacity of Earth's surface.
+This is known as an integro-differential equation, differing from a
+conventional partial differential equation in that there is no derivative term
+relating to the spacial domain, $y$. The only term that relates the temperature
+at a given position to the rest of the system is $\bar{T}$.
+
+To understand $R$, which governs the rate at which the temperature changes, we
+inspect the units of the equation's terms. The insolation term
+has units Wm$^{-2}$ from the $Q_\varepsilon$ component with the other two
+components being dimensionless. The second term describes radiation leaving
+Earth per unit area, so again has units Wm$^{-2}$. Since $T$ is in $^\circ$C,
+the units for $B$ are Wm$^{-2}$\,$^\circ$C$^{-1}$. $C$ is defined as $1.6B$ so
+also has units Wm$^{-2}$\,$^\circ$C$^{-1}$, meaning the third term is in
+Wm$^{-2}$ as well. Since $\frac{\partial T(y,t)}{\partial t}$ will be in
+$^\circ$C\,s$^{-1}$, the units for $R$ are J\,m$^{-2}$$^\circ$Cs$^{-1}$, which
+equates to the heat capacity of Earth per unit area.
+
+The value that $R$ takes will govern the rate at which the temperature profile
+equilibrates. The heat capacity of water is approximately
+4$\times10^3$J\,kg$^{-1}$$^\circ$C$^{-1}$ = 4$\times10^6$J\,m$^{-3}$$^\circ$C$^{-1}$,
+using the relation that one cubic metre of water is 1000\,kg. With the assumption that Earth
+is entirely water, that must be heated to a depth of 100\,m, we have that
+\[
+  R = 4\times10^8\mathrm{J\,m}^{-2}\,^\circ\mathrm{C}^{-1}.
+\]
+This is a very approximate value, however $R$ will not appear in
+equilibrium solutions, relating only to the dynamic behaviour of the model.
 
 A dynamic ice line was later introduced to the model by Widiasih
 \cite{widiasih2013}, such that
 \[
-  S\frac{\mathrm{d}\eta(t)}{\mathrm{d}t} = T_\eta(\eta,t) - T_{\mathrm{ice}}
+  S\frac{\mathrm{d}\eta(t)}{\mathrm{d}t} = T(\eta,t) - T_{\mathrm{ice}}
 \]
 where $T_{\mathrm{ice}}$ is an estimate for the critical temperature at which
 an ice sheet can form.
 
 \begin{table}[h]
   \centering
+  \caption{Parameter values used for the Budyko model.}
+  \label{tab:budyko_params}
 \begin{tabular}{c|c|c|cl}
 Parameter          & Value         & Unit        & Source &  \\ \hline\hline
-$A$                & 0.0167        & Wm$^{-2}$   & North \cite{linear_reradiation}  \\\hline
-$B$                & 0.4091        & Wm$^{-2}$\,$^\circ$C$^{-1}$ &  North \cite{linear_reradiation} \\\hline
-$C$                & 2.9161        & Wm$^{-2}$\,$^\circ$C$^{-1}$ &  Tung \cite{tung2007topics}\\\hline
-$Q_0$              & 341           & Wm$^{-2}$  & Kopp \cite{solar_constant} \\\hline
-$T_{\mathrm{ice}}$ & -10           & $^\circ$C         &        \\\hline
-$R$                & $4\times10^8$ & Jm$^{-2}$\,$^\circ$C$^{-1}$ &         \\\hline
-$\alpha_1$         & 0.32          & None               &          \\\hline
-$\alpha_2$         & 0.63          & None               &         
+$Q_0$              & 340.327       & Wm$^{-2}$   & Kopp \cite{solar_constant} \\\hline
+$A$                & 202.1         & Wm$^{-2}$   & North \cite{linear_reradiation}  \\\hline
+$B$                & 1.9           & Wm$^{-2}$\,$^\circ$C$^{-1}$ &  North \cite{linear_reradiation} \\\hline
+$C$                & 3.04          & Wm$^{-2}$\,$^\circ$C$^{-1}$ &  Tung \cite{tung2007topics}\\\hline
+$T_{\mathrm{ice}}$ & -10           & $^\circ$C   &  Tung \cite{tung2007topics}\\\hline
+$\alpha_1$         & 0.32          & None        &  Tung \cite{tung2007topics}\\\hline
+$\alpha_2$         & 0.63          & None        &  Tung \cite{tung2007topics}\\\hline
+$R$                & $4\times10^8$ & Jm$^{-2}$\,$^\circ$C$^{-1}$ &  Widiasih \cite{c_beta}
 \end{tabular}
 \end{table}
-
+\begin{figure}
+\centering
+\begin{subfigure}{.4\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{demo_budyko_0.pdf}
+  \vspace{-23pt}
+  \caption{0 Years}
+\end{subfigure}%
+\vspace{10pt}
+\begin{subfigure}{.4\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{demo_budyko_1.pdf}
+  \vspace{-23pt}
+  \caption{10 Years}
+\end{subfigure}
+\vspace{10pt}
+\begin{subfigure}{.4\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{demo_budyko_2.pdf}
+  \vspace{-23pt}
+  \caption{3000 Years}
+\end{subfigure}%
+\begin{subfigure}{.4\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{demo_budyko_3.pdf}
+  \vspace{-23pt}
+  \caption{10\,000 Years}
+\end{subfigure}
+\caption{Snapshots of a Budyko simulation starting with 0$^\circ$C at all
+latitudes and the ice line at $\eta=0.5$. The model parameters used are shown
+in Table \ref{tab:budyko_params} whilst the initial orbital parameters are in
+Table \ref{tab:orbital_params}. We first see the temperature profile
+equilibrate within 10 years. The ice line then recedes 
+towards the stable equilibrium point at $y=0.9544$, getting within 3\% of this
+value after 10\,000 years.}
+\label{fig:budyko_demo}
+\end{figure}
 [Need to justify the 340, mention how Tung is using too large solar constant]
 [Here discuss the introduction of the dynamic iceline from widiasih, the
   dynamics of the model, the equilibrium points, the stability, how this
@@ -181,39 +265,6 @@ respectively (as shown in the figure).]
 [Also introduce Milankovitch properly and how each orbital parameter is defined
 (especially precession). Maybe move Table of orbital params up to milankovitch
 section]
-  
-\begin{figure}
-\centering
-\begin{subfigure}{.4\textwidth}
-  \centering
-  \includegraphics[width=\linewidth]{demo_budyko_0.pdf}
-  \caption{0 Years}
-\end{subfigure}%
-\begin{subfigure}{.4\textwidth}
-  \centering
-  \includegraphics[width=\linewidth]{demo_budyko_1.pdf}
-  \caption{10 Years}
-\end{subfigure}
-\begin{subfigure}{.4\textwidth}
-  \centering
-  \includegraphics[width=\linewidth]{demo_budyko_2.pdf}
-  \caption{3000 Years}
-\end{subfigure}%
-\begin{subfigure}{.4\textwidth}
-  \centering
-  \includegraphics[width=\linewidth]{demo_budyko_3.pdf}
-  \caption{10\,000 Years}
-\end{subfigure}
-\caption{Snapshots of a Budyko simulation starting with 0$^\circ$C at all
-latitudes and the ice line at $y=0.5$. The orbital parameters used are shown in
-Table \ref{tab:orbital_params}. We first see the temperature profile
-equilibrate within 10 years. The ice line then recedes 
-towards the stable equilibrium point at $y=0.9544$, getting within 3\% of this
-value after 10\,000 years.}
-\label{fig:budyko_demo}
-\end{figure}
-
-
 \section{Insolation}
 \label{sec:insolation}
 To implement an asymmetrical version of the Budyko model, the difference
@@ -592,7 +643,7 @@ take longer for Earth to traverse the orbital range $\psi$ when at the aphelion
 of its orbit compared to the perihelion, due to the different $r$ values. 
 \begin{figure}
   \centering
-  \includegraphics[width=0.6\linewidth]{solstice_angles.pdf}
+  \includegraphics[width=0.55\linewidth]{solstice_angles.pdf}
   \caption{Orbital path with exaggerated eccentricity of Earth (blue) around
   the sun (yellow) with $\psi$ indicating an angular range either side of the
 solstices in the sun centred ecliptic frame. The arrow extending from Earth

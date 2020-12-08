@@ -3,6 +3,9 @@
 This is an augmented version of budyko_milanko.py, designed just for plotting
 the demo images of how the simulation works. Change tmax to 0,10,3000,10000 and
 run/save the image each time."""
+import sys
+sys.path.append('../../code/')
+sys.path.append('../../code/data/')
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
@@ -16,20 +19,21 @@ year2sec = 3.154e+7 #Translate time dependent units to 'per year' instead of 'pe
 
 alpha_1 = 0.32
 alpha_2 = 0.62
-A = 202 #Wm^-2
+A = 202.1 #Wm^-2
 B = 1.9 #Wm^-2
 C = 3.04 #Wm^-2 K^-1
 T_ice = -10 #degC
 R = 4*10**8 #some say e9 some say e8 #J m^-2 K^-1
 S = 2.5*10**12
-Q_0 = 343 #Wm^-2
+Q_0 = 340.4 #Wm^-2
         
 #n0 = 0.2487 # Unstable equilibrium initial iceline
 eta0 = 0.5#0.49 # Initial Iceline
+tmin = 0
 tmax = 10000 # Years
-
-num_steps = 3*10**3
-frame_refr = num_steps//(3*10**2)
+k2day = 365250
+num_steps = 6*10**3
+frame_refr = num_steps//(3*10**1)
         
 class Budyko:
     def __init__(self):
@@ -37,8 +41,11 @@ class Budyko:
         self.y_delta = self.y_span[1]
         self.t_span = np.linspace(0,tmax*year2sec,num_steps) #years
         self.T_record = np.zeros((self.t_span.size,self.y_span.size)) 
-        self.eps_func = interp1d(milanko_params.t[:1+max(1,tmax//1000)], milanko_params.ecc[:1+max(1,tmax//1000)])
-        self.beta_func = interp1d(milanko_params.t[:1+max(1,tmax//1000)], milanko_params.obliq[:1+max(1,tmax//1000)])
+        milanko_t, milanko_ecc, milanko_obliq, milanko_l_peri = milanko_params.load_milanko('forward')
+        krange = range(tmin//k2day,2+max(1,tmax//k2day))
+        self.eps_func = interp1d(milanko_t[krange], milanko_ecc[krange])
+        self.beta_func = interp1d(milanko_t[krange], milanko_obliq[krange])
+        self.l_peri_func = interp1d(milanko_t[krange], milanko_l_peri[krange])
         self.Q_e = Q_0#/(np.sqrt(1-self.eps_func(0)**2))
         self.c_b = (5/16)*(3*np.sin(0.4091)**2 - 2)#(5/16)*(3*np.sin(self.beta_func(0))**2 - 2)
         self.delta = self.t_span[1]
@@ -95,11 +102,12 @@ class Budyko:
             self.T += self.delta*self.dT_dt(self.T, self.y_span)
             self.T_eta += self.delta*self.dT_dt(self.T_eta, self.eta)
             self.eta = np.clip(self.eta + self.delta*(self.T_eta - T_ice)/S,0,1)
-            if frame%frame_refr==0: 
+            if frame%frame_refr==0 or t==self.t_span[-1]: 
+                print(self.eta)
                 yield t
 
     def update(self, t):
-        self.ax.set_ylabel('$T(y$, {:.1e} years) (°C)'.format(t/year2sec))
+        self.ax.set_ylabel('$T(y$,10\,000) (°C)'.format(int(t/year2sec)))
         self.temp.set_xdata(self.y_span)
         self.temp.set_ydata(self.T)
         self.ice.set_xdata(self.eta)
@@ -116,8 +124,8 @@ class Budyko:
     def animate(self):
         self.fig, self.ax = plt.subplots()
         self.ydata, self.Tdata = [], []
-        self.temp, = self.ax.plot([], [], 'r-', label='Temperature Profile',linewidth=3)
-        self.ice, = self.ax.plot([], [], 'b-', label='$\sin(\eta)$',linewidth=3)
+        self.temp, = self.ax.plot([], [], 'r-', label='Temp Profile',linewidth=3)
+        self.ice, = self.ax.plot([], [], 'b-', label='$\eta$',linewidth=3)
         #self.T_star_eta, = self.ax.plot([], [], 'ro', label='Temperature at Iceline')
         #self.equil_T, = self.ax.plot([], [], 'm-', label='Equilibrium Temperature Profile')
         #self.grad, = self.ax.plot([], [], 'k', linewidth=0.5, label='Gradient (scaled)')
