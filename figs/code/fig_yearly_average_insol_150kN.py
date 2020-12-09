@@ -8,6 +8,7 @@ from matplotlib import rc
 from matplotlib.ticker import FormatStrFormatter
 rc('text', usetex=True)
 rc('font', family='serif',size=17)
+"""
 #3D version
 fig = plt.figure(figsize=(7,6))
 ax = fig.add_subplot(111, projection='3d')
@@ -55,6 +56,5 @@ ecc_ax.yaxis.label.set_fontsize(25)
 ob_ax.yaxis.label.set_fontsize(20)
 cbar = fig.colorbar(cont, ax=ax)
 cbar.set_label('$\Delta$ Insolation (W/m$^2$)',rotation=270,labelpad=15)
-#plt.show()
-plt.savefig('../yearly_average_insol_150kN.pdf')
-"""
+plt.show()
+#plt.savefig('../yearly_average_insol_150kN.pdf')
