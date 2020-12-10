@@ -94,11 +94,11 @@ a constant found using empirical data.
 The average yearly insolation uses the
 solar constant, which is the solar irradiance per unit area arriving
 at Earth's atmosphere, one astronomical unit from the sun. This
-irradiance is spread equally over the entire surface of Earth, $S = 4\pi r^2$,
-where $r$ is the radius of the Earth. However Earth only intercepts the sun's
-irradiance over an area equal to Earth's cross-section, $\frac{S}{4}\pi r^2$.
-Hence the average yearly insolation is the solar constant divided by 4.
-In similar work, this has been 343\,Wm$^{-2}$
+irradiance is spread over the entire surface of Earth, $S = 4\pi r^2$,
+where $r$ is the radius of the Earth. However at any given time, Earth only
+intercepts the sun's irradiance over an area equal to Earth's cross-section,
+$\frac{S}{4}\pi r^2$. Hence the average yearly insolation is the solar
+constant divided by 4. In similar work, this has been 343\,Wm$^{-2}$
 \cite{widiasih2013,c_beta,insol_latlon} which is based on Tung's work in 2007
 \cite{tung2007topics}. However, this is based on a solar constant of
 1372\,Wm$^{-2}$, which is now considered significantly above the actual value.
@@ -168,19 +168,20 @@ Combining these components of heat flow gives the dynamical equation for tempera
   + \underbrace{C(\bar{T}(t)-T(y,t))}_{\text{Transport}}.
 \]
 This is known as an integro-differential equation, differing from a
-conventional partial differential equation in that there is no derivative term
-relating to the spacial domain, $y$. The only term that relates the temperature
-at a given position to the rest of the system is $\bar{T}$.
+conventional partial differential equation in that there is no derivative of
+the spacial variable $y$. The only term that relates the temperature
+at a given position to the rest of the system is $\bar{T}(t)=\int_0^1 T(y,t)
+\,\mathrm{d}y$, which gives the average global temperature.
 
-To understand $R$, which governs the rate at which the temperature changes, we
+To understand $R$, which governs the temperature's rate of change, we
 inspect the units of the equation's terms. The insolation term
 has units Wm$^{-2}$ from the $Q_\varepsilon$ component with the other two
-components being dimensionless. The second term describes radiation leaving
+components being dimensionless. The reradiation term describes radiation leaving
 Earth per unit area, so again has units Wm$^{-2}$. Since $T$ is in $^\circ$C,
 the units for $B$ are Wm$^{-2}$\,$^\circ$C$^{-1}$. $C$ is defined as $1.6B$ so
-also has units Wm$^{-2}$\,$^\circ$C$^{-1}$, meaning the third term is in
+also has units Wm$^{-2}$\,$^\circ$C$^{-1}$, meaning the transport term is in
 Wm$^{-2}$ as well. Since $\frac{\partial T(y,t)}{\partial t}$ will be in
-$^\circ$C\,s$^{-1}$, the units for $R$ are J\,m$^{-2}$$^\circ$Cs$^{-1}$, which
+$^\circ$C\,s$^{-1}$, the units for $R$ are J\,m$^{-2}$$^\circ$C\,s$^{-1}$, which
 equates to the heat capacity of Earth per unit area.
 
 The value that $R$ takes will govern the rate at which the temperature profile
@@ -288,7 +289,7 @@ on Earth's orbit), with the $y$-axis pointing along the semi-minor axis of the
 orbit. Using a sun centred coordinate system, we can represent
 Earth's position using polar coordinates $\theta$ and $r$. The \textit{Earth-fixed
 frame} changes with Earth, according to obliquity and precession. With an
-Earth centred coordinate system in this frame, we can utilise spherical
+Earth centred coordinate system in this frame, we can use spherical
 coordinates to describe a point on Earth with the unit vector
 \[
   \mathbf{u} = \begin{bmatrix}\cos\varphi\cos\gamma\\\cos\varphi\sin\gamma\\\sin\varphi\end{bmatrix}
@@ -462,14 +463,50 @@ The calculation for daily average insolation is therefore
 \right)} \cos{\gamma_{1}} ) \cos{\varphi}].
 \end{aligned}
 \]
-With this expression, we can see how average daily insolation changes
-across the globe during a year. Figure \ref{fig:daily_ave_insol_all_lats} shows
-how insolation varies over a year across latitudes with current orbital parameters
-as well as how it is expected to look 1.0167$\times10^6$ years in the future,
-when eccentricity is more extreme at 0.0582. This point in the future was chosen because the
-obliquity and precession are both within 2\% of
-present values, allowing us to isolate the impact of eccentricity on the
-distribution of insolation.
+
+\begin{figure}
+  \hspace{-40pt}
+  \includegraphics[width=1.2\linewidth]{both_daily_ave_insolation_all_lats.pdf}
+  \caption{Contours showing the daily average insolation arriving at
+    the atmosphere for different latitudes over a year period. The left plot is
+  based on current orbital parameters, as shown in Table
+  \ref{tab:orbital_params}. In the second plot, eccentricity is increased to
+  0.06, approximately the maximum for Earth's orbit. The third plot shows how
+these two cases differ.}
+  \label{fig:daily_ave_insol_all_lats}
+\end{figure}
+Figure \ref{fig:daily_ave_insol_all_lats} shows
+how insolation varies over a year period, across the latitudes, using current orbital
+parameters. The second plot in this figure shows the same year, but with
+eccentricity increased to 0.06, approximately the maximum eccentricity
+of Earth's orbit. The third plot shows the difference between the two cases,
+where a positive value corresponds to more insolation in the second plot.
+
+The summer solstice in the northern hemisphere currently occurs 13 days before
+the aphelion of Earth's orbit, at which point Earth is almost the farthest it
+can be from the sun. Summer in the southern hemisphere begins
+170 days after the aphelion, when Earth is almost the nearest it can be to the
+sun. As the eccentricity of the orbit increases, the perihelion becomes nearer
+to the sun whilst the aphelion moves farther away. This leads to a hotter
+summer in the southern hemisphere and a cooler summer in the north, as shown in
+the difference plot of Figure \ref{fig:daily_ave_insol_all_lats}.
+
+Kepler's second law states
+\[
+  \frac{\mathrm{d}\theta}{\mathrm{d}t} = \frac{2\pi a b}{Pr^2},
+\]
+where $P$ is the year period, $r$ is the distance from the sun, and $a$ and $b$
+are the semi-major and semi-minor axes respectively. On the scale of a year,
+$a$ and $b$ can be considered constant, meaning Earth's angular speed
+around the sun is proportional to $1/r^2$.
+
+As eccentricity increases, the distance between the perihelion and the sun
+decreases, meaning the angular speed around the perihelion will increase. This is the
+cause of the 2 spikes at either pole in the difference plot. These indicate
+where the more eccentric orbit has traversed the angular range around the
+perihelion faster than our actual orbit. This results in the summer period in
+the southern hemisphere lasting less time, becoming comparatively cooler either
+side of the warmest 100 days.
 \begin{table}[h]
   \centering
   \caption{Earth's orbital parameters in the year 2000.}
@@ -493,17 +530,6 @@ Hence we can relate eccentricity to the inequality of the hemisphere's
 peak insolation values. However, we will see that eccentricity also
 effects the duration for which this insolation is experienced, cancelling out
 the effect over a year period.
-\begin{figure}
-  \centering
-  \includegraphics[width=\linewidth]{both_daily_ave_insolation_all_lats.pdf}
-  \caption{Contours showing the daily average insolation arriving at
-    the atmosphere for different latitudes over a year period. The left plot is
-  based on current orbital parameters, as shown in Table
-\ref{tab:orbital_params}, the right plot is how the insolation will be
-distributed 1.0167$\times10^6$ years from now. At this time, eccentricity is close to its maximum value at 0.0582,
-whilst precession and obliquity are similar to current values.}
-  \label{fig:daily_ave_insol_all_lats}
-\end{figure}
 
 In order to investigate average yearly insolation over a long period we must
 return to the expression for irradiance at a given point,
