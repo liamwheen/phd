@@ -40,8 +40,9 @@ class Insolation:
     def I_lat_ave(self, t, lats):
         """ Daily average insolation recieved at lat on Earth on day 't'"""
         lats = lats*np.pi/180
-        theta = self.polar_pos(t)[1]
-        insol_ave = insol_sympy.calc_daily_average(self.rho, self.beta,theta, lats, self.eps)
+        #theta = self.polar_pos(t)[1]
+        #insol_ave = insol_sympy.calc_daily_average(self.rho, self.beta,theta, lats, self.eps)
+        insol_ave = insol_sympy.calc_yearly_average(self.beta,lats, self.eps)
         return insol_ave
 
     def midpoint_E(self, M, eps):
@@ -78,18 +79,16 @@ class Insolation:
         return self.I_lat_ave(t, lats)
 
 if __name__ =="__main__":
-    tmin = int(1016.73*k2day)
-    tmax = tmin+366
-    num_steps = 366
+    tmin = -150*k2day
+    tmax = 0
+    num_steps = 500
     t_span = np.linspace(tmin,tmax,num_steps)
-    model = Insolation(tmin, tmax)
-    print(model.beta)
-    print(model.rho)
-    print(model.eps)
-    yearly_ave_insol = np.zeros((num_steps,181))
-    lats = np.linspace(-90,90,181)
+    model = Insolation(tmin, tmax,'backward')
+    yearly_ave_insol = np.zeros((num_steps,500))
+    lats = np.linspace(-90,90,500)
     for i, t in enumerate(t_span):
         yearly_ave_insol[i,:] = model.update(t,lats)
+        if i%50==0:print(i)
 
     #np.savetxt('../data/E_0.058_ave_insolation.csv',yearly_ave_insol,delimiter=',')
-    np.savetxt('ave_insolation.csv',yearly_ave_insol,delimiter=',')
+    #np.savetxt('ave_insolation.csv',yearly_ave_insol,delimiter=',')
