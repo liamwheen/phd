@@ -74,25 +74,25 @@ class Insolation:
         return self.I_lat_ave(lats,t)
 
 if __name__ =="__main__":
-    tmin = 0#1016730*365.25
+    tmin = 20*365.25#1016730*365.25
     tmax = tmin+365.25
-    num_steps = 366
+    num_steps = 1000
     t_span = np.linspace(tmin,tmax,num_steps)
     model = Insolation(tmin, tmax)
-    print(model.rho, model.beta, model.eps)
+    print(model.eps, model.beta, model.rho)
     insol_vals = np.zeros((num_steps,181))
     r_vals = np.zeros(num_steps)
     for i, t in enumerate(t_span):
-        insol_vals[i,:] = model.update(t,np.linspace(-90,90,181))
+        insol_vals[i,:] = model.update(t,180/np.pi*np.arcsin(np.linspace(-1,1,insol_vals.shape[1])))
         r_vals[i] = q/model.polar_pos(t)[0]**2
     
     #print(min(r_vals),max(r_vals))
     #print(np.mean(r_vals))
-    #print(q/au**2)
+    #print(au)
     #print(np.trapz(np.trapz(insol_vals, t_span,
     #    axis=0)/365.25,np.sin(np.linspace(-np.pi/2,np.pi/2,181))/2))
     #plt.plot(np.linspace(0,365.25,500),np.mean(insol_vals,axis=1))
     #plt.plot(np.linspace(-np.pi/2,np.pi/2,181), np.trapz(insol_vals, t_span,
     #    axis=0)/365.25)
     #plt.show()
-    np.savetxt('insol_vals.csv',insol_vals,delimiter=',')
+    #np.savetxt('insol_vals.csv',insol_vals,delimiter=',')

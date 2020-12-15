@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 from matplotlib.animation import FuncAnimation
 from data import milanko_params # Values given in 1000 year time steps
-from insol_sympy import calc_yearly_average
 
 year2sec = 3.154e+7 #Translate time dependent units to 'per year' instead of 'per second'
 
@@ -21,10 +20,10 @@ Q_0 = 343 #Wm^-2
 #n0 = 0.2487 # Unstable equilibrium initial iceline
 eta0 = 0.5#0.49 # Initial Iceline
 tmin = 0
-tmax = 10 # Years
+tmax = 40000 # Years
 
-num_steps = 100
-frame_refr = 1
+num_steps = 10000
+frame_refr = 50
         
 class Budyko:
     def __init__(self):
@@ -41,8 +40,8 @@ class Budyko:
         self.delta = self.t_span[1]
         self.eta = eta0 #n initial
         self.milanko_update(0)
-#self.T = self.T_star(self.y_span) #set temp profile to eq profile
-        self.T = np.zeros(self.y_span.size)
+        self.T = self.T_star(self.y_span) #set temp profile to eq profile
+        #self.T = np.zeros(self.y_span.size)
         self.T_eta = self.T_y(self.T_star(self.y_span), self.eta)
 
     def s_b(self, y):
@@ -60,9 +59,9 @@ class Budyko:
     def int_T(self, T):
         if isinstance(T,float):
             # Tnj passed so will integrate over T_star
-            return np.sum(self.T_star(self.y_span))*self.y_delta
+            return np.trapz(self.T_star(self.y_span), self.y_span)
 
-        return np.sum(self.T)*self.y_delta
+        return np.trapz(self.T,self.y_span)
 
     def T_star(self, y):
         In = np.sum(self.s_b(y)*(1-self.a_eta(y)))*self.y_delta
@@ -97,6 +96,7 @@ class Budyko:
             self.T_eta += self.delta*self.dT_dt(self.T_eta, self.eta)
             self.eta = np.clip(self.eta + self.delta*(self.T_eta - T_ice)/S,0,1)
             if frame%frame_refr==0: 
+                print(self.eta)
                 yield t
 
     def update(self, t):
