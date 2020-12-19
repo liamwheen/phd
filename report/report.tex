@@ -45,23 +45,38 @@ This is the abstract.
 %\end{spacing}
 \newpage
 \pagenumbering{arabic}
-\section{Introduction}
+%\section{Introduction}
 \section{Definitions}
 \label{sec:definitions}
+\begin{figure}
+  \centering
+  \includegraphics[width=0.8\linewidth]{orbital_params.pdf}
+  \caption{Diagram of Earth from two perspectives, defining the three orbital
+    parameters, obliquity $\beta$, eccentricity $\varepsilon$, and precession $\rho$. Also shown is the
+    Earth centred Earth-fixed axes (EF), and the sun centred ecliptic axes
+    (Ecl), with $z_{_{\mathrm{Ecl}}}$ pointing out of the page. Obliquity
+    describes the tilt of Earth from vertical in the ecliptic frame.
+    Eccentricity depends on the semi-major and semi-minor
+    axes of Earth's orbit, $a$ and $b$ respectively. Precession describes the rotation of
+  $x_{_{\mathrm{EF}}}$ about $z_{_{\mathrm{Ecl}}}$ from $x_{_{\mathrm{Ecl}}}$,
+with all three vectors being Earth centred in this case.}
+  \label{fig:orbital_params}
+\end{figure}
 Throughout this report, a number of parameters and reference frames will be
 used. Here they will be defined and explained for future reference.
 
-Firstly, there will be 2 sets of axes used to describe orientation,
-with their origin at either the centre of the sun or the centre of Earth. \textit{The ecliptic frame}
-relates to the ecliptic plane, in which Earth's orbit lies. The $x$-axis is
-parallel to the orbit's semi-major axis, whilst the $y$-axis is parallel to the semi-minor axis of the
-orbit. If these axes are centred on the sun, we can represent
-Earth's position using polar coordinates $\theta$ and $r$. \textit{The Earth-fixed
-frame}, when centred on Earth, rotates such that the $x$-axis always points
-to coordinates $(0^\circ,0^\circ)$, the $y$-axis points to
-$(0^\circ,90^\circ)$, and the $z$-axis points to the north
-pole. With these axes centred on Earth, we can use spherical
-coordinates to describe a point on Earth with the unit vector
+Figure \ref{fig:orbital_params} shows the 2 sets of axes that will be used to
+describe orientation. Their origins will be located at either the centre of the
+sun or the centre of Earth. \textit{The ecliptic frame}, shown here with its
+origin at the sun, relates to the ecliptic plane, in which Earth's orbit lies.
+The $x$-axis is parallel to the orbit's semi-major axis, whilst the $y$-axis is
+parallel to the semi-minor axis of the orbit. Earth's position can be described
+in the sun centred ecliptic frame using polar coordinates $\theta$ and $r$.
+\textit{The Earth-fixed frame}, shown to be centred on Earth, rotates such that the
+$x$-axis always points to coordinates $(0^\circ,0^\circ)$, the $y$-axis points
+to $(0^\circ,90^\circ)$, and the $z$-axis points to the north pole. With these
+axes centred on Earth, we can use spherical coordinates to describe a point on
+Earth with the unit vector
 \[
   \mathbf{u} = \begin{bmatrix}\cos\varphi\cos\gamma\\\cos\varphi\sin\gamma\\\sin\varphi\end{bmatrix}
 \]
@@ -84,48 +99,98 @@ for obliquity and precession respectively. $U_{\beta}$ acts first,
 rotating about the ecliptic $y$-axis, followed by $U_{\rho}$, rotating
 about the ecliptic $z$-axis.
 
-The orbital parameters, along with the coordinate axes, are shown in
-Figure \ref{fig:orbital_params}.
-
-\begin{figure}
-  \centering
-  \includegraphics[width=0.8\linewidth]{orbital_params.pdf}
-  \caption{Diagram of Earth from two perspectives, defining the three orbital
-    parameters, obliquity $\beta$, eccentricity $\varepsilon$, and precession $\rho$. Also shown is the
-    Earth centred Earth-fixed axes (EF), and the sun centred ecliptic axes
-    (Ecl), with $z_{_{\mathrm{Ecl}}}$ pointing out of the page. Obliquity
-    describes the tilt of Earth from vertical in the ecliptic frame.
-    Eccentricity depends on the semi-major and semi-minor
-    axes of Earth's orbit, $a$ and $b$ respectively. Precession describes the rotation of
-  $x_{_{\mathrm{EF}}}$ about $z_{_{\mathrm{Ecl}}}$ from $x_{_{\mathrm{Ecl}}}$,
-with all three vectors being Earth centred in this case.}
-  \label{fig:orbital_params}
-\end{figure}
 \section{Milankovitch Cycles}
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{orbital_param_time_series.pdf}
+  \caption{Time series of the three orbital parameters over the past 3 million
+  years. The data for which was produced by Laskar \cite{laskar2004}.}
+  \label{fig:orbital_param_time_series}
+\end{figure}
+
 The Milankovitch cycles describe the periodic variation of the three orbital
 parameters defined in Section \ref{sec:definitions}. That is obliquity,
-precession, and eccentricity.
+precession, and eccentricity. The variation of these parameters over the past 3
+million years can be seen in Figure \ref{fig:orbital_param_time_series}. This
+data is calculated by Laskar \cite{laskar2004}, based on empirical data and
+celestial mechanics.
 
 As shown in Figure \ref{fig:orbital_params}, obliquity describes the tilt of
-the Earth-fixed $z$-axis from the ecliptic $z$-axis. This ---
-\begin{figure}
+the Earth-fixed $z$-axis from the ecliptic $z$-axis. With a greater obliquity,
+the poles are tilted closer to the ecliptic plane, and hence receive stronger
+irradiance from the sun during their summer periods. This has the effect of
+more evenly distributing insolation across Earth's latitudes, over a year
+period. Taking the power spectrum of the time series data allows us to
+determine its prominent frequencies, as shown in Figure \ref{fig:beta_power_spec}.
+There is only one significant peak in the power spectrum, indicating that
+obliquity maintains a reliable period of 41.1 thousand years (kyr). The amplitude
+modulation visible in the obliquity plot of Figure \ref{fig:orbital_param_time_series} occurs with an
+approximate period of 1 million years. This can be explained by the interaction
+with the prominent frequency at 0.0243\,kyr$^{-1}$ and the slightly higher frequency of
+0.0253\,kyr$^{-1}$, which has a far smaller amplitude. The sum of these two frequencies will
+produce a beat frequency of $|0.0253-0.0243|=0.001$ which translates to a period
+of $1/0.001=1000$\,kyr. However, because the higher of these two interfering frequencies is
+of such a small amplitude, the resulting beat frequency does not show up on the
+power spectrum.
+\begin{figure}[h]
   \centering
   \includegraphics[width=0.9\linewidth]{beta_power_spec.pdf}
-  \caption{Power spectrum for obliquity---}
+  \caption{Power spectrum for obliquity over the past 3 million years. A
+    single peak occurs at 0.0243\,kyr$^{-1}$, meaning that obliquity oscillates
+  with a period of 41.1\,kyr.}
   \label{fig:beta_power_spec}
 \end{figure}
-\begin{figure}
+
+Axial Precession is the measure of pole rotation from the ecliptic $x$-axis. This is
+an approximately constant clockwise rotation about the Earth centred ecliptic
+$z$-axis. Precession governs the seasons on Earth. For example, the longest day
+in the northern hemisphere will occur when the north pole's tilt aligns with
+the sun. The current precession is illustrated in Figure \ref{fig:orbital_params},
+with the northern summer solstice occurring a little before the aphelion of the
+orbit. However as the north pole precesses clockwise, the summer solstice will
+also rotate clockwise around the orbit, starting summer in the northern
+hemisphere earlier.
+
+The power spectrum for precession is shown in Figure \ref{fig:rho_power_spec},
+with three significant frequencies identified. The weighted mean of these
+frequencies is 0.0470, giving an average period of 21.3\,kyr for the last 3
+million years. This period is only approximate, since the amplitude of these
+frequencies is shown to change depending on the timescale over which the data
+is analysed. 
+\begin{figure}[h]
   \centering
   \includegraphics[width=0.9\linewidth]{rho_power_spec.pdf}
-  \caption{Power spectrum for obliquity---}
+  \caption{Power spectrum for precession over the past 3 million years. Three
+  peaks are shown, occurring at 0.0423, 0.0447, and 0.0527\,kyr$^{-1}$, with their
+corresponding periods shown in the legend.}
   \label{fig:rho_power_spec}
 \end{figure}
-\begin{figure}
+
+The eccentricity of Earth's orbit is a measure of how elliptical it is, with 0
+indicating a perfectly circular orbit. Earth's orbit has a maximum eccentricity
+of around 0.06, which is close to circular when compared to planets such as
+Mercury, with an eccentricity of 0.2. Despite this, we will see that
+eccentricity still plays an important role in Earth's climatic behaviour.
+
+The power spectrum for eccentricity, shown in Figure \ref{fig:ecc_power_spec},
+reveals three prominent frequencies, with their equivalent periods shown in the
+legend. The two higher frequencies, at 0.0080\,kyr$^{-1}$ and
+0.0103\,kyr$^{-1}$, are close enough to give a good approximation of the
+prominent period, using a weighted mean this gives 109.1\,kyr. The lower
+frequency peak at 0.0023 can again be explained by interference between the
+other two frequencies, as we see the beat frequency is also $|0.0103 -
+0.008|=0.0023$.
+\begin{figure}[h]
   \centering
   \includegraphics[width=0.9\linewidth]{ecc_power_spec.pdf}
-  \caption{Power spectrum for obliquity---}
+  \caption{Power spectrum for eccentricity over the past 3 million years. There
+    peaks are shown, occurring at 0.0023, 0.008, and 0.0103\,kyr$^{-1}$ with
+  their corresponding periods shown in the legend.}
   \label{fig:ecc_power_spec}
 \end{figure}
+
+[Here put the 65deg north summer solstice plot and do the power spectrum and
+assess the roles of the different orbital params]
 
 
 
@@ -190,13 +255,14 @@ $Q_\varepsilon=340.375$\,Wm$^{-2}$, hence $Q_0 = Q_\varepsilon \sqrt{(1-\varepsi
 \ref{tab:orbital_params}.
 \begin{table}
   \centering
-  \caption{Earth's orbital parameters in the year 2020.}
+  \caption{Earth's orbital parameter values in the year 2020 along with their
+  approximate ranges.}
 \label{tab:orbital_params}
 \begin{tabular}{c|c|c|c}
 Parameter                    & Value  & Range               & Unit   \\ \hline\hline
 Eccentricity ($\varepsilon$) & 0.0167 & 0.0005 - 0.0613     & None   \\ \hline
 Obliquity ($\beta$)          & 0.4090 & 0.3814 - 0.4255     & Radians \\ \hline
-Precession ($\rho$)          & 2.9101 & $-3.1416$ -  3.1416 & Radians
+Precession ($\rho$)          & 2.9101 & $-\pi$ -  $\pi$       & Radians
 \end{tabular}
 \end{table}
 This insolation is then distributed
