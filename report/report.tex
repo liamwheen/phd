@@ -148,14 +148,14 @@ in the northern hemisphere will occur when the north pole's tilt aligns with
 the sun. The current precession is illustrated in Figure \ref{fig:orbital_params},
 with the northern summer solstice occurring a little before the aphelion of the
 orbit. However as the north pole precesses clockwise, the summer solstice will
-also rotate clockwise around the orbit, starting summer in the northern
+also move around the orbit in the clockwise direction, starting summer in the northern
 hemisphere earlier.
 
 The power spectrum for precession is shown in Figure \ref{fig:rho_power_spec},
 with three significant frequencies identified. The weighted mean of these
 frequencies is 0.0470, giving an average period of 21.3\,kyr for the last 3
 million years. This period is only approximate, since the amplitude of these
-frequencies is shown to change depending on the timescale over which the data
+frequencies is known to change depending on the timescale over which the data
 is analysed. 
 \begin{figure}[h]
   \centering
@@ -174,25 +174,52 @@ eccentricity still plays an important role in Earth's climatic behaviour.
 
 The power spectrum for eccentricity, shown in Figure \ref{fig:ecc_power_spec},
 reveals three prominent frequencies, with their equivalent periods shown in the
-legend. The two higher frequencies, at 0.0080\,kyr$^{-1}$ and
+legend. The two higher frequencies, at 0.008\,kyr$^{-1}$ and
 0.0103\,kyr$^{-1}$, are close enough to give a good approximation of the
 prominent period, using a weighted mean this gives 109.1\,kyr. The lower
-frequency peak at 0.0023 can again be explained by interference between the
+frequency peak at 0.0023\,kyr$^{-1}$ can again be explained by interference between the
 other two frequencies, as we see the beat frequency is also $|0.0103 -
 0.008|=0.0023$.
 \begin{figure}[h]
   \centering
   \includegraphics[width=0.9\linewidth]{ecc_power_spec.pdf}
-  \caption{Power spectrum for eccentricity over the past 3 million years. There
+  \caption{Power spectrum for eccentricity over the past 3 million years. Three
     peaks are shown, occurring at 0.0023, 0.008, and 0.0103\,kyr$^{-1}$ with
   their corresponding periods shown in the legend.}
   \label{fig:ecc_power_spec}
 \end{figure}
 
-[Here put the 65deg north summer solstice plot and do the power spectrum and
-assess the roles of the different orbital params]
+A commonly used method for measuring the change in insolation over a long
+period involves measuring the average insolation at 65$^\circ$ north over the
+summer solstice. This isolates the effect of the orbital parameters, avoiding
+seasonal and latitudinal variations in insolation. The time series of
+insolation at this point over the past 3 million years is shown in Figure
+\ref{fig:N65_time_series}. This was generated with the daily insolation
+simulation discussed in Section \ref{sec:insolation}, and verified with
+McGehee's work \cite{insol_latlon}.
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\linewidth]{N65_time_series.pdf}
+  \caption{Insolation at 65$^\circ$ north during the summer solstice over the
+  past 3 million years.}
+  \label{fig:N65_time_series}
+\end{figure}
 
+The power spectrum for this data is shown in Figure \ref{fig:N65_power_spec}.
+Here there are four prominent peaks, which can be seen to align with the power
+spectrum peaks for obliquity and precession. The first peak corresponds to a
+period of 41.1\,kyr, which is the period that obliquity varies over. The
+remaining three periods are close to those of precession, ---
 
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\linewidth]{N65_power_spec.pdf}
+  \caption{Power spectrum for the daily insolation at 65$^\circ$ north during
+    the summer solstice over the past 3 million years. Four peaks are shown,
+    occurring at 0.0243, 0.042, 0.0443, 0.0523\,kyr$^{-1}$ with their
+  corresponding periods shown in the legend.}
+  \label{fig:N65_power_spec}
+\end{figure}
 
 \section{Budyko Model}
 \label{sec:budyko}
