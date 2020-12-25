@@ -195,7 +195,7 @@ summer solstice. This isolates the effect of the orbital parameters, avoiding
 seasonal and latitudinal variations in insolation. The time series of
 insolation at this point over the past 3 million years is shown in Figure
 \ref{fig:N65_time_series}. This was generated with the daily insolation
-simulation discussed in Section \ref{sec:insolation}, and verified with
+simulation discussed in Section \ref{sec:insolation}, and validated against 
 McGehee's work \cite{insol_latlon}.
 \begin{figure}
   \centering
@@ -206,21 +206,33 @@ McGehee's work \cite{insol_latlon}.
 \end{figure}
 
 The power spectrum for this data is shown in Figure \ref{fig:N65_power_spec}.
-Here there are four prominent peaks, which can be seen to align with the power
+Here there are four prominent peaks, which align with the power
 spectrum peaks for obliquity and precession. The first peak corresponds to a
 period of 41.1\,kyr, which is the period that obliquity varies over. The
-remaining three periods are close to those of precession, ---
+remaining three peaks match those of precession, and have greater power than
+the frequency of obliquity. This indicates that precession plays the most
+important role in this particular insolation measure, with a secondary
+contribution from obliquity. Importantly, the power spectrum shows that
+the variation of eccentricity has no significant effect on this insolation
+measure. However, this is not to say that eccentricity does not play an
+important role in this insolation measure. The presence of eccentricity means
+that Earth's distance from the sun varies over its orbit. The strength of the
+irradiance that reaches Earth is proportional to $1/r^2$, so also varies over
+the orbit. Hence the only way in which precession effects the insolation
+measure is by placing the summer solstice at differing distances from the sun.
 
+The effect of obliquity on this measure comes from varying the angle
+at which latitude 65$^\circ$ north receives the sun's irradiance. The further
+it is tilted away from the ecliptic plane, the less irradiance it receives.
 \begin{figure}
   \centering
   \includegraphics[width=0.9\linewidth]{N65_power_spec.pdf}
   \caption{Power spectrum for the daily insolation at 65$^\circ$ north during
     the summer solstice over the past 3 million years. Four peaks are shown,
-    occurring at 0.0243, 0.042, 0.0443, 0.0523\,kyr$^{-1}$ with their
+    occurring at 0.0243, 0.0423, 0.0447, 0.0527\,kyr$^{-1}$ with their
   corresponding periods shown in the legend.}
   \label{fig:N65_power_spec}
 \end{figure}
-
 \section{Budyko Model}
 \label{sec:budyko}
 The Budyko model is an energy balance model (EBM) that explores the positive
@@ -287,7 +299,7 @@ $Q_\varepsilon=340.375$\,Wm$^{-2}$, hence $Q_0 = Q_\varepsilon \sqrt{(1-\varepsi
 \label{tab:orbital_params}
 \begin{tabular}{c|c|c|c}
 Parameter                    & Value  & Range               & Unit   \\ \hline\hline
-Eccentricity ($\varepsilon$) & 0.0167 & 0.0005 - 0.0613     & None   \\ \hline
+Eccentricity ($\varepsilon$) & 0.0167 & 0.0002 - 0.0613     & None   \\ \hline
 Obliquity ($\beta$)          & 0.4090 & 0.3814 - 0.4255     & Radians \\ \hline
 Precession ($\rho$)          & 2.9101 & $-\pi$ -  $\pi$       & Radians
 \end{tabular}
@@ -389,22 +401,12 @@ A dynamic ice line was later introduced to the model by Widiasih
 where $T_{\mathrm{ice}}$ is an estimate for the critical temperature at which
 an ice sheet can form.
 
-\begin{table}[h]
-  \centering
-  \caption{Parameter values used for the Budyko model.}
-  \label{tab:budyko_params}
-\begin{tabular}{c|c|c|cl}
-Parameter          & Value         & Unit        & Source &  \\ \hline\hline
-$Q_0$              & 340.327       & Wm$^{-2}$   & Kopp \cite{solar_constant} \\\hline
-$A$                & 202.1         & Wm$^{-2}$   & North \cite{linear_reradiation}  \\\hline
-$B$                & 1.9           & Wm$^{-2}$\,$^\circ$C$^{-1}$ &  North \cite{linear_reradiation} \\\hline
-$C$                & 3.04          & Wm$^{-2}$\,$^\circ$C$^{-1}$ &  Tung \cite{tung2007topics}\\\hline
-$T_{\mathrm{ice}}$ & -10           & $^\circ$C   &  Tung \cite{tung2007topics}\\\hline
-$\alpha_1$         & 0.32          & None        &  Tung \cite{tung2007topics}\\\hline
-$\alpha_2$         & 0.63          & None        &  Tung \cite{tung2007topics}\\\hline
-$R$                & $4\times10^8$ & Jm$^{-2}$\,$^\circ$C$^{-1}$ &  Widiasih \cite{c_beta}
-\end{tabular}
-\end{table}
+[Here discuss the introduction of the dynamic iceline from widiasih, the
+  dynamics of the model, the equilibrium points, the stability, how this
+  doesn't get effected by the milankovitch params much at all, the lack of any
+  oscillation (which I believe would be impossible anyway given the equations
+  formulation), the slow and fast dynamics of the temp and iceline
+respectively (as shown in the figure).]
 \begin{figure}
 \centering
 \begin{subfigure}{.4\textwidth}
@@ -442,16 +444,22 @@ towards the stable equilibrium point at $y=0.9544$, getting within 3\% of this
 value after 10\,000 years.}
 \label{fig:budyko_demo}
 \end{figure}
-[Need to justify the 340, mention how Tung is using too large solar constant]
-[Here discuss the introduction of the dynamic iceline from widiasih, the
-  dynamics of the model, the equilibrium points, the stability, how this
-  doesn't get effected by the milankovitch params much at all, the lack of any
-  oscillation (which I believe would be impossible anyway given the equations
-  formulation), the slow and fast dynamics of the temp and iceline
-respectively (as shown in the figure).]
-[Also introduce Milankovitch properly and how each orbital parameter is defined
-(especially precession). Maybe move Table of orbital params up to milankovitch
-section]
+\begin{table}[h]
+  \centering
+  \caption{Parameter values used for the Budyko model.}
+  \label{tab:budyko_params}
+\begin{tabular}{c|c|c|cl}
+Parameter          & Value         & Unit        & Source &  \\ \hline\hline
+$Q_0$              & 340.327       & Wm$^{-2}$   & Kopp \cite{solar_constant} \\\hline
+$A$                & 202.1         & Wm$^{-2}$   & North \cite{linear_reradiation}  \\\hline
+$B$                & 1.9           & Wm$^{-2}$\,$^\circ$C$^{-1}$ &  North \cite{linear_reradiation} \\\hline
+$C$                & 3.04          & Wm$^{-2}$\,$^\circ$C$^{-1}$ &  Tung \cite{tung2007topics}\\\hline
+$T_{\mathrm{ice}}$ & -10           & $^\circ$C   &  Tung \cite{tung2007topics}\\\hline
+$\alpha_1$         & 0.32          & None        &  Tung \cite{tung2007topics}\\\hline
+$\alpha_2$         & 0.63          & None        &  Tung \cite{tung2007topics}\\\hline
+$R$                & $4\times10^8$ & Jm$^{-2}$\,$^\circ$C$^{-1}$ &  Widiasih \cite{c_beta}
+\end{tabular}
+\end{table}
 \section{Insolation}
 \label{sec:insolation}
 Insolation is solar irradiance integrated over time, however we are usually
@@ -539,8 +547,8 @@ performed for the given latitude and orbital parameters. An example of this can
 be seen in Figure \ref{fig:circ_plane_intercept}.
 \begin{figure}
   \centering
-  \includegraphics[width=0.6\linewidth]{circ_plane_intercept.pdf}
-  \caption{Diagram showing the day-night plane (yellow) that passes through the
+  \includegraphics[width=0.5\linewidth]{circ_plane_intercept.pdf}
+  \caption{Diagram showing the day-night plane (yellow) which passes through the
     origin at Earth's centre and rotates to face the sun, and the circle of
     constant latitude $\varphi$. The points where the circle intersects the plane
     (green) indicate the range of longitudes for which sunlight will reach Earth
@@ -994,6 +1002,17 @@ year. This was then compared with the insolation term from the Budyko model,
 which was improved by Widiasih to include dependence on the orbital parameters.
 The approximation was within 2\% of the actual yearly insolation, suggesting
 that this component of the Budyko model is suitably accurate.
+
+The next step is to introduce a more accurate representation of latitude based
+albedo into the Budyko model. This is to take account of the land distribution,
+since there is approximately twice as much land in the northern hemisphere than
+the south. We will therefore introduce a land albedo, which is between water
+and ice, and is distributed according to latitudinal land density. 
+%\begin{figure}
+  %\centering
+  %\includegraphics[width=0.6\linewidth]{land_distribution.pdf}
+  %\caption{Percentage land distribution at each latitude (blue), with an
+    %underlaid map of Earth. This map 
 \bibliographystyle{ieeetr}
 \bibliography{refs}
 \end{document}
