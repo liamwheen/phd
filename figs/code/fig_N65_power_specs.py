@@ -1,7 +1,4 @@
 import matplotlib.pyplot as plt
-import sys
-sys.path.append('../../code/data/')
-from milanko_params import load_milanko
 import numpy as np
 from scipy import signal
 from matplotlib import rc
@@ -10,13 +7,13 @@ rc('font', family='serif',size=16)
 
 fig, ax = plt.subplots(figsize=(9,2.31),tight_layout=True)
 insol = np.loadtxt('../data/N65_insol.csv',delimiter=',')
-#insol = np.loadtxt('../../code/insol_vals.csv',delimiter=',')
-ax.plot(np.linspace(-3000,0,3000),insol,'C3',linewidth=2)
+#insol = np.loadtxt('../../code/insol_vals.csv')
+ax.plot(np.linspace(-3000,0,insol.size),insol,'C3',linewidth=2)
 ax.set_xlabel('Time (kya)')
 ax.set_ylabel('Insolation (W/m$^2$)')
 fig.savefig('../N65_time_series.pdf')
 
-f, p = signal.welch(insol,nperseg=3000)
+f, p = signal.welch(insol,10/3,nperseg=insol.size)
 fig, ax = plt.subplots(figsize=(9,2.7),tight_layout=True)
 plt.plot(f,p,'C3',linewidth=3)
 
@@ -31,3 +28,4 @@ ax.set_xlabel('Frequency (1/kyr)')
 ax.set_ylabel('Power')
 ax.set_xlim([0,0.08])
 fig.savefig('../N65_power_spec.pdf')
+#plt.show()

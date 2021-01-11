@@ -271,7 +271,7 @@ considered, i.e. $y \in [0,1]$. This simplified domain is shown in Figure
 The dynamical equation for temperature consists of three components. They
 describe the flow of energy into, out of, and around Earth. The first of these
 is incoming solar radiation, insolation, expressed by the term $Q_\varepsilon
-s(y) (1-\alpha_\eta(y))$. The first component of this is the average yearly
+s_\beta(y) (1-\alpha_\eta(y))$. The first component of this is the average yearly
 insolation reaching Earth, $Q_\varepsilon$, which varies according to the
 eccentricity of Earth's orbit, $\varepsilon$, such that $Q_\varepsilon =
 Q_0/\sqrt{(1-\varepsilon^2)}$.
@@ -314,7 +314,7 @@ the even Legendre polynomials,
 \]
 to give
 \[
-    s(y) = 1 + \frac{1}{2}c_\beta(3y^2-1),
+  s_\beta(y) = 1 + \frac{1}{2}c_\beta(3y^2-1),
 \]
 where $c_\beta = \frac{5}{16}(3\sin^2\beta - 2)$ and $\beta$ is obliquity
 \cite{c_beta}. This approximation can be seen alongside the actual function in
@@ -361,7 +361,8 @@ such that the equilibrium matches current climatic conditions. Tung's work on
 this yielded the relation $C=1.6B=3.04$\,Wm$^{-2}\,^\circ$C$^{-1}$ \cite{tung2007topics}.
 Combining these components of heat flow gives the dynamical equation for temperature to be
 \[
-  R\frac{\partial T(y,t)}{\partial t} = \underbrace{Q_\varepsilon s(y) (1-\alpha_\eta(y))}_{\text{Insolation}}
+  R\frac{\partial T(y,t)}{\partial t} = \underbrace{Q_\varepsilon s_\beta(y)
+  (1-\alpha_\eta(y))}_{\text{Insolation Absorbed}}
   - \underbrace{(A+BT(y,t))}_{\text{Reradiation}}
   + \underbrace{C(\bar{T}(t)-T(y,t))}_{\text{Transport}}.
 \]
@@ -644,7 +645,9 @@ where a positive value corresponds to more insolation in the second plot.
     based on current orbital parameters, from Table \ref{tab:orbital_params}.
     In the second plot, eccentricity is increased to 0.06, approximately the
     maximum for Earth's orbit. The third plot shows how these two cases differ,
-    where a positive value corresponds to more insolation in the second plot.}
+    where a positive value corresponds to more insolation in the second plot.
+  The $y$-axis uses the domain $y=\sin \varphi$ as is used in the Budyko
+model, however the corresponding lattiudes are shown for reference.}
   \label{fig:daily_ave_insol_all_lats}
 \end{figure}
 
@@ -670,10 +673,11 @@ around the sun is proportional to $1/r^2$.
 
 As eccentricity increases and the distance between the perihelion and the sun
 decreases, the angular speed around this region will increase. This is the
-cause of the 2 spikes at either pole in the difference plot of Figure
+cause of the 2 cold peaks in the south pole and 2 warm peaks in the north pole,
+shown in the difference plot of Figure
 \ref{fig:daily_ave_insol_all_lats}. These indicate where the more eccentric
 orbit has traversed the angular range around the perihelion faster than our
-actual orbit. This results in the summer period in the southern hemisphere
+current orbit. This results in the summer period in the southern hemisphere
 lasting less time, becoming comparatively cooler either side of the warmest 100
 days. Whilst at the same time in the northern hemisphere, winter is shorter,
 leading to comparatively warmer periods either side of the coldest 100 days.
@@ -823,11 +827,11 @@ This function for insolation, along with the Budyko approximation, can be see in
 \begin{figure}
   \centering
   \includegraphics[width=0.5\linewidth]{yearly_average_insol_present.pdf}
-  \caption{The average yearly insolation, $Q_{\mathrm{year}}$, for current orbital parameters, as
+  \caption{The average yearly insolation $Q_{\mathrm{year}}$ for current orbital parameters,
     shown in Table \ref{tab:orbital_params}. The dashed line shows the
-    approximation for yearly insolation used in the Budyko model as discussed
-  in Section \ref{sec:budyko}. The shape of $Q_\varepsilon s(y)$ has been warped here
-to fit the domain of $\varphi$, as opposed to $y=\sin\varphi$.}
+    approximation for yearly insolation used for the Budyko model
+  in Section \ref{sec:budyko}. The horizontal axis uses the domain
+$y=\sin\varphi$, however the corresponding latitudes are shown for reference.}
   \label{fig:yearly_ave_insol_present}
 \end{figure}
 \begin{figure}
@@ -845,8 +849,8 @@ By breaking the insolation expression into two terms, $Q(\varepsilon)$ and
 $s(\beta,y)$, the effect of obliquity and eccentricity on yearly insolation can
 be isolated. This is shown in Figure \ref{fig:beta_eps_effect}, where each plot
 varies one of the two orbital parameters. Since $\varepsilon$ only appears in the component for global
-average insolation, we see that eccentricity will only scale the insolation
-curve. Conversely, $\beta$ is only present in the function $s(y)$, which
+average insolation $Q(\varepsilon)$, we see that eccentricity will only scale the insolation
+curve. Conversely, $\beta$ is only present in the function $s(\beta,y)$, which
 distributes the insolation according to latitude and always integrates to
 1 over the range $y\in[0,1]$. We therefore see the shape of the curve varying
 with $\beta$, but not the area underneath it.
@@ -858,9 +862,9 @@ insolation, over the past 150 thousand years.
   \centering
   \includegraphics[width=0.6\linewidth]{yearly_average_insol_150kN.pdf}
   \caption{Contour showing the difference in yearly average insolation from the
-  average insolation over the 150k year period at each latitude. At the
-  top and bottom are eccentricity $\varepsilon$ and obliquity $\beta$, the two
-orbital parameters that govern the yearly average insolation.}
+  average insolation over the 150k year period at each latitude. Above this is
+  eccentricity $\varepsilon$, whilst obliquity $\beta$ is shown below. These
+  are the two orbital parameters that govern the yearly average insolation.}
   \label{fig:yearly_ave_insol_all_lats}
 \end{figure}
 
@@ -1008,11 +1012,22 @@ albedo into the Budyko model. This is to take account of the land distribution,
 since there is approximately twice as much land in the northern hemisphere than
 the south. We will therefore introduce a land albedo, which is between water
 and ice, and is distributed according to latitudinal land density. 
-%\begin{figure}
-  %\centering
-  %\includegraphics[width=0.6\linewidth]{land_distribution.pdf}
-  %\caption{Percentage land distribution at each latitude (blue), with an
-    %underlaid map of Earth. This map 
+
+However, the data analysis by Stephens \cite{equal_hem_albedo} shows that the
+net albedo, including cloud coverage, is almost exactly equal. With only
+0.2\,Wm$^{-2}$ difference between them. This is due to the increased cloud
+cover present in the southern hemisphere counteracting the increased land mass
+in the north. 
+\begin{figure}
+  \centering
+  \includegraphics[width=\linewidth]{land_distribution.pdf}
+  \caption{Distribution of land density across latitude. The reference map
+    shown on the right uses a sinusoidal projection in order to preserve area
+  as well as equal latitude spacing.}
+  \label{fig:land_distribution}
+\end{figure}
+
+
 \bibliographystyle{ieeetr}
 \bibliography{refs}
 \end{document}

@@ -10,7 +10,7 @@ rc('font', family='serif',size=16)
 
 t, ecc, obliq, l_peri = load_milanko('backward')
 prec= (((1/2)*np.pi - l_peri)%(2*np.pi) - np.pi)[-3001:] # Transform to used definition of rho
-prec = l_peri[-3001:]
+#prec = l_peri[-3001:]
 t = t[-3001:]
 ecc = ecc[-3001:]
 obliq = obliq[-3001:]
@@ -53,5 +53,5 @@ for ax, powspec, freq in zip([ob_ax,prec_ax,ecc_ax],[ob_p, prec_p, ecc_p],[ob_f,
 
 for name, fig in zip(['beta', 'rho', 'ecc'],[ob_fig, prec_fig, ecc_fig]):
     fig.tight_layout()
-    #fig.savefig('../{}_power_spec.pdf'.format(name))
-plt.show()
+    fig.savefig('../{}_power_spec.pdf'.format(name))
+#plt.show()

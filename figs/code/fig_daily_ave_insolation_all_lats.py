@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-from matplotlib.ticker import FormatStrFormatter
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
@@ -35,7 +34,7 @@ fig, (now_ax, e6_ax, cbar1, space, delta_ax, cbar2) = plt.subplots(1,6,constrain
 space.remove()
 insol = np.loadtxt('../data/ave_insolation.csv',delimiter=',')
 e6insol = np.loadtxt('../data/e0.06_ave_insolation.csv',delimiter=',')
-yy, xx = np.meshgrid(np.linspace(-90,90,insol.shape[1]),np.linspace(0,366,insol.shape[0]))
+yy, xx = np.meshgrid(90*np.sin(np.linspace(-np.pi/2,np.pi/2,insol.shape[1])),np.linspace(0,366,insol.shape[0]))
 cont = now_ax.contourf(xx,yy,insol,cmap=cm.coolwarm,vmin=0,vmax=640)
 e6cont = e6_ax.contourf(xx,yy,np.roll(e6insol,1,axis=0),cmap=cm.coolwarm)
 deltacont = delta_ax.contourf(xx,yy,np.roll(e6insol,1,axis=0)-insol,cmap=cm.RdBu_r)
@@ -43,15 +42,15 @@ cbar = fig.colorbar(e6cont, cax=cbar1)
 cbar.set_label('Insolation (W/m$^2$)',rotation=270,labelpad=30)
 cbar = fig.colorbar(deltacont, cax=cbar2)
 cbar.set_label('$\Delta$ Insolation (W/m$^2$)',rotation=270,labelpad=30)
-now_ax.set_yticks([-90,-60,-30,0,30,60,90])
-e6_ax.set_yticks([-90,-60,-30,0,30,60,90])
-delta_ax.set_yticks([-90,-60,-30,0,30,60,90])
-now_ax.yaxis.set_major_formatter(FormatStrFormatter('%g$^\circ$'))
-e6_ax.yaxis.set_major_formatter(FormatStrFormatter('%g$^\circ$'))
-delta_ax.yaxis.set_major_formatter(FormatStrFormatter('%g$^\circ$'))
+now_ax.set_yticks(90*np.sin(np.array([-90,-45,-20,0,20,45,90])*np.pi/180))
+e6_ax.set_yticks(90*np.sin(np.array([-90,-45,-20,0,20,45,90])*np.pi/180))
+delta_ax.set_yticks(90*np.sin(np.array([-90,-45,-20,0,20,45,90])*np.pi/180))
+now_ax.set_yticklabels(['{}$^\circ$'.format(i) for i in [-90,-45,-20,0,20,45,90]])
+e6_ax.set_yticklabels(['{}$^\circ$'.format(i) for i in [-90,-45,-20,0,20,45,90]])
+delta_ax.set_yticklabels(['{}$^\circ$'.format(i) for i in [-90,-45,-20,0,20,45,90]])
 now_ax.set_ylabel('Latitude')
 now_ax.set_xlabel('Days Since Aphelion')
 e6_ax.set_xlabel('Days Since Aphelion')
 delta_ax.set_xlabel('Days Since Aphelion')
-#plt.savefig('../both_daily_ave_insolation_all_lats.pdf')
-plt.show()
+plt.savefig('../both_daily_ave_insolation_all_lats.pdf')
+#plt.show()
