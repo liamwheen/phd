@@ -25,6 +25,25 @@ def load_milanko(direction):
     l_peri = np.array(l_peri)
 
     if direction == 'forward':
+        #Make l_peri continuous to allow for interpolation later
+        inds = np.where(np.diff(l_peri)<0)[0]+1
+        for ind in inds:
+            l_peri[ind:]+=2*np.pi
         return t, ecc, obliq, l_peri
 
+    #Make l_peri continuous to allow for interpolation later
+    inds = np.where(np.diff(l_peri)>0)[0]+1
+    for ind in inds:
+        l_peri[ind:]-=2*np.pi
+
     return np.flip(t), np.flip(ecc), np.flip(obliq), np.flip(l_peri)
+
+
+#import matplotlib.pyplot as plt
+#tf,_,_,pf= load_milanko('forward')
+#tb,e,_,pb= load_milanko('backward')
+#print(min(e[-3000:]),max(e[-3000:]))
+#t = np.concatenate([tb,tf])
+#p = np.concatenate([pb,pf])
+#plt.plot(t[51001-180:51160],p[51001-180:51160])
+#plt.show()

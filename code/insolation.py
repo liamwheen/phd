@@ -27,7 +27,7 @@ class Insolation:
     def milanko_update(self, t):
         self.eps = float(self.eps_func(t/k2day))
         self.beta = float(self.beta_func(t/k2day))
-        self.l_peri = float(self.l_peri_func(t/k2day))
+        self.l_peri = float(self.l_peri_func(t/k2day))%(2*np.pi)
         # Here we shift from (vernal eq to perihelion) to (aphelion (x-axis) to
         # north pole direction in ecliptic plane)
         self.rho = ((1/2)*np.pi - self.l_peri)%(2*np.pi) - np.pi
@@ -62,29 +62,29 @@ class Insolation:
 
     def last_sum_solst(self, t):
         """ Tracks back over the past year to find the day of the summer solstice"""
-        for t_summer in np.linspace(t,t-365,366):
+        for t_summer in np.linspace(t,t+365,1000):
             theta = self.polar_pos(t_summer)[1]
-            if abs((np.pi-self.rho) - (2*np.pi-theta)) < 0.02:
+            if abs(theta-self.rho-np.pi) < 0.006:
                 return t_summer
 
     def update(self, t, lats):
         self.milanko_update(t)
-        #t = self.last_sum_solst(t)
-        self.insol = q/self.polar_pos(t)[0]**2
-        return self.I_lat_ave(lats,t)
+        t = self.last_sum_solst(t)
+        #self.insol = q/self.polar_pos(t)[0]**2
+        return self.I_lat_ave(lats,t), t
 
 if __name__ =="__main__":
-    tmin = 20*365.25#1016730*365.25
-    tmax = tmin+365.25
+    tmin = -3e6*365.25
+    tmax = 0
     num_steps = 1000
     t_span = np.linspace(tmin,tmax,num_steps)
-    model = Insolation(tmin, tmax)
-    print(model.eps, model.beta, model.rho)
-    insol_vals = np.zeros((num_steps,181))
-    r_vals = np.zeros(num_steps)
+    model = Insolation(tmin, tmax, 'backward')
+    insol_vals = np.zeros((num_steps,1))
+    #r_vals = np.zeros(num_steps)
     for i, t in enumerate(t_span):
-        insol_vals[i,:] = model.update(t,180/np.pi*np.arcsin(np.linspace(-1,1,insol_vals.shape[1])))
-        r_vals[i] = q/model.polar_pos(t)[0]**2
+        #insol_vals[i,:] = model.update(t,180/np.pi*np.arcsin(np.linspace(-1,1,insol_vals.shape[1])))
+        insol_vals[i],_ = model.update(t,[65])
+        #r_vals[i] = q/model.polar_pos(t)[0]**2
     
     #print(min(r_vals),max(r_vals))
     #print(np.mean(r_vals))
