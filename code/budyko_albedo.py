@@ -14,7 +14,7 @@ year2sec = 3.154e+7 #Translate time dependent units to 'per year' instead of 'pe
 #alpha_2 = 0.62
 A = 202.1 #Wm^-2
 B = 1.9 #Wm^-2
-C = 1.6*B #Wm^-2 K^-1
+C = 0.9*B #Wm^-2 K^-1
 D = 5.3 #Wm^-2
 T_ice = -10 #degC
 R = 4*10**8 #some say e9 some say e8 #J m^-2 K^-1
@@ -23,15 +23,15 @@ Q_0 = 340.327 #Wm^-2
 co2_0 = 280 #ppm
         
 etas0 = [-0.7,0.8]#0.49 # Initial Iceline
-tmin = -300000
+tmin = -100000
 tmax = 0 # Years
 
-num_steps = 80000
+num_steps = 50000
 frame_refr = 100
         
 class Budyko:
     def __init__(self):
-        self.y_span = np.linspace(-1,1,1000)
+        self.y_span = np.linspace(-1,1,10000)
         self.y_delta = self.y_span[1]-self.y_span[0]
         self.t_span = np.linspace(tmin*year2sec,tmax*year2sec,num_steps) #years
         self.delta = self.t_span[1] - self.t_span[0]
@@ -48,8 +48,8 @@ class Budyko:
         self.etas = np.array(etas0)
         self.milanko_update(tmin)
         self.carbon_update(tmin)
-        self.T = self.T_star() #set temp profile to eq profile
-        #self.T = np.zeros(self.y_span.size)
+        #self.T = self.T_star() #set temp profile to eq profile
+        self.T = np.ones(self.y_span.size)
         self.T_etas = self.T_y(self.T_star(), self.etas)
 
         self.eta_rec = np.zeros((num_steps,2))
@@ -61,7 +61,7 @@ class Budyko:
 
     def a_eta(self, y):
         conds = [(-1<=y)&(y<-0.9),(-0.9<=y)&(y<-0.7),(-0.7<=y)&(y<0.9),(0.9<=y)&(y<=1)]
-        choice = [0.35,0.2,0.35,0.2] #Land,Sea,Land,Sea albedo
+        choice = [0.34,0.13,0.34,0.13] #Land,Sea,Land,Sea albedo
         albedo = np.select(conds,choice)
         ice = np.where((y<self.etas[0])|(y>self.etas[1]))
         #albedo_func = interp1d([-1,-0.9,-0.5,0,0.5,0.9,1],[0.5,0.2,0.2,0.3,0.4,0.5,0.1],'cubic')
@@ -109,7 +109,7 @@ class Budyko:
             self.milanko_update(t)
             self.carbon_update(t)
             self.eta_rec[frame,:] = self.etas
-            self.gmt_rec[frame] = self.int_T([0,0])
+            self.gmt_rec[frame] = 0.5*self.int_T([])
             self.A_rec[frame] = self.A
             self.T_record[frame,:] = self.T
             self.T += self.delta*self.dT_dt(self.T, self.y_span)
@@ -158,8 +158,8 @@ plt.show()
 plt.plot(model.t_span,abs(model.eta_rec))
 plt.figure()
 plt.plot(model.t_span,model.gmt_rec)
-plt.figure()
-plt.plot(model.t_span,model.A_rec)
+#plt.figure()
+#plt.plot(model.t_span,model.A_rec)
 np.savetxt('gmt.csv',model.gmt_rec,delimiter=',')
 plt.show()
         
