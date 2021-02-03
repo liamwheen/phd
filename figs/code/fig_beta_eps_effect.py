@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import rc
-from matplotlib.ticker import FormatStrFormatter
 rc('text', usetex=True)
 rc('font', family='serif',size=19)
 
@@ -11,8 +10,6 @@ epss = np.loadtxt('../data/eps_effect.csv',delimiter=',')
 fig, axs = plt.subplots(1,3,constrained_layout=True,figsize=(12,5),
         gridspec_kw={'width_ratios':[1,0.1,1]})
 axs[1].remove()
-axs[0].xaxis.set_major_formatter(FormatStrFormatter('%g$^\circ$'))
-axs[2].xaxis.set_major_formatter(FormatStrFormatter('%g$^\circ$'))
 betas_plot = axs[0].plot(90*np.sin(np.linspace(-np.pi/2,np.pi/2,betas.shape[1])),betas.T,linewidth=3)
 epss_plot = axs[2].plot(90*np.sin(np.linspace(-np.pi/2,np.pi/2,epss.shape[1])),epss.T,linewidth=3)
 axs[0].legend(betas_plot,['$\\beta = {}$'.format(i) for i in [0,0.4,0.8,1.2]])
@@ -26,7 +23,7 @@ axs[2].set_xticks(90*np.sin(np.array([-90,-45,-20,0,20,45,90])*np.pi/180))
 axs[0].set_xticklabels(['{}$^\circ$'.format(i) for i in [-90,-45,-20,0,20,45,90]])
 axs[2].set_xticklabels(['{}$^\circ$'.format(i) for i in [-90,-45,-20,0,20,45,90]])
 axs[2].set_ylim(*axs[0].get_ylim())
-#plt.show()
-plt.savefig('../beta_eps_effect.pdf')
+plt.show()
+#plt.savefig('../beta_eps_effect.pdf')
 
 
