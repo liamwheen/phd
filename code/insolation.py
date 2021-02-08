@@ -8,7 +8,7 @@ from insol_sympy import calc_daily_average
 
 k2day = 365250
 au = 149597870700 # metres
-q = 3.8284e+26/(4*np.pi) #Suns total irradiance over 4pi, needs dividing by r^2
+#q = 3.8284e+26/(4*np.pi) #Suns total irradiance over 4pi, needs dividing by r^2
 
 class Insolation:
 
@@ -22,15 +22,14 @@ class Insolation:
         self.l_peri_func = interp1d(milanko_t[krange], milanko_l_peri[krange])
         self.milanko_update(tmin)
         # Using approximation that max axis remains constant as shown in Laskar '04 pg273
-        self.a = au
 
     def milanko_update(self, t):
         self.eps = float(self.eps_func(t/k2day))
         self.beta = float(self.beta_func(t/k2day))
-        self.l_peri = float(self.l_peri_func(t/k2day))%(2*np.pi)
+        self.l_peri = float(self.l_peri_func(t/k2day))
         # Here we shift from (vernal eq to perihelion) to (aphelion (x-axis) to
         # north pole direction in ecliptic plane)
-        self.rho = ((1/2)*np.pi - self.l_peri)%(2*np.pi) - np.pi
+        self.rho = (3/2*np.pi - self.l_peri)%(2*np.pi)
 
     def I_lat_ave(self, lats, t):
         """ Daily average insolation recieved at lats on Earth on day 't'"""
@@ -57,34 +56,36 @@ class Insolation:
         M = t*2*np.pi/365.25
         E = self.midpoint_E(M, self.eps)
         theta = self.theta(E, self.eps)
-        r = self.a*(1 - self.eps*np.cos(E))
+        r = au*(1 - self.eps*np.cos(E))
         return r, theta
 
     def last_sum_solst(self, t):
         """ Tracks back over the past year to find the day of the summer solstice"""
-        for t_summer in np.linspace(t,t+365,1000):
+        for t_summer in np.linspace(t,t+366,1000):
             theta = self.polar_pos(t_summer)[1]
-            if abs(theta-self.rho-np.pi) < 0.006:
+            if abs((theta-self.rho))%(2*np.pi) < 0.007:
                 return t_summer
 
     def update(self, t, lats):
         self.milanko_update(t)
         t = self.last_sum_solst(t)
-        #self.insol = q/self.polar_pos(t)[0]**2
         return self.I_lat_ave(lats,t), t
 
 if __name__ =="__main__":
-    tmin = -3e6*365.25
+    tmin = -3e4*k2day
     tmax = 0
-    num_steps = 1000
+    num_steps = 10
     t_span = np.linspace(tmin,tmax,num_steps)
     model = Insolation(tmin, tmax, 'backward')
     insol_vals = np.zeros((num_steps,1))
     #r_vals = np.zeros(num_steps)
     for i, t in enumerate(t_span):
+        print(i/len(t_span))
         #insol_vals[i,:] = model.update(t,180/np.pi*np.arcsin(np.linspace(-1,1,insol_vals.shape[1])))
-        insol_vals[i],_ = model.update(t,[65])
+        insol_vals[i],_ = model.update(t,[0])
         #r_vals[i] = q/model.polar_pos(t)[0]**2
+    print(max(insol_vals))
+    #np.savetxt('insol_vals.csv',insol_vals,delimiter=',')
     
     #print(min(r_vals),max(r_vals))
     #print(np.mean(r_vals))
