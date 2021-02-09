@@ -1,0 +1,8 @@
+co2.csv             :https://www.nature.com/articles/nature06949
+giovani_albedo      :check file
+milanko_20P.csv     :Laskar
+milanko_50N.csv     :''
+milanko_params.py   :''
+benthic.csv         :https://lorraine-lisiecki.com/LisieckiRaymo2005.pdf
+delta_temp.csv      :https://www.nature.com/articles/nature06015#rightslink
+land_cover.csv      :https://commons.wikimedia.org/wiki/File:Peters_projection,_blank.svg
