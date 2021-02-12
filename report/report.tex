@@ -350,11 +350,11 @@ the hot equator to the relatively cooler poles. The heat transport at a given
 latitude is determined by the difference in temperature at this latitude and
 the global average temperature, written as
 \[
-  C(\bar{T}(t)-T(y,t)),
+  C(\overline{T}(t)-T(y,t)),
 \]
 where
 \[
-  \bar{T}(t) = \int_0^1 T(y,t) \,\mathrm{d}y.
+  \overline{T}(t) = \int_0^1 T(y,t) \,\mathrm{d}y.
 \]
 By calculating the equilibrium temperature, $C$ can be chosen
 such that the equilibrium matches current climatic conditions. Tung's work on
@@ -364,12 +364,13 @@ Combining these components of heat flow gives the dynamical equation for tempera
   R\frac{\partial T(y,t)}{\partial t} = \underbrace{Q_\varepsilon s_\beta(y)
   (1-\alpha_\eta(y))}_{\text{Insolation Absorbed}}
   - \underbrace{(A+BT(y,t))}_{\text{Reradiation}}
-  + \underbrace{C(\bar{T}(t)-T(y,t))}_{\text{Transport}}.
+  + \underbrace{C(\overline{T}(t)-T(y,t))}_{\text{Transport}}.\numberthis
+  \label{eq:budyko_temp}
 \]
 This is known as an integro-differential equation, differing from a
 conventional partial differential equation in that there is no derivative of
 the spatial variable $y$. The only term that relates the temperature
-at a given position to the rest of the system is $\bar{T}(t)=\int_0^1 T(y,t)
+at a given position to the rest of the system is $\overline{T}(t)=\int_0^1 T(y,t)
 \,\mathrm{d}y$, which is the average global temperature.
 
 To understand $R$, which governs the temperature's rate of change, we
@@ -395,19 +396,143 @@ This is a very approximate value, however $R$ will not appear in
 equilibrium solutions, relating only to the dynamic behaviour of the model.
 
 A dynamic ice line was later introduced to the model by Widiasih
-\cite{widiasih2013}, such that
+\cite{widiasih2013}. This allowed for the dynamics of Earth's ice-albedo
+feedback mechanism to be modelled. The ice line dynamics are described by
 \[
   S\frac{\mathrm{d}\eta(t)}{\mathrm{d}t} = T(\eta,t) - T_{\mathrm{ice}}
+  \numberthis
+  \label{eq:budyko_ice_line}
 \]
 where $T_{\mathrm{ice}}$ is an estimate for the critical temperature at which
-an ice sheet can form.
+an ice sheet can form and $S$, which has units C$^\circ$s, scales the
+ice line's rate of movement. Widiasih estimates this to be of the order
+$10^{13}$\,C$^\circ$s. Comparing this to the equivalent $R=4\times10^8$ for the
+temperature dynamics, we can categorise this as a slow-fast system. This means
+that the fast variable, temperature, can be considered equilibrated when
+modelling the dynamics of the slow ice line. 
 
-[Here discuss the introduction of the dynamic iceline from widiasih, the
-  dynamics of the model, the equilibrium points, the stability, how this
-  doesn't get effected by the milankovitch params much at all, the lack of any
-  oscillation (which I believe would be impossible anyway given the equations
-  formulation), the slow and fast dynamics of the temp and iceline
-respectively (as shown in the figure).]
+Although the value for $S$ is a rough approximation, it is only required for
+the dynamics analysis, whereas from here we will be concerned with the
+equilibrium solutions which do not rely on the scaling of the dynamic
+equations.
+
+To calculate the equilibrium solutions, we set (\ref{eq:budyko_temp}) and
+(\ref{eq:budyko_ice_line}) equal to 0 and solve for the variables.
+
+It will be useful to define
+\[
+  I_\eta = \int_0^1 s_\beta(y)(1-\alpha_\eta(y))\,\mathrm{d}y,
+\]
+which requires that $\eta$ is known.
+
+First setting (\ref{eq:budyko_temp}) equal to 0 and integrating over the range
+$[0,1]$, we attain
+\[
+  Q_\varepsilon I_\eta - (A+B\overline{T^*_\eta}) = 0,\numberthis
+  \label{eq:T_bar}
+\]
+where $\overline{T^*_\eta}$ is the integral over $[0,1]$, of the equilibrium
+temperature $T^*_\eta$.
+
+Substituting this into (\ref{eq:budyko_temp}) gives
+\[
+  Q_\varepsilon s_\beta(y)(1-\alpha_\eta(y)) - (A+BT^*_\eta(y)) - C(T^*_\eta(y) -
+  \overline{T^*_\eta}) = 0,
+\]
+from which we get
+\[
+T^*_\eta(y) = \frac{1}{B+C}\Big[Q_\varepsilon s_\beta(y)(1-\alpha_\eta(y)) -
+A+C\overline{T^*_\eta}\Big]\numberthis
+\label{eq:T_star}
+\]
+
+For the ice line we return to $I_\eta$, which we can express as
+\[\begin{split}
+    I_\eta &= \int_0^1 s_\beta(y) (1-\alpha_\eta(y))\,\mathrm{d}y\\
+           &= 1 - \int_0^1 s_\beta(y) \alpha_\eta(y)\,\mathrm{d}y\\
+           &= 1 - \alpha_2\int_0^1 s_\beta(y)\,\mathrm{d}y +
+           (\alpha_2-\alpha_1)\int_0^\eta s_\beta(y)\,\mathrm{d}y,\\
+  \end{split}
+\]
+using the definition $\int_0^1 s_\beta(y)=1$ and then breaking up the
+discontinuous albedo function into two integrals.
+
+Now substituting $s_\beta(y) = 1 + \frac{1}{2}c_\beta(3y^2-1)$, we get
+\[\begin{split}
+    I_\eta &= 1 - \alpha_2 + (\alpha_2-\alpha_1)\left[\left(1-\frac{1}{2}
+      c_\beta\right)y + \frac{1}{2}c_\beta y^3\right]^\eta_0\\
+           &= 1 - \alpha_2 + (\alpha_2-\alpha_1)\left(1-\frac{1}{2}c_\beta\right)\eta +
+           \frac{1}{2}c_\beta(\alpha_2-\alpha_1)\eta^3.
+   \end{split}
+\]
+
+Returning to (\ref{eq:T_star}), for $y=\eta$ we have
+\[
+  T^*_\eta(\eta) = \frac{1}{B+C}\bigg[Q_\varepsilon s_\beta(\eta)
+  (1-\alpha_0)- A+C \frac{Q_\varepsilon I_\eta - A}{B} \bigg],
+\]
+where $\overline{T^*_\eta}$ is substituted using (\ref{eq:T_bar}).
+
+Finally substituting for $I_\eta$, we attain
+\[\begin{split}
+  T^*_\eta(\eta) &= \frac{1}{B+C}\Bigg[Q_\varepsilon\left(1-\frac{1}{2}c_\beta\right)
+    (1-\alpha_0) - A\left(1+\frac{C}{B}\right) + \frac{CQ_\varepsilon}{B}(1-\alpha_2) +
+    \frac{CQ_\varepsilon}{B}(\alpha_2 - \alpha_1)\left(1-\frac{1}{2}c_\beta\right)\eta\\ 
+    &\quad\quad\quad\quad\quad\quad
+    +\frac{3}{2}Q_\varepsilon c_\beta(1-\alpha_0)\eta^2 + \frac{CQ_\varepsilon
+  c_\beta}{2B}(\alpha_2-\alpha_1)\eta^3\Bigg].
+\end{split}
+\]
+
+To attain $\frac{\mathrm{d}\eta(t)}{\mathrm{d}t} = 0$, we set $T^*_\eta(\eta) =
+T_{\mathrm{ice}}$. This produces a cubic equation for the equilibrium ice line
+in the form
+\[
+  f(\eta) = a_3\eta^{*3} + a_2\eta^{*2} + a_1\eta^* + a_0 = 0,\numberthis
+  \label{eq:ice_line_equilibrium}
+\]
+where 
+\[
+  \begin{split}
+    &a_3 = \frac{CQ_\varepsilon c_\beta}{2B}(\alpha_2-\alpha_1)\\
+    &a_2 = \frac{3}{2}Q_\varepsilon c_\beta(1-\alpha_0)\\
+    &a_1 = \frac{CQ_\varepsilon}{B}(\alpha_2-\alpha_1)\left(1-\frac{1}{2}c_\beta\right)\\
+    &a_0 = Q_\varepsilon\left(1-\frac{1}{2}c_\beta\right)(1-\alpha_0) -
+    A\left(1+\frac{C}{B}\right) + \frac{CQ_\varepsilon}{B}(1-\alpha_2) -
+    (B+C)T_{\mathrm{ice}}
+  \end{split}.
+\]
+\begin{figure}
+  \centering
+  \includegraphics[width=\linewidth]{ice_line_equilibrium.pdf}
+  \caption{Two scales of the same plot, using (\ref{eq:ice_line_equilibrium})
+  with the default parameter values shown in Table \ref{tab:budyko_params}.
+  The valid range for $\eta$ is [0,1]. The right plot shows that with current
+parameter values, this yields 2 equilibrium points within the valid range.}
+  \label{fig:ice_line_equilibrium}
+\end{figure}
+\begin{figure}
+  \centering
+  \includegraphics[width=\linewidth]{alpha_bifurcation.pdf}
+  \caption{Plots showing the sensitivity of the equilibrium ice line solution
+    to the difference of the two albedo values. On
+    the left is a bifurcation plot, showing how the stable and unstable
+    equilibrium points change as the values for $\alpha_1$ and $\alpha_2$
+    converge. The plot on the right shows (\ref{eq:ice_line_equilibrium}) for
+    specific values of $\alpha_1$ and $\alpha_2$. The current $\alpha$ values
+  are shown in green for both plots.}
+  \label{fig:alpha_bifurcation}
+\end{figure}
+
+So far, the impact of greenhouse gases have been neglected from this model.
+We will use data for the carbon dioxide present in Earth's atmosphere for the last
+800 thousand years, taken from L{\"u}thi \cite{carbon_data}. Assuming carbon
+dioxide is a good indicator of total greenhouse gas concentration, we can
+expect that this will impact the rate at which heat can escape through Earth's
+atmosphere. Returning to (\ref{eq:budyko_temp}), the parameters that will be
+effected by greenhouse gases are $A$ and $B$. We will use a-------
+The cubic model is done by Caldeira \cite{cubic_carbon_model}.
+
 \begin{figure}
 \centering
 \begin{subfigure}{.4\textwidth}
@@ -458,7 +583,8 @@ $C$                & 3.04          & Wm$^{-2}$\,$^\circ$C$^{-1}$ &  Tung \cite{t
 $T_{\mathrm{ice}}$ & -10           & $^\circ$C   &  Tung \cite{tung2007topics}\\\hline
 $\alpha_1$         & 0.32          & None        &  Tung \cite{tung2007topics}\\\hline
 $\alpha_2$         & 0.63          & None        &  Tung \cite{tung2007topics}\\\hline
-$R$                & $4\times10^8$ & Jm$^{-2}$\,$^\circ$C$^{-1}$ &  Widiasih \cite{c_beta}
+$R$                & $4\times10^8$ & Jm$^{-2}$\,$^\circ$C$^{-1}$ &  Widiasih \cite{c_beta}\\\hline
+$S$                & $10^{13}$       & C$^\circ$s &  Widiasih \cite{widiasih2013}
 \end{tabular}
 \end{table}
 \section{Insolation}
@@ -873,7 +999,7 @@ less insolation over the year. However the poles point closer towards the sun
 for one half of the year, and still receive no insolation during the other
 half. This increases yearly insolation around the poles and decreases it around the
 equator, as can be see in Figure \ref{fig:yearly_ave_insol_all_lats}. More
-subtly, as eccentricity drops to lower values at around $-80$\,k years ago, we
+subtly, as eccentricity drops to lower values at around 80\,k years ago, we
 see the overall global insolation lowering slightly from red to blue. 
 
 In all of the plots shown, we can see that the functions are even about the
@@ -1013,17 +1139,146 @@ since there is approximately twice as much land in the northern hemisphere than
 the south. We will therefore introduce a land albedo, which is between water
 and ice, and is distributed according to latitudinal land density. 
 
-However, the data analysis by Stephens \cite{equal_hem_albedo} shows that the
+However, satellite data analysis by Voigt \cite{equal_hem_albedo} shows that the
 net albedo, including cloud coverage, is almost exactly equal. With only
-0.2\,Wm$^{-2}$ difference between them. This is due to the increased cloud
+0.1\,Wm$^{-2}$ difference between them. This is due to the increased cloud
 cover present in the southern hemisphere counteracting the increased land mass
-in the north. 
+in the north. In fact, it is the consensus amongst datasets that there is
+between 10\% and 15\% less cloud cover on land than there is on the sea
+\cite{cloud_data_analysis}.
+The net radiative effect of clouds on global mean insolation is
+-17.1$\pm$4.2\,Wm$^{-2}$ \cite{cloud_radiative_effect} out of a total
+340\,Wm$^{-2}$ incoming from the sun. The altitude, and
+therefore type, of cloud has a significant effect on the net radiative effect.
+Cirrus clouds warm the atmosphere by 2\,Wm$^{-2}$, whilst all other cloud types
+have a net cooling effect, with stratocumulus exerting the largest at
+-8.2\,Wm${^-2}$. 
+
+\section{Budyko Augmentations}
+The Budyko model shows how ice albedo can cause a positive feedback in global
+temperature. This is useful to provide a possible explanation of how the minor
+forcing from the Milankovitch cycles can lead to significant climatological
+shifts. 
+
+We will now explore the effect of adding previously ignored components to the
+model, with hopes of producing different behaviour. We will first begin with
+the original Budyko model, with eccentricity and obliquity being updated throughout. 
+
+The temperature profile in Figure \ref{fig:budyko_milanko_T} shows how the
+global temperature varies over the past 800,000 years, with blue representing
+ice cover. The position of the ice line is initialised at 30$^\circ$, however
+this quickly equilibrates to around 68$^\circ$. The ice line then oscillates
+between approximately 66$^\circ$ and 70$^\circ$. This is caused by the
+varying obliquity $\beta$, which affects the distribution of annual insolation,
+\[
+  s_\beta(y) = 1 + \frac{1}{2}c_\beta(3y^2-1),
+\]
+where $c_\beta = \frac{5}{16}(3\sin^2\beta - 2)$.
+
+The power spectrum of the ice line dynamics can be seen in Figure
+\ref{fig:budyko_milanko_eta}. Here we see the prominent period for the
+oscillation is 41.3\,kyr, closely matching that of obliquity.
+
+There are two very small bumps in this plot that occur at 0.0026\,kyr$^{-1}$
+and 0.0102\,kyr$^{-1}$, corresponding to 392\,kyr and 98\,kyr respectively.
+These closely match the prominent frequencies of eccentricity, which affects
+the total annual insolation to reach Earth,
+\[
+  Q_\varepsilon = \frac{Q_0}{\sqrt{1-\varepsilon^2}},
+\]
+where $Q_0$ is the annual insolation that would reach Earth if it had an orbit
+with no eccentricity.
+
+However, these bumps are insignificant compared the dominant frequency from
+obliquity, this is demonstrated in Figure \ref{fig:beta_eps_effect}.
+
+Importantly, the ice line is known to have oscillated with the period of
+obliquity approximately 1.25\,mya, however it now oscillates with a period of
+approximately 100\,kyr, which relates to the period of eccentricity. This
+switch in periods is know as The Mid-Pleistocene Transition as it occurred
+approximately half way through the Pleistocene epoch.
+
+By adding components to the Budyko model, we will attempt to capture behaviour
+that was initially ignored, in hopes of producing more prominent frequencies
+relating to eccentricity. This may shed light on what played a role in the
+Mid-Pleistocene transition.
 \begin{figure}
   \centering
-  \includegraphics[width=\linewidth]{land_distribution.pdf}
+  \includegraphics[width=0.55\linewidth]{budyko_milanko_T.pdf}
+  \caption{The simulated temperature profile for the past 800,000 years using
+  the Budyko model with updated orbital parameters. Starting at 30$^\circ$, the
+ice line mostly oscillates between 66$^\circ$ and 70$^\circ$.}
+  \label{fig:budyko_milanko_T}
+\end{figure}
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\linewidth]{budyko_milanko_eta.pdf}
+  \caption{Power spectrum for the ice line from the simulation shown in Figure
+    \ref{fig:budyko_milanko_T}. The prominent frequency is 0.0242\,kyr$^{-1}$,
+    indicating a strong dependence on obliquity, which also varies at this
+  frequency.}
+  \label{fig:budyko_milanko_eta}
+\end{figure}
+---Rework this, write up the land albedo stuff, maybe do some changes to the
+Budyko model before producing the time series/spectrogram, maybe try out a
+varying albedo based on angle.----
+
+The Budyko model uses an albedo value of 0.32 for the entire ice-free portion of
+Earth. This is a significantly oversimplified representation of the Earth's
+albedo, hence we will attempt to improve this aspect of the model.
+
+The albedo value of 0.32 was determined from observational data, incorporating the effect of both
+land and cloud cover. Hence, although the model assumes Earth's surface to
+be entirely ocean, this is not applied to the calculation of albedo.
+By representing the surface albedo as homogeneous, the different
+albedos across land and ocean are neglected. Without clouds, the albedo of land
+ranges from 0.05 to 0.4 \cite{land_albedo}, whilst the ocean is between 0.03
+and 0.06 \cite{sea_albedo}. However the presence of clouds is shown to increase
+these values, which will be discussed later. 
+
+The angle at which the sun is incident with Earth's
+surface also has a significant impact on albedo. The larger this angle,
+referred to as the Solar Zenith Angle (SZA), the greater proportion of the
+irradiance that is reflected. This effect is particularly strong for light
+bouncing off of the ocean, which is shown to have an albedo of 0.4
+for the maximum SZA \cite{albedo_zenith_effect}. Comparing the direct albedo to
+the diffuse albedo, which is independent of SZA, for a range of land surfaces,
+Yang showed that the albedo increases approximately two times when ZSA goes
+from 0$^\circ$ to 90$^\circ$ \cite{land_zenith_range}.
+
+
+Our new model will use an albedo function that aims to capture the effect of
+land, its asymmetric distribution around Earth, and the SZA. This will require
+the domain to span both hemispheres since they are no longer equal. We will
+also configure the albedo function to have an average value of 0.29, in keeping
+with Earth's average albedo as measured by satellite \cite{earth_albedo}. 
+
+Figure \ref{fig:land_distribution} shows how land is distributed according to
+the Budyko domain, in which $y=\sin{\varphi}$. 
+
+
+Budyko calculated the outward long-wave radiation to be $198.9 +
+1.43T$\,Wm$^{-2}$, where $T$ is the temperature at a given latitude
+\cite{budyko}. This assumed a 50\% cloud cover and was determined using
+satellite data. Using more recent satellite data, North estimates this value to
+be $202.1+1.9T$\,Wm$^{-2}$ \cite{linear_reradiation}.
+
+We will now introduce latitude dependent land proportion, with a domain
+that spans both the southern and northern hemisphere. 
+
+
+
+
+
+
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.85\linewidth]{land_distribution.pdf}
   \caption{Distribution of land density across latitude. The reference map
-    shown on the right uses a sinusoidal projection in order to preserve area
-  as well as equal latitude spacing.}
+    shown on the right uses the Gall-Peters projection
+    \cite{gall_peters_image}. This preserves area, as well as maintaining the
+    latitudinal spacing used in the Budyko model $y = \sin{\varphi}$.}
   \label{fig:land_distribution}
 \end{figure}
 
