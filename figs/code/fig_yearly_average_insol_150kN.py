@@ -36,7 +36,7 @@ diff_insol[np.where(diff_insol<-8)]=-8
 cont = ax.contourf(xx,yy,np.sign(diff_insol)*np.log(abs(diff_insol)+1),cmap=cm.coolwarm)#[-8,-3,-2,-1,0,1,2,3,8],cmap=cm.coolwarm)
 ob_ax.plot(t[-151:],obliq[-151:], linewidth=2)
 ecc_ax.plot(t[-151:],ecc[-151:], linewidth=2)
-ob_ax.set_xlabel('Thousand Years Ago')
+ob_ax.set_xlabel('Time (kya)')
 ax.set_ylabel('Latitude')
 ax.set_xticks([])
 ecc_ax.set_xticks([])
