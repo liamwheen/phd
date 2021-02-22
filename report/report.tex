@@ -242,7 +242,7 @@ regions. If a sufficient amount of Earth's surface is covered in ice,
 global temperatures drop, and the polar ice caps advance towards the equator.
 Conversely, if the ice caps only exist at very high latitudes, then the reduced
 reflectivity will allow Earth to absorb more heat, and temperatures to rise,
-leading the ice-line to recede further.
+leading the ice line to recede further.
 
 A number of assumptions are made in order for this EBM to work. Temperature
 is modelled as varying only across latitude, reducing the domain of the
@@ -764,7 +764,7 @@ eccentricity increased to 0.06, approximately the maximum eccentricity
 of Earth's orbit. The third plot shows the difference between the two cases,
 where a positive value corresponds to more insolation in the second plot.
 \begin{figure}
-  \hspace{-40pt}
+  \hspace{-45pt}
   \includegraphics[width=1.2\linewidth]{both_daily_ave_insolation_all_lats.pdf}
   \caption{Contours showing the daily average insolation arriving at the
     atmosphere for different latitudes over a year period. The left plot is
@@ -1246,12 +1246,49 @@ the diffuse albedo, which is independent of SZA, for a range of land surfaces,
 Yang showed that the albedo increases approximately two times when ZSA goes
 from 0$^\circ$ to 90$^\circ$ \cite{land_zenith_range}.
 
-
 Our new model will use an albedo function that aims to capture the effect of
 land, its asymmetric distribution around Earth, and the SZA. This will require
 the domain to span both hemispheres since they are no longer equal. We will
 also configure the albedo function to have an average value of 0.29, in keeping
-with Earth's average albedo as measured by satellite \cite{earth_albedo}. 
+with Earth's average albedo as measured by satellite \cite{earth_albedo}.
+Importantly, this cannot be achieved simply by scaling the albedo function to
+have a mean of 0.29, since the insolation is not evenly distributed according
+to the latitude. Instead, we must tune the albedo function such that, for
+current orbital parameters, the annual shortwave radiation that is reflected
+back out to space is equal to $0.29Q_\varepsilon=98.71$\,Wm$^{-2}$.
+
+The SZA is calculated with the same formula used in calculating
+insolation at a specific point on Earth, given as
+\[
+  S(\theta,\beta,\rho,\varphi,\gamma) = (\sin{\gamma}\sin{(\rho -
+  \theta)}-\cos{\beta} \cos{\gamma} \cos{(\rho-\theta)})\cos{\varphi}
+  -\sin{\beta}\sin{\varphi} \cos{(\rho -\theta)}.
+\]. 
+A full derivation of this term is given in Section \ref{sec:insolation}.
+
+The albedo is approximated by fitting a quadratic function
+to the data collected by Jin \cite{albedo_zenith_effect} on ocean albedo for
+varied SZA. Since the SZA depends on theta, the approximation
+for yearly average insolation that has been used so far is no longer
+sufficient. We must therefore implement a numerical approximation to the yearly
+insolation which applies the albedo mask over the daily insolation before
+averaging this over the year. --NOT SURE WHY THIS IS
+NECESSARY YET----
+
+
+\begin{figure}
+  \hspace{-45pt}
+  \includegraphics[width=1.2\linewidth]{compare_numeric_budyko.pdf}
+  \caption{The simulated temperature profile for the past 10,000 years, starting
+    with the ice line at 30$^\circ$, using the
+    analytical expression from (\ref{eq:q_year_budyko}) for insolation (left). Alongside is the
+  same simulation, using the original Budyko approximation for
+  insolation (centre) and the numerical approximation of insolation (right),
+with the analytical profile subtracted from both.}
+  \label{fig:compare_numeric_budyko}
+\end{figure}
+
+
 
 Figure \ref{fig:land_distribution} shows how land is distributed according to
 the Budyko domain, in which $y=\sin{\varphi}$. 
