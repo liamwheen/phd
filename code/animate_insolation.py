@@ -4,17 +4,18 @@ import numpy as np
 import insolation
 
 frame_refr = 1
-year = 365.25
+year = 365.2425
+au = 149597870700 # metres
 k2day = int(year*1000)
-tmin = 0
-tmax = tmin + year*2
-num_steps = 100
+tmin = -3e6*year
+tmax = 0#-2.6e6*year
+num_steps = 3000
 t_span = np.linspace(tmin,tmax,num_steps)
 
 class Animate:
     def __init__(self):
-        self.sim = insolation.Insolation(tmin, tmax, milanko_direction='forward')
-        self.insol_vals = np.array([[None]*2]*num_steps)
+        self.sim = insolation.Insolation(tmin, tmax, milanko_direction='backward')
+        self.insol_vals = np.array([[np.nan]*1]*num_steps)
 
     def pol2cart(self, r, theta):
         return np.array([r*np.cos(theta), r*np.sin(theta), 0])
@@ -39,7 +40,7 @@ class Animate:
 
     def iter_func(self):
         for frame, t in enumerate(t_span):
-            self.insol_vals[frame,:] = self.sim.update(t, [-30,30])
+            self.insol_vals[frame,:], t = self.sim.update(t, [-65])
             if frame%frame_refr==0 or t==t_span[-1]:
                 yield t
 
@@ -48,7 +49,7 @@ class Animate:
         self.ax.set_ylabel('Semi-minor axis')
         self.ax.set_xlabel('Semi-major axis')
         theta = np.linspace(0, 2*np.pi, 100)
-        a = self.sim.a
+        a = au
         b = a*np.sqrt(1-self.sim.eps**2)
         sun = np.sqrt(a**2-b**2)
         self.ellipse.set_xdata(sun+a*np.cos(theta))
@@ -62,8 +63,8 @@ class Animate:
         self.latlon0.set_ydata([earthy,earthy+1e11*lon0y])
         self.insol_plot.set_xdata(np.linspace(tmin/year,tmax/year,len(self.insol_vals)))
         self.insol_plot.set_ydata(self.insol_vals[:,0])
-        self.insol_plot2.set_xdata(np.linspace(tmin/year,tmax/year,len(self.insol_vals)))
-        self.insol_plot2.set_ydata(self.insol_vals[:,1])
+        #self.insol_plot2.set_xdata(np.linspace(tmin/year,tmax/year,len(self.insol_vals)))
+        #self.insol_plot2.set_ydata(self.insol_vals[:,1])
         self.insol_ax.set_xlim([tmin/year,max(t/year,tmin/year+1)])
         #self.insol_ax.set_ylim([400,600])
 
@@ -76,13 +77,13 @@ class Animate:
         self.insol_ax.set_ylabel('Ave Insol')
         self.insol_ax.yaxis.tick_right()
         self.insol_plot, = self.insol_ax.plot([],[],'b')
-        self.insol_plot2, = self.insol_ax.plot([],[],'r')
+        #self.insol_plot2, = self.insol_ax.plot([],[],'r')
         self.ax.plot([0],[0],'yo',linewidth=4)
         au = insolation.au
         self.ax.set_xlim([-1.5*au,1.5*au])
         self.ax.set_ylim([-1.5*au,1.5*au])
         self.ax.set_aspect('equal')
-        self.insol_ax.set_ylim([0,600])
+        self.insol_ax.set_ylim([100,1000])
         return self.ellipse, self.earth, self.latlon0, self.insol_plot
 
     def animate(self):
@@ -94,4 +95,4 @@ class Animate:
 
 anim = Animate()
 anim.animate()
- 
+np.savetxt('Q65_winter.csv',anim.insol_vals,delimiter=',') 

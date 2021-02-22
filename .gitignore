@@ -1,3 +1,8 @@
+*.bbl
+*.blg
+*.dvi
+report/report.pdf
+papers/
 *.aux
 *.out
 *.gz

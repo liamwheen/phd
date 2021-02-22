@@ -8,26 +8,27 @@ from scipy.interpolate import interp1d
 from matplotlib.animation import FuncAnimation
 from data import milanko_params # Values given in 1000 year time steps
 
-year2sec = 3.154e+7 #Translate time dependent units to 'per year' instead of 'per second'
+year2sec = 31556952 #Translate time dependent units to 'per year' instead of 'per second'
 
-#alpha_1 = 0.32
-#alpha_2 = 0.62
 A = 202.1 #Wm^-2
 B = 1.9 #Wm^-2
-C = 0.9*B #Wm^-2 K^-1
+C = 1.*B #Wm^-2 K^-1
 D = 5.3 #Wm^-2
 T_ice = -10 #degC
 R = 4*10**8 #some say e9 some say e8 #J m^-2 K^-1
 S = 2.5*10**12
 Q_0 = 340.327 #Wm^-2
 co2_0 = 280 #ppm
+
+alph_min = 0.15
+alph_max = 0.6
         
-etas0 = [-0.7,0.8]#0.49 # Initial Iceline
-tmin = -100000
+etas0 = [-0.8,0.8] # Initial Iceline
+tmin = -300000
 tmax = 0 # Years
 
 num_steps = 50000
-frame_refr = 100
+frame_refr = 50
         
 class Budyko:
     def __init__(self):
@@ -40,35 +41,32 @@ class Budyko:
         krange = range(int(tmin//1000),2+max(1,int(tmax//1000)))
         self.eps_func = interp1d(milanko_t[krange], milanko_ecc[krange])
         self.beta_func = interp1d(milanko_t[krange], milanko_obliq[krange])
-        self.l_peri_func = interp1d(milanko_t[krange], milanko_l_peri[krange])
         land_density_data = np.loadtxt('data/land_cover.csv',delimiter=',')
-        self.land_density = interp1d(np.linspace(-1,1,len(land_density_data)),land_density_data)
+        self.land_density = interp1d(np.linspace(-1,1,
+            len(land_density_data[::20])),land_density_data[::20])
         carbon = np.loadtxt('data/co2.csv',delimiter=',')
         self.carbon_func = interp1d(carbon[:,0],carbon[:,1])
         self.etas = np.array(etas0)
         self.milanko_update(tmin)
         self.carbon_update(tmin)
-        #self.T = self.T_star() #set temp profile to eq profile
-        self.T = np.ones(self.y_span.size)
+        self.T = np.zeros(self.y_span.size)
+        self.T = self.T_star() #set temp profile to eq profile
         self.T_etas = self.T_y(self.T_star(), self.etas)
 
         self.eta_rec = np.zeros((num_steps,2))
-        self.gmt_rec = np.zeros(num_steps)
-        self.A_rec = np.zeros(num_steps)
+        self.gmt_rec = np.empty(num_steps)
+        self.gmt_rec[:] = np.NaN
 
     def s_b(self, y):
         return 1 + 0.5*self.c_b*(3*y**2 - 1)
 
     def a_eta(self, y):
-        conds = [(-1<=y)&(y<-0.9),(-0.9<=y)&(y<-0.7),(-0.7<=y)&(y<0.9),(0.9<=y)&(y<=1)]
-        choice = [0.34,0.13,0.34,0.13] #Land,Sea,Land,Sea albedo
-        albedo = np.select(conds,choice)
-        ice = np.where((y<self.etas[0])|(y>self.etas[1]))
-        #albedo_func = interp1d([-1,-0.9,-0.5,0,0.5,0.9,1],[0.5,0.2,0.2,0.3,0.4,0.5,0.1],'cubic')
-        #albedo = np.clip(albedo_func(y),0.1,0.5)
-        albedo[ice] = 0.62
-        #plt.plot(albedo)
-        #plt.show()
+        albedo = np.clip(alph_min+alph_max*self.land_density(y),0,alph_max)
+        albedo[(y<self.etas[0])|(y>self.etas[1])] = alph_max
+        #albedo = 0.75*albedo + 0.25*albedo*self.carbon
+        #temp = self.T_y(self.T, y)
+        #albedo[np.where(temp>20)]*=0.95
+        #albedo[np.where(temp<20)]*=1.05 
         return albedo
 
     def int_T(self, T):
@@ -89,16 +87,17 @@ class Budyko:
         return f/R
 
     def T_y(self, T, y):
-        y_shifted = (y+1)/2
+        y_shifted = (y+1)/2 # Shift y vals to range [0,1]
         ind = np.clip(np.round(y_shifted*T.size),0,T.size-1).astype(int)
-        ind[1]-=1 # Northern ind is always shifted 1 too far
+        ind[T.size//2:]-=1 # Northern ind is always shifted 1 too far
         return T[ind]
 
     def carbon_update(self, t):
-        self.A = A - D*np.log(self.carbon_func(t/year2sec)/co2_0)
+        self.carbon = self.carbon_func(t/year2sec)/co2_0
+        self.A = A# - D*np.log(self.carbon)
 
     def milanko_update(self, t):
-        self.eps = float(self.eps_func(t/year2sec/1000))
+        self.eps = float(self.eps_func(0))#t/year2sec/1000))
         self.beta = float(self.beta_func(t/year2sec/1000))
         self.Q_e = Q_0/(np.sqrt(1-self.eps**2))
         self.c_b = (5/16)*(3*np.sin(self.beta)**2 - 2)
@@ -110,7 +109,6 @@ class Budyko:
             self.carbon_update(t)
             self.eta_rec[frame,:] = self.etas
             self.gmt_rec[frame] = 0.5*self.int_T([])
-            self.A_rec[frame] = self.A
             self.T_record[frame,:] = self.T
             self.T += self.delta*self.dT_dt(self.T, self.y_span)
             self.T_etas += self.delta*self.dT_dt(self.T_etas, self.etas)
@@ -118,6 +116,7 @@ class Budyko:
             self.etas += np.array([-1,1])*self.delta*(self.T_etas - T_ice)/S
             self.etas = np.clip(self.etas,[-1,etaS],[etaN,1])
             if frame%frame_refr==0 or t==self.t_span[-1]: 
+                #print(self.etas)
                 yield t
 
     def update(self, t):
@@ -142,7 +141,7 @@ class Budyko:
         self.ydata, self.Tdata = [], []
         self.temp, = self.ax.plot([], [], 'r-', label='Temperature Profile',linewidth=2)
         self.ice_N, = self.ax.plot([], [], 'b-', label='Iceline',linewidth=2)
-        self.ice_S, = self.ax.plot([], [], 'b-', label='Iceline',linewidth=2)
+        self.ice_S, = self.ax.plot([], [], 'b-', linewidth=2)
         #self.T_star_eta, = self.ax.plot([], [], 'ro', label='Temperature at Iceline')
         #self.equil_T, = self.ax.plot([], [], 'm-', label='Equilibrium Temperature Profile')
         #self.grad, = self.ax.plot([], [], 'k', linewidth=0.5, label='Gradient (scaled)')
@@ -154,12 +153,12 @@ class Budyko:
 
 model = Budyko()
 model.animate()
-plt.show()
-plt.plot(model.t_span,abs(model.eta_rec))
-plt.figure()
-plt.plot(model.t_span,model.gmt_rec)
+print('Mean GMT: ',np.nanmean(model.gmt_rec))
+#plt.plot(model.t_span,abs(model.eta_rec))
+#plt.figure()
+plt.plot(model.t_span/year2sec,model.gmt_rec)
 #plt.figure()
 #plt.plot(model.t_span,model.A_rec)
 np.savetxt('gmt.csv',model.gmt_rec,delimiter=',')
+np.savetxt('etas.csv',model.eta_rec,delimiter=',')
 plt.show()
-        
