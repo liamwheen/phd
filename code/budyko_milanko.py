@@ -61,7 +61,7 @@ class Budyko:
 
     def s_b(self, y):
         c_b = (5/16)*(3*np.sin(self.beta)**2 - 2)
-        return 1 + 0.5*self.c_b*(3*y**2 - 1)
+        return 1 + 0.5*c_b*(3*y**2 - 1)
 
     def a_eta(self, y):
         # Account for fp errors in ice line positions
