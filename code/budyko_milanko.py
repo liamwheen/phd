@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
+"""
+Budyko model with milankovitch parameters and numerical Q_year implementation,
+useful for adding albedo SZA dependance."""
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 from matplotlib.animation import FuncAnimation
 from data import milanko_params # Values given in 1000 year time steps
+from numeric_Q import Q_year
 
 year2sec = 31556952 #Translate time dependent units to 'per year' instead of 'per second'
 
@@ -19,31 +23,44 @@ Q_0 = 340.327 #Wm^-2
         
 #n0 = 0.28032803 # Unstable equilibrium initial iceline
 eta0 = 0.5 # Initial Iceline
-tmin = -800000
+tmin = -400000
 tmax = 0 # Years
 
-num_steps = 200000
+y_steps = 500
+t_steps = 100000
 frame_refr = 200
         
+def main():
+    model = Budyko()
+    list(model.iter_func())
+    np.savetxt('budyko_milanko_T.csv',model.T_record,delimiter=',')
+    np.savetxt('budyko_milanko_eta.csv',model.eta_record,delimiter=',')
+
+def anim_main():
+    model = Budyko()
+    model.animate()
+
 class Budyko:
     def __init__(self):
-        self.y_span = np.linspace(0,1,1000)
+        self.y_span = np.linspace(0,1,y_steps)
         self.y_delta = self.y_span[1]-self.y_span[0]
-        self.t_span = np.linspace(tmin*year2sec,tmax*year2sec,num_steps) #years
+        self.t_span = np.linspace(tmin*year2sec,tmax*year2sec,t_steps) #years
         self.delta = self.t_span[1] - self.t_span[0]
-        self.T_record = np.zeros((num_steps//frame_refr,self.y_span.size))
-        self.eta_record = np.zeros(num_steps//frame_refr)
+        self.T_record = np.zeros((t_steps//frame_refr,self.y_span.size)) 
+        self.eta_record = np.zeros(t_steps//frame_refr) 
         milanko_t, milanko_ecc, milanko_obliq, milanko_l_peri = milanko_params.load_milanko('backward')
         krange = range(int(tmin//1000),2+max(1,int(tmax//1000)))
         self.eps_func = interp1d(milanko_t[krange], milanko_ecc[krange])
         self.beta_func = interp1d(milanko_t[krange], milanko_obliq[krange])
+        self.l_peri_func = interp1d(milanko_t[krange], milanko_l_peri[krange])
         self.eta = eta0 #n initial
         self.milanko_update(tmin)
         self.T = self.T_star(self.y_span) #set temp profile to eq profile
         #self.T = np.zeros(self.y_span.size)
-        self.T_eta = self.T_y(self.T_star(self.y_span), self.eta)
+        self.T_eta = self.T_star(self.y_span)[self.y_ind(self.eta)]
 
     def s_b(self, y):
+        c_b = (5/16)*(3*np.sin(self.beta)**2 - 2)
         return 1 + 0.5*self.c_b*(3*y**2 - 1)
 
     def a_eta(self, y):
@@ -72,19 +89,25 @@ class Budyko:
         f = self.Q_e*self.s_b(y)*(1 - self.a_eta(y)) - (A + B*T) - C*(T - self.int_T(T))
         return f/R
 
-    def T_y(self, T, y):
-        shift = -1*(y>0.5)
-        ind = np.clip(np.round(y*T.size),0,T.size-1).astype(int) + shift
-        return T[ind]
+    def y_ind(self, y):
+        if isinstance(y,float):
+            y_ind = int(y*y_steps)
+            return min(y_steps-1,y_ind)
+        y_ind = (y*y_steps).astype(int)
+        y_ind[y_ind>(y_steps-1)] = y_steps-1
+        return y_ind
 
     def milanko_update(self, t):
-        self.eps = float(self.eps_func(t/year2sec/1000))
+        eps = float(self.eps_func(t/year2sec/1000))
         self.beta = float(self.beta_func(t/year2sec/1000))
-        # Here we shift from (vernal eq to perihelion) to (aphelion (x-axis) to
-        # north pole direction in ecliptic plane)
-        self.Q_e = Q_0/(np.sqrt(1-self.eps**2))
-        self.c_b = (5/16)*(3*np.sin(self.beta)**2 - 2)
-     
+        l_peri = float(self.l_peri_func(t/year2sec/1000))
+        rho = (3/2*np.pi - l_peri)%(2*np.pi)
+        #self.Qs = Q_year(self.beta, rho, eps)
+        self.Q_e = Q_0/(np.sqrt(1-eps**2))
+        #plt.plot(np.linspace(0,1,50),self.Qs)
+        #plt.plot(self.y_span,self.Q_e*self.s_b(self.y_span))
+        #plt.show()
+        
     def iter_func(self):
         #Iter over all time points
         for frame, t in enumerate(self.t_span):
@@ -93,7 +116,7 @@ class Budyko:
             self.T_eta += self.delta*self.dT_dt(self.T_eta, self.eta)
             self.eta = np.clip(self.eta + self.delta*(self.T_eta - T_ice)/S,0,1)
             if frame%frame_refr==0 or t==self.t_span[-1]: 
-                #print(self.eta)
+                print(frame/t_steps)
                 self.T_record[frame//frame_refr,:] = self.T
                 self.eta_record[frame//frame_refr] = self.eta
                 yield t
@@ -127,8 +150,6 @@ class Budyko:
         ani = FuncAnimation(self.fig, self.update, frames=self.iter_func, interval=1, repeat=False)
         plt.show()
 
-model = Budyko()
-model.animate()
-plt.show()
-np.savetxt('budyko_milanko_T.csv',model.T_record,delimiter=',')
-np.savetxt('budyko_milanko_eta.csv',model.eta_record,delimiter=',')
+if __name__ == '__main__':
+    anim_main()
+
