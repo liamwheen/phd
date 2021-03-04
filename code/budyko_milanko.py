@@ -11,24 +11,23 @@ from numeric_Q import Q_year
 
 year2sec = 31556952 #Translate time dependent units to 'per year' instead of 'per second'
 
-alpha_1 = 0.32
-alpha_2 = 0.62
+alpha_1 = 0.32#0.279
+alpha_2 = 0.62#0.6
 A = 202.1#Wm^-2
 B = 1.9 #Wm^-2
-C = 3.04 #Wm^-2 K^-1
+C = 3.04#2.185 #Wm^-2 K^-1
 T_ice = -10 #degC
 R = 4*10**8 #some say e9 some say e8 #J m^-2 K^-1
 S = 2*10**12
 Q_0 = 340.327 #Wm^-2
         
-#n0 = 0.28032803 # Unstable equilibrium initial iceline
-eta0 = 0.5 # Initial Iceline
-tmin = -400000
+eta0 = 0.94 # Initial Iceline
+tmin = -100000
 tmax = 0 # Years
 
 y_steps = 500
 t_steps = 100000
-frame_refr = 200
+frame_refr = 10
         
 def main():
     model = Budyko()
@@ -54,7 +53,7 @@ class Budyko:
         self.beta_func = interp1d(milanko_t[krange], milanko_obliq[krange])
         self.l_peri_func = interp1d(milanko_t[krange], milanko_l_peri[krange])
         self.eta = eta0 #n initial
-        self.milanko_update(tmin)
+        self.milanko_update(tmin*year2sec)
         self.T = self.T_star(self.y_span) #set temp profile to eq profile
         #self.T = np.zeros(self.y_span.size)
         self.T_eta = self.T_star(self.y_span)[self.y_ind(self.eta)]
@@ -151,5 +150,5 @@ class Budyko:
         plt.show()
 
 if __name__ == '__main__':
-    anim_main()
+    main()
 
