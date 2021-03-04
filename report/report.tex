@@ -4,6 +4,7 @@
 \usepackage[a4paper,margin=25mm]{geometry}    % page layout
 \usepackage{setspace} \onehalfspacing         % line spacing
 \usepackage{amsfonts,amssymb,amsmath}         % useful math extensions
+\usepackage{textcomp}
 \usepackage{graphicx}                         % graphics import
 \graphicspath{{../figs/}}
 \pdfpageattr{/Group << /S /Transparency /I true /CS /DeviceRGB>>}
@@ -502,13 +503,21 @@ where
     (B+C)T_{\mathrm{ice}}
   \end{split}.
 \]
+
+The equilibrium solutions for the ice line are shown in Figure
+\ref{fig:ice_line_equilibrium}, with the two valid roots shown on the right.
+With current parameter values, as shown in Table \ref{tab:budyko_params}, the
+valid equilibria are 0.2803, and 0.9268. The former is unstable, whilst the
+latter is stable, suggesting that the current ice line latitude, lying at
+approximately 0.94, is stable.
+
 \begin{figure}
   \centering
   \includegraphics[width=\linewidth]{ice_line_equilibrium.pdf}
   \caption{Two scales of the same plot, using (\ref{eq:ice_line_equilibrium})
   with the default parameter values shown in Table \ref{tab:budyko_params}.
   The valid range for $\eta$ is [0,1]. The right plot shows that with current
-parameter values, this yields 2 equilibrium points within the valid range.}
+parameter values, this yields equilibrium points 0.2803, and 0.9268 within the valid range.}
   \label{fig:ice_line_equilibrium}
 \end{figure}
 \begin{figure}
@@ -1219,18 +1228,101 @@ ice line mostly oscillates between 66$^\circ$ and 70$^\circ$.}
   frequency.}
   \label{fig:budyko_milanko_eta}
 \end{figure}
----Rework this, write up the land albedo stuff, maybe do some changes to the
-Budyko model before producing the time series/spectrogram, maybe try out a
-varying albedo based on angle.----
+
+\subsection{Sub-Year Resolution}
+The Budyko model is designed to work with annual time steps, averaging the
+seasonal variations of Earth's insolation. As a result, the fluctuations in the
+temperature profile and ice line on a sub-year timescale are ignored. To
+understand the significance of sub-year resolution, we introduce
+the $\delta^{18}$O data produced by Lisiecki and Raymo \cite{benthic_data}.
+This data reflects the ratio of the two stable isotopes of oxygen, $^{18}$O and
+$^{16}$O, in the calcium carbonate shells of benthic foraminifera.
+Benthic foraminifera are single celled organisms that live
+on, or within, the ocean floor sediment, as opposed to planktonic foraminifera,
+which float at various depths. Benthic foraminifera were chosen because the
+deep ocean is more uniform in temperature and salinity, reducing uncertainty
+across measurements. The proportion of $^{18}$O within the foraminifera shells
+depends on both the temperature of the ocean and its $^{18}$O concentration.
+Cramer estimated the $\delta^{18}$O (per mille, \textperthousand) of the deep
+ocean water using other sedimentary data, and related temperature ($^\circ$C)
+to $^{18}$O (\textperthousand) with the linear model
+\[
+  T = 16.1 - 4.76(\delta^{18}\mathrm{O}_{\mathrm{bf}} -
+  \delta^{18}\mathrm{O}_{\mathrm{sw}}),
+\]
+where $\delta^{18}\mathrm{O}_{\mathrm{bf}}$ relates to the benthic
+foraminifera, and $\delta^{18}\mathrm{O}_{\mathrm{sw}}$ relates to the
+surrounding deep sea water \cite{benthic_to_temp}. Many other models
+have been produced, all with similar, mostly linear relationships between
+$(\delta^{18}\mathrm{O}_{\mathrm{bf}} - \delta^{18}\mathrm{O}_{\mathrm{sw}})$ and
+temperature \cite{benthic_temp_models}. The value range, over the past million
+years, for $\delta^{18}\mathrm{O}_{\mathrm{sw}}$ is [0.1, 0.3]
+whilst $\delta^{18}\mathrm{O}_{\mathrm{bf}}$ varies over a
+range of [3, 5]. If we therefore use the assumption
+$\delta^{18}\mathrm{O}_{\mathrm{sw}}=0.2$, we can estimate the deep ocean water
+temperature over time. We can also expect this to closely match the surface
+temperature at higher latitudes as $\sim80$\% of deep ocean water comes from
+here \cite{deep_ocean_from_poles}. This is a result of thermohaline
+circulation, in which poleward sea water freezes, transferring its salt to the
+unfrozen water below. The increased density from the salt then causes the water
+to sink.
+
+Figure
+\ref{fig:Q65_benthic} shows the insolation on the June 21$^{\mathrm{st}}$ at 65$^\circ$ north
+over the past 1 million years. Below this, we see the eccentricity of Earth's
+orbit for the same duration. 
+\begin{figure}
+  \centering
+  \includegraphics[width=\linewidth]{Q65_benth.pdf}
+  \caption{}
+  \label{fig:Q65_benthic}
+\end{figure}
 
 The Budyko model uses an albedo value of 0.32 for the entire ice-free portion of
 Earth. This is a significantly oversimplified representation of the Earth's
 albedo, hence we will attempt to improve this aspect of the model.
 
-The albedo value of 0.32 was determined from observational data, incorporating the effect of both
-land and cloud cover. Hence, although the model assumes Earth's surface to
-be entirely ocean, this is not applied to the calculation of albedo.
-By representing the surface albedo as homogeneous, the different
+The albedo value of 0.32 was determined from observational data, incorporating
+the effect of both land and cloud cover. Hence, we can say the model treats
+Earth's surface as a homogeneous, land-water mix with average cloud cover. The
+first improvement to this system is bringing the albedo up to date with current
+satellite data. The current estimate for global albedo is 0.29
+\cite{earth_albedo}. Using the current annual insolation reaching Earth's
+atmosphere, 340.375\,Wm$^{-2}$, we can expect to absorb
+$(1-0.29)\times340.375=241.67$\,Wm$^{-2}$ annually. If we assume the ice caps to
+have an average albedo of 0.6 \cite{ice_albedo_approx}, we can use an albedo
+value for the unfrozen portion of Earth that results in a net absorption of
+241.67\,Wm$^{-2}$ for current orbital parameters. This yields $\alpha_1=0.279$,
+which is notably lower than the 0.32 value used so far. Since we have reduced
+both of the albedo values to match more closely with the data available, we can
+expect to see a warmer temperature profile. In order to keep the model
+reflecting the real world, we will change the free variable $C$, which has so
+far taken value $1.6B = 3.04$\,Wm$^{-2}$, in order to maintain an equilibrium
+ice line of $\eta=0.9268$ as before. 
+
+Using the equilibrium solution from Section \ref{sec:budyko}, we have a cubic
+polynomial for $\eta$, and we wish to fix the most positive root at
+$\eta=0.9268$ and find the value of $C$ that allows for this, given the new
+values for $\alpha_1$ and $\alpha_2$. From rearranging for $C$ and substituting
+in these values, we get $C=2.108$, which is approximately $1.1B$. This follows
+the trend of decreasing $C$ as data becomes more accurate. The initial value
+for $C$ started at $2.4B$ from Budyko, then in 1974, Held and Suarez suggested
+a lower value of $2.1B$. Then, in 2007, Tung suggested $1.6B$ to account for
+the more recent value for the solar constant, taken from satellite data
+\cite{tung2007topics}. Reducing $C$ has the effect of slowing the rate at
+which heat energy is spread latitudinally across Earth, hence we can expect to
+see a larger difference between the temperature at the equator and pole. In the
+case of $\eta=0.9268$, the original temperature range from pole to equator was
+[$-19.1$\,C$^\circ$, 25.2\,C$^\circ$], whereas now it is
+[$-21.9$\,C$^\circ$, 36.1\,C$^\circ$]. This is further from the actual annual values
+of approximately [$-19$\,C$^\circ$, 27\,C$^\circ$] \cite{mean_annual_temp} than the original
+temperature range, suggesting the need for a more realistic heat diffusion
+term.
+
+
+
+
+The different
 albedos across land and ocean are neglected. Without clouds, the albedo of land
 ranges from 0.05 to 0.4 \cite{land_albedo}, whilst the ocean is between 0.03
 and 0.06 \cite{sea_albedo}. However the presence of clouds is shown to increase
@@ -1243,8 +1335,53 @@ irradiance that is reflected. This effect is particularly strong for light
 bouncing off of the ocean, which is shown to have an albedo of 0.4
 for the maximum SZA \cite{albedo_zenith_effect}. Comparing the direct albedo to
 the diffuse albedo, which is independent of SZA, for a range of land surfaces,
-Yang showed that the albedo increases approximately two times when ZSA goes
-from 0$^\circ$ to 90$^\circ$ \cite{land_zenith_range}.
+Yang showed that the albedo increases approximately two times for a SZA of 
+90$^\circ$ compared to 0$^\circ$ \cite{land_zenith_range}.
+
+The SZA is a function of the cosine of the angle between the incident sunshine
+and the Earth's surface normal. This is the same as the formula used in
+calculating insolation at a specific point on Earth, given as
+\[
+  S(\theta,\beta,\rho,\varphi,\gamma) = (\sin{\gamma}\sin{(\rho -
+  \theta)}-\cos{\beta} \cos{\gamma} \cos{(\rho-\theta)})\cos{\varphi}
+  -\sin{\beta}\sin{\varphi} \cos{(\rho -\theta)}.
+\] 
+A full derivation of this term is given in Section \ref{sec:insolation}.
+
+To implement a more realistic albedo component to the Budyko model, we must
+change parameters of the current model to achieve similar equilibria to real
+life, as was done for the original model. This is because the current model
+uses a value of 0.32 for the ocean albedo and 0.62 for ice covered ocean. This
+is incompatible with the current estimate for Earth's albedo of 0.29. Hence we
+will implement the SZA dependent albedo with the intention of preserving this
+0.29 global albedo. If nothing else is changed in the model, then the ice line
+will equilibrate at $y=1$, due to the increase in absorbed insolation.
+
+From measuring the albedo of a range of land surfaces with a varying SZA, Yang
+provides a polynomial fit for land albedo. The data covers the
+entire day and all atmospheric conditions, and is given as the ratio of direct
+albedo to diffuse albedo, which is independent of SZA. The ratio is given as
+\[
+  \frac{\alpha_{\mathrm{dir}}}{\alpha_{\mathrm{diff}}} =
+  \frac{2.21}{1+1.57\mu},
+\]
+where $\mu$ is the cosine of the SZA.
+
+From running simulations of the insolation model, a scale factor of 0.257 was
+found to produce an Earth albedo of 0.29. This suggests that the average albedo
+of Earth from a SZA of 0$^\circ$ is 0.257, with the increased albedo resulting
+from the increasing SZA away from the tropics.
+
+With this 
+
+
+In order to append this to the current Budyko model, we will continue
+treating the Earth surface as entirely ocean. The SZA dependent albedo is hence
+approximated by fitting a quadratic function to the data collected by Jin
+\cite{albedo_zenith_effect} on ocean albedo for varied SZA. Since the SZA
+depends on theta, it must be included within the yearly average of insolation.
+For this we use a numerical approximation of absorbed insolation at a given
+time and average this over the duration of a year. 
 
 Our new model will use an albedo function that aims to capture the effect of
 land, its asymmetric distribution around Earth, and the SZA. This will require
@@ -1255,25 +1392,9 @@ Importantly, this cannot be achieved simply by scaling the albedo function to
 have a mean of 0.29, since the insolation is not evenly distributed according
 to the latitude. Instead, we must tune the albedo function such that, for
 current orbital parameters, the annual shortwave radiation that is reflected
-back out to space is equal to $0.29Q_\varepsilon=98.71$\,Wm$^{-2}$.
+back out to space is equal to $0.29Q_\varepsilon=98.71$\,Wm$^{-2}$, for current
+orbital parameters.
 
-The SZA is calculated with the same formula used in calculating
-insolation at a specific point on Earth, given as
-\[
-  S(\theta,\beta,\rho,\varphi,\gamma) = (\sin{\gamma}\sin{(\rho -
-  \theta)}-\cos{\beta} \cos{\gamma} \cos{(\rho-\theta)})\cos{\varphi}
-  -\sin{\beta}\sin{\varphi} \cos{(\rho -\theta)}.
-\]. 
-A full derivation of this term is given in Section \ref{sec:insolation}.
-
-The albedo is approximated by fitting a quadratic function
-to the data collected by Jin \cite{albedo_zenith_effect} on ocean albedo for
-varied SZA. Since the SZA depends on theta, the approximation
-for yearly average insolation that has been used so far is no longer
-sufficient. We must therefore implement a numerical approximation to the yearly
-insolation which applies the albedo mask over the daily insolation before
-averaging this over the year. --NOT SURE WHY THIS IS
-NECESSARY YET----
 
 
 \begin{figure}
@@ -1318,7 +1439,6 @@ that spans both the southern and northern hemisphere.
     latitudinal spacing used in the Budyko model $y = \sin{\varphi}$.}
   \label{fig:land_distribution}
 \end{figure}
-
 
 \bibliographystyle{ieeetr}
 \bibliography{refs}

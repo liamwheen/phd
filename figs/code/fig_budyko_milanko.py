@@ -19,7 +19,7 @@ ax.set_ylabel('Latitude')
 ax.set_xlabel('Time (kya)')
 plt.tight_layout()
 #plt.show()
-#plt.savefig('../budyko_milanko_T.pdf')
+plt.savefig('../budyko_milanko_T.pdf')
 
 ice = np.loadtxt('../data/budyko_milanko_eta.csv',delimiter=',')
 f, p = signal.periodogram(ice[20:],10/8) #Cut off the transient
