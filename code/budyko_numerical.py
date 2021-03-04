@@ -7,34 +7,33 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 from matplotlib.animation import FuncAnimation
 from data import milanko_params # Values given in 1000 year time steps
-from numeric_Q import Q_year
+from numeric_Q import Q_day
 
 year2sec = 31556952 #Translate time dependent units to 'per year' instead of 'per second'
 
-alpha_1 = 0.32
-alpha_2 = 0.62
+alpha_1 = 0.279
+alpha_2 = 0.6
 A = 202.1#Wm^-2
 B = 1.9 #Wm^-2
-C = 3.04 #Wm^-2 K^-1
+C = 2.185 #Wm^-2 K^-1
 T_ice = -10 #degC
-R = 4*10**8 #some say e9 some say e8 #J m^-2 K^-1
-S = 2*10**12
+R = 3*10**7 #some say e9 some say e8 #J m^-2 K^-1
+S = 8*10**9
 Q_0 = 340.327 #Wm^-2
         
-#n0 = 0.28032803 # Unstable equilibrium initial iceline
-eta0 = 0.5 # Initial Iceline
-tmin = -10000
+eta0 = 0.94 # Initial Iceline
+tmin = -100000
 tmax = 0 # Years
 
 y_steps = 200
-t_steps = 4000
-frame_refr = 20
+t_steps = 1000000
+frame_refr = 1
         
 def main():
     model = Budyko()
     list(model.iter_func())
-    np.savetxt('budyko_milanko_T.csv',model.T_record,delimiter=',')
-    np.savetxt('budyko_milanko_eta.csv',model.eta_record,delimiter=',')
+    np.savetxt('budyko_numerical_T.csv',model.T_record,delimiter=',')
+    np.savetxt('budyko_numerical_eta.csv',model.eta_record,delimiter=',')
 
 def anim_main():
     model = Budyko()
@@ -54,13 +53,18 @@ class Budyko:
         self.beta_func = interp1d(milanko_t[krange], milanko_obliq[krange])
         self.l_peri_func = interp1d(milanko_t[krange], milanko_l_peri[krange])
         self.eta = eta0 #n initial
-        self.milanko_update(tmin)
-        self.T = self.T_star(self.y_span) #set temp profile to eq profile
-        #self.T = np.zeros(self.y_span.size)
+        self.milanko_update(tmin*year2sec)
+        #self.T = self.T_star(self.y_span) #set temp profile to eq profile
+        self.T = np.zeros(self.y_span.size)
         self.T_eta = self.T_star(self.y_span)[self.y_ind(self.eta)]
 
-    def s_b(self, y):
-        return 1 + 0.5*self.c_b*(3*y**2 - 1)
+    #def s_b(self, y):
+    #    ys = self.y_span
+    #    c_b = (5/16)*(3*np.sin(self.beta)**2 - 2)
+    #    s_b = 0.722*(1+0.58*c_b*(3*ys**2-1))
+    #    ice_ind = self.y_ind(self.eta)
+    #    s_b[ice_ind:] = 0.522*(1+0.68*c_b*(3*ys[ice_ind:]**2-1))
+    #    return s_b[self.y_ind(y)]
 
     def a_eta(self, y):
         # Account for fp errors in ice line positions
@@ -81,26 +85,28 @@ class Budyko:
     def T_star(self, y):
         In = np.sum(self.Qs*(1-self.a_eta(y)))*self.y_delta
         T_bar = (In - A)/B
-        T_star = (self.Qs*(1 - self.a_eta(y)) - A + C*T_bar)/(B + C)
+        T_star = (self.Qs*(1-self.a_eta(y))- A + C*T_bar)/(B + C)
         return T_star
 
     def dT_dt(self, T, y):
-        f = self.Qs[self.y_ind(y)]*(1 - self.a_eta(y)) - (A + B*T) - C*(T - self.int_T(T))
+        f = self.Qs[self.y_ind(y)]*(1-self.a_eta(y)) - (A + B*T) - C*(T - self.int_T(T))
         return f/R
 
     def y_ind(self, y):
-        shift = -1*(y>0.5)
-        ind = np.clip(np.round(y*y_steps),0,y_steps-1).astype(int) + shift
-        return ind
+        if isinstance(y,float):
+            y_ind = int(y*y_steps)
+            return min(y_steps-1,y_ind)
+        y_ind = (y*y_steps).astype(int)
+        y_ind[y_ind>(y_steps-1)] = y_steps-1
+        return y_ind
 
     def milanko_update(self, t):
         eps = float(self.eps_func(t/year2sec/1000))
         beta = float(self.beta_func(t/year2sec/1000))
         l_peri = float(self.l_peri_func(t/year2sec/1000))
         rho = (3/2*np.pi - l_peri)%(2*np.pi)
-        self.Qs = Q_year(beta, rho, eps)
+        self.Qs = Q_day(t, beta, rho, eps)
         #self.Q_e = Q_0/(np.sqrt(1-eps**2))
-        #self.c_b = (5/16)*(3*np.sin(beta)**2 - 2)
         #plt.plot(np.linspace(0,1,50),self.Qs)
         #plt.plot(self.y_span,self.Q_e*self.s_b(self.y_span))
         #plt.show()
@@ -113,7 +119,8 @@ class Budyko:
             self.T_eta += self.delta*self.dT_dt(self.T_eta, self.eta)
             self.eta = np.clip(self.eta + self.delta*(self.T_eta - T_ice)/S,0,1)
             if frame%frame_refr==0 or t==self.t_span[-1]: 
-                print(frame/t_steps)
+                if frame%1000==0:print(frame/t_steps)
+                #print(self.eta)
                 self.T_record[frame//frame_refr,:] = self.T
                 self.eta_record[frame//frame_refr] = self.eta
                 yield t
@@ -149,4 +156,13 @@ class Budyko:
 
 if __name__ == '__main__':
     main()
+    """
+    import cProfile, pstats
+    profiler = cProfile.Profile()
+    profiler.enable()
+    main()
+    profiler.disable()
+    stats = pstats.Stats(profiler).sort_stats('cumulative')
+    stats.print_stats()
+    """
 

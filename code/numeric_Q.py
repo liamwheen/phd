@@ -14,27 +14,31 @@ def cartesian_product(a, b):
         arr[...,i] = val
     return arr.reshape(-1,2).T
 
+year2sec = 31556952 #Translate time dependent units to 'per year' instead of 'per second'
+year = 365.2425
+
 K = 3.8284e+26
 au = 149597870700
-year = 365.2425
 beta = 0.4090
 eps = 0.0167
 rho = 2.9101
-phi_n, gamma_n = 200, 50
+eta = 0.94
+phi_n, gamma_n = 200, 100
 phi = np.arcsin(np.linspace(0,1,phi_n))
 # Longitudinal symmetry means we can save time just looking at one hemisphere
-gamma = np.linspace(0, np.pi,gamma_n) 
+# for Q_year, but if using Q_day, we need the full range
+gamma = np.linspace(0, 2*np.pi,gamma_n) 
 
 rep_phi, rep_gamma = cartesian_product(phi,gamma)
 
 def main():
     num_Q = Q_year(beta, rho, eps)
     print(np.mean(num_Q))
-    ice_inds = int(0.06*phi_n)
+    ice_inds = int((1-eta)*phi_n)
     c_b = (5/16)*(3*np.sin(beta)**2 - 2)
-    Qs = 0.72*(1 + 0.58*c_b*(3*np.sin(phi)**2 -
+    Qs = 0.722*(1 + 0.58*c_b*(3*np.sin(phi)**2 -
         1))*K/(16*np.pi*au**2*np.sqrt(1-eps**2))
-    Qs[-ice_inds:] = 0.45*(1 + 0.58*c_b*(3*np.sin(phi[-ice_inds:])**2 -
+    Qs[-ice_inds:] = 0.522*(1 + 0.68*c_b*(3*np.sin(phi[-ice_inds:])**2 -
         1))*K/(16*np.pi*au**2*np.sqrt(1-eps**2))
     print(np.mean(Qs))
     #ana_Q = calc_yearly_average(beta, phi, eps)*(1-0.29)
@@ -50,7 +54,7 @@ def main():
 def sza_albedo(I):
     albedo = (1+1.21)/(1+1.57*I)*0.25
     # Ice albedo from y=0.94 onwards
-    ice_inds = int(0.06*phi_n*gamma_n)
+    ice_inds = int((1-eta)*phi_n*gamma_n)
     albedo[-ice_inds:] = (1+1.21)/(1+1.57*I[-ice_inds:])*0.42
     #albedo[I==0] = 0
     #plt.plot(np.mean(albedo.reshape(phi_n,gamma_n),1))
@@ -63,10 +67,12 @@ def trig_coefs(beta, rho):
             np.cos(beta)**2*np.cos(rep_gamma)**2*np.cos(rep_phi)**2 +
             np.cos(beta)**2*np.cos(rep_phi)**2 - np.cos(beta)**2 -
             np.cos(rep_gamma)**2*np.cos(rep_phi)**2 + 1) 
+
     phase = np.arctan2((-np.sin(beta)*np.sin(rep_phi)*np.cos(rho) +
-        np.sin(rep_gamma)*np.sin(rho)*np.cos(rep_phi) -
-        np.cos(beta)*np.cos(rep_gamma)*np.cos(rep_phi)*np.cos(rho)),(-np.sin(beta)*np.sin(rep_phi)*np.sin(rho)
-            - np.sin(rep_gamma)*np.cos(rep_phi)*np.cos(rho) -
+            np.sin(rep_gamma)*np.sin(rho)*np.cos(rep_phi) -
+            np.cos(beta)*np.cos(rep_gamma)*np.cos(rep_phi)*np.cos(rho)),
+            (-np.sin(beta)*np.sin(rep_phi)*np.sin(rho) -
+            np.sin(rep_gamma)*np.cos(rep_phi)*np.cos(rho) -
             np.sin(rho)*np.cos(beta)*np.cos(rep_gamma)*np.cos(rep_phi)))
 
     return mag, phase
@@ -74,15 +80,23 @@ def trig_coefs(beta, rho):
 def I_fast(mag, phase, theta):
     return mag*np.sin(theta+phase)
 
+def Q_day(t, beta, rho, eps):
+    t = year*t/year2sec
+    r, theta = polar_pos(eps, np.array([t]))
+    mag, phase = trig_coefs(beta, rho)
+    I = I_fast(mag, phase, theta)
+    I[I<0] = 0
+    return K/(4*np.pi*r**2)*np.mean(I.reshape(phi_n,gamma_n),1)
+
 def Q_year(beta, rho, eps):
-    t_span = np.linspace(0,year,1000)
+    t_span = np.linspace(0, year, 500)
     mag, phase = trig_coefs(beta, rho)
     Is = np.zeros(phi_n*gamma_n)
     rs, thetas = polar_pos(eps, t_span)
     for r, theta in zip(rs,thetas):
         I = I_fast(mag, phase, theta)
         I[I<0] = 0
-        I*=1-sza_albedo(I)
+        #I*=1-sza_albedo(I)
         Is+=I/r**2
     Is = Is.reshape(phi_n,gamma_n)/len(t_span)
     return K/(4*np.pi)*np.mean(Is,1)
