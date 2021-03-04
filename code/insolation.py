@@ -63,7 +63,7 @@ class Insolation:
         """ Tracks back over the past year to find the day of the summer solstice"""
         for t_summer in np.linspace(t,t+366,1000):
             theta = self.polar_pos(t_summer)[1]
-            if abs((theta-self.rho))%(2*np.pi) < 0.007:
+            if abs((theta-self.rho)-np.pi)%(2*np.pi) < 0.007:
                 return t_summer
 
     def update(self, t, lats):
