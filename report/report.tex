@@ -500,8 +500,8 @@ where
     &a_1 = \frac{CQ_\varepsilon}{B}(\alpha_2-\alpha_1)\left(1-\frac{1}{2}c_\beta\right)\\
     &a_0 = Q_\varepsilon\left(1-\frac{1}{2}c_\beta\right)(1-\alpha_0) -
     A\left(1+\frac{C}{B}\right) + \frac{CQ_\varepsilon}{B}(1-\alpha_2) -
-    (B+C)T_{\mathrm{ice}}
-  \end{split}.
+    (B+C)T_{\mathrm{ice}}.
+  \end{split}
 \]
 
 The equilibrium solutions for the ice line are shown in Figure
@@ -1120,7 +1120,7 @@ Beginning with the Milankovitch cycles, we examined the different frequencies
 of the orbital parameters that are believed to play an important role in
 Earth's glacial periods. The variation of these orbital parameters were
 implemented into Budyko's energy balance model, which demonstrates the positive
-feedback effect of polar icecap albedo. However they were found to make no
+feedback effect of polar ice cap albedo. However they were found to make no
 significant difference to the dynamics of the ice line. In reality, the dynamics of
 Earth's ice line closely match the frequency of the orbital parameters,
 matching the 41\,k year period of obliquity before the MPT, and the 100\,k
@@ -1241,9 +1241,21 @@ Benthic foraminifera are single celled organisms that live
 on, or within, the ocean floor sediment, as opposed to planktonic foraminifera,
 which float at various depths. Benthic foraminifera were chosen because the
 deep ocean is more uniform in temperature and salinity, reducing uncertainty
-across measurements. The proportion of $^{18}$O within the foraminifera shells
-depends on both the temperature of the ocean and its $^{18}$O concentration.
-Cramer estimated the $\delta^{18}$O (per mille, \textperthousand) of the deep
+across measurements. 
+
+The proportion of $^{18}$O isotopes present in the ocean positively correlates
+with global ice volume. This is because the molecules containing the lighter
+$^{16}$O evaporate more easily, which then returns to the surface as
+precipitation and compacts to form ice caps. With proportionally more $^{16}$O
+present in the ice caps, the ocean is $^{18}$O rich. The $\delta^{18}$O ratio
+within the foraminifera shells can therefore act as a good indication of global
+ice volume over time. Importantly, a second factor that effects this ratio is
+the temperature of the deep ocean water in which the foraminifera lived.
+Chappell found that the water temperature can contribute up to 50\% of the
+benthic $\delta^{18}$O ratio, although this is more significant before the
+MPT \cite{benthic_to_ice_vol}.
+
+Elderfield estimated the $\delta^{18}$O (per mille, \textperthousand) of the deep
 ocean water using other sedimentary data, and related temperature ($^\circ$C)
 to $^{18}$O (\textperthousand) with the linear model
 \[
@@ -1253,24 +1265,49 @@ to $^{18}$O (\textperthousand) with the linear model
 where $\delta^{18}\mathrm{O}_{\mathrm{bf}}$ relates to the benthic
 foraminifera, and $\delta^{18}\mathrm{O}_{\mathrm{sw}}$ relates to the
 surrounding deep sea water \cite{benthic_to_temp}. Many other models
-have been produced, all with similar, mostly linear relationships between
+have been produced, all with similar, approximately linear, relationships between
 $(\delta^{18}\mathrm{O}_{\mathrm{bf}} - \delta^{18}\mathrm{O}_{\mathrm{sw}})$ and
 temperature \cite{benthic_temp_models}. The value range, over the past million
 years, for $\delta^{18}\mathrm{O}_{\mathrm{sw}}$ is [0.1, 0.3]
 whilst $\delta^{18}\mathrm{O}_{\mathrm{bf}}$ varies over a
 range of [3, 5]. If we therefore use the assumption
-$\delta^{18}\mathrm{O}_{\mathrm{sw}}=0.2$, we can estimate the deep ocean water
-temperature over time. We can also expect this to closely match the surface
+$\delta^{18}\mathrm{O}_{\mathrm{sw}}=0.2$, we can approximately map the benthic
+$\delta^{18}\mathrm{O}$ data to deep ocean water
+temperature over time. 
+
+We can expect this temperature to give a good indication of the surface
 temperature at higher latitudes as $\sim80$\% of deep ocean water comes from
 here \cite{deep_ocean_from_poles}. This is a result of thermohaline
 circulation, in which poleward sea water freezes, transferring its salt to the
 unfrozen water below. The increased density from the salt then causes the water
-to sink.
+to sink, feeding into the deep ocean water cycle.
 
-Figure
-\ref{fig:Q65_benthic} shows the insolation on the June 21$^{\mathrm{st}}$ at 65$^\circ$ north
-over the past 1 million years. Below this, we see the eccentricity of Earth's
-orbit for the same duration. 
+%
+%---write about how the ice volume is related to the benthic, read and use (and ref)
+%Elderfield, and explain the link. Then finish explaining the grey bars. Look at
+%what we can deduce from the q_day_400k data, it seems that hot summers lead to
+%more ice and vice versa? seems odd, maybe double check, if true, work out why
+%that could happen and try to compare with yearly simulations
+%
+It is well understood that for approximately the past 1 million years,
+a glacial-interglacial cycle has lasted around 100\,k years. This is correlated
+with the period of Earth's eccentricity cycle. However, the relatively fast 
+transition from glacial to interglacial periods also correlates to the amount of insolation present
+during the northern hemisphere's summer. Because the Budyko model averages the
+insolation over the year, the peak insolation during summer is
+omitted from the current simulation.
+
+Figure \ref{fig:Q65_benthic} shows the eccentricity of Earth's orbit over the
+past 1 million years. Below this is the insolation on June 21$^{\mathrm{st}}$
+at 65$^\circ$ north. Last is the benthic $\delta^{18}\mathrm{O}$ data with
+the estimated deep see temperature shown on the opposite axis.
+
+The grey bars highlight the periods over which a significant rise in
+temperature has occurred in the $\delta^{18}\mathrm{O}$ plot. This highlights
+the synchronisation of the temperature rises with eccentricity, with major rises
+occurring approximately every 100\,k years. Also shown is the correlation
+between summer insolation in the northern hemisphere and the temperature rises. 
+
 \begin{figure}
   \centering
   \includegraphics[width=\linewidth]{Q65_benth.pdf}
