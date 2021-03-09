@@ -81,7 +81,7 @@ def I_fast(mag, phase, theta):
     return mag*np.sin(theta+phase)
 
 def Q_day(t, beta, rho, eps):
-    t = year*t/year2sec
+    # Takes day of year, 0 is theta=0, 183 is theta=pi
     r, theta = polar_pos(eps, np.array([t]))
     mag, phase = trig_coefs(beta, rho)
     I = I_fast(mag, phase, theta)
