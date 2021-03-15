@@ -8,7 +8,6 @@ from insol_sympy import calc_daily_average
 
 k2day = 365242.5
 au = 149597870700 # metres
-#q = 3.8284e+26/(4*np.pi) #Suns total irradiance over 4pi, needs dividing by r^2
 
 class Insolation:
 

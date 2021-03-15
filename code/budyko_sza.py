@@ -50,7 +50,7 @@ class Budyko:
         self.beta_func = interp1d(milanko_t[krange], milanko_obliq[krange])
         self.l_peri_func = interp1d(milanko_t[krange], milanko_l_peri[krange])
         self.eta = eta0 #n initial
-        self.milanko_update(tmin)
+        self.milanko_update(tmin*year2sec)
         self.T = self.T_star(self.y_span) #set temp profile to eq profile
         self.T_eta = self.T_star(self.y_span)[self.y_ind(self.eta)]
 

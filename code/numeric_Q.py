@@ -23,11 +23,12 @@ beta = 0.4090
 eps = 0.0167
 rho = 2.9101
 eta = 0.94
-phi_n, gamma_n = 200, 100
+phi_n, gamma_n = 200, 50
 phi = np.arcsin(np.linspace(0,1,phi_n))
 # Longitudinal symmetry means we can save time just looking at one hemisphere
 # for Q_year, but if using Q_day, we need the full range
-gamma = np.linspace(0, 2*np.pi,gamma_n) 
+gamma = np.linspace(0, np.pi, gamma_n) 
+year_res = 100
 
 rep_phi, rep_gamma = cartesian_product(phi,gamma)
 
@@ -89,14 +90,13 @@ def Q_day(t, beta, rho, eps):
     return K/(4*np.pi*r**2)*np.mean(I.reshape(phi_n,gamma_n),1)
 
 def Q_year(beta, rho, eps):
-    t_span = np.linspace(0, year, 500)
+    t_span = np.linspace(0, year, year_res)
     mag, phase = trig_coefs(beta, rho)
     Is = np.zeros(phi_n*gamma_n)
     rs, thetas = polar_pos(eps, t_span)
     for r, theta in zip(rs,thetas):
         I = I_fast(mag, phase, theta)
         I[I<0] = 0
-        #I*=1-sza_albedo(I)
         Is+=I/r**2
     Is = Is.reshape(phi_n,gamma_n)/len(t_span)
     return K/(4*np.pi)*np.mean(Is,1)
@@ -107,8 +107,8 @@ def midpoint_E(M, eps):
     return mid_E.root
 
 def calc_theta(E, eps):
-    sign = np.ones(len(E))# if E < np.pi else -1
-    sign[(E<np.pi)] = -1
+    sign = np.ones(len(E))
+    sign[(E>np.pi)] = -1
     return np.pi+sign*2*np.arctan(np.sqrt((1+eps)/(1-eps)*(np.tan(E/2))**2))
 
 def polar_pos(eps, t):

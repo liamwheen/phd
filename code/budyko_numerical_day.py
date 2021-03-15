@@ -29,7 +29,7 @@ year_res = 18 # Points per year
 year_step = year/year_res # Days per step
 
 y_steps = 200
-t_steps = 400000*year_res
+t_steps = (tmax-tmin)*year_res
 frame_refr = 1
         
 def main():
