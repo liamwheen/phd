@@ -22,18 +22,18 @@ S = 2*10**12
 Q_0 = 340.327 #Wm^-2
         
 eta0 = 0.94 # Initial Iceline
-tmin = -40000#0000
+tmin = -400000#0000
 tmax = 0 # Years
 
-y_steps = 200
+y_steps = 500
 t_steps = (tmax-tmin)//2
 frame_refr = 20
         
 def main():
     model = Budyko()
     list(model.iter_func())
-    #np.savetxt('budyko_numerical_T.csv',model.T_record,delimiter=',')
-    np.savetxt('budyko_numerical_eta.csv',model.eta_record,delimiter=',')
+    #np.savetxt('budyko_numerical_year_T.csv',model.T_record,delimiter=',')
+    np.savetxt('budyko_numerical_year_eta.csv',model.eta_record,delimiter=',')
 
 def anim_main():
     model = Budyko()
@@ -75,13 +75,13 @@ class Budyko:
         return np.trapz(self.T,self.y_span)
 
     def T_star(self, y):
-        In = np.sum(self.Qs*(1-self.a_eta(y)))*self.y_delta
+        In = np.sum(self.Qs_fun(y)*(1-self.a_eta(y)))*self.y_delta
         T_bar = (In - A)/B
-        T_star = (self.Qs*(1-self.a_eta(y))- A + C*T_bar)/(B + C)
+        T_star = (self.Qs_fun(y)*(1-self.a_eta(y))- A + C*T_bar)/(B + C)
         return T_star
 
     def dT_dt(self, T, y):
-        f = self.Qs[self.y_ind(y)]*(1-self.a_eta(y)) - (A + B*T) - C*(T - self.int_T(T))
+        f = self.Qs_fun(y)*(1-self.a_eta(y)) - (A + B*T) - C*(T - self.int_T(T))
         return f/R
 
     def y_ind(self, y):
@@ -97,12 +97,13 @@ class Budyko:
         beta = float(self.beta_func(t/year2sec/1000))
         l_peri = float(self.l_peri_func(t/year2sec/1000))
         rho = (3/2*np.pi - l_peri)%(2*np.pi)
-        self.Qs = Q_year(beta, rho, eps)
+        self.Qs_fun = Q_year(beta, rho, eps)
         
     def iter_func(self):
         #Iter over all time points
         for frame, t in enumerate(self.t_span):
-            self.milanko_update(t)
+            #Milanko is updated every 200 years here (since time steps 2 years)
+            if frame%100==0: self.milanko_update(t)
             self.T += self.delta*self.dT_dt(self.T, self.y_span)
             self.T_eta += self.delta*self.dT_dt(self.T_eta, self.eta)
             self.eta = np.clip(self.eta + self.delta*(self.T_eta - T_ice)/S,0,1)

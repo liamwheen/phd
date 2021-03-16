@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 from matplotlib.animation import FuncAnimation
 from data import milanko_params # Values given in 1000 year time steps
-from numeric_Q import Q_day
+from numeric_Q import Q_days
 
 year2sec = 31556952 #Translate time dependent units to 'per year' instead of 'per second'
 year = 365.2425
@@ -23,10 +23,10 @@ S = 8*10**9
 Q_0 = 340.327 #Wm^-2
         
 eta0 = 0.94 # Initial Iceline
-tmin = -400000
+tmin = -40000
 tmax = 0 # Years
 year_res = 18 # Points per year
-year_step = year/year_res # Days per step
+year_span = np.linspace(0,year,year_res)
 
 y_steps = 200
 t_steps = (tmax-tmin)*year_res
@@ -35,7 +35,6 @@ frame_refr = 1
 def main():
     model = Budyko()
     list(model.iter_func())
-    np.savetxt('budyko_numerical_T.csv',model.T_record,delimiter=',')
     np.savetxt('budyko_numerical_eta.csv',model.eta_record,delimiter=',')
 
 def anim_main():
@@ -50,7 +49,6 @@ class Budyko:
         self.y_delta = self.y_span[1]-self.y_span[0]
         self.t_span = np.linspace(tmin*year2sec,tmax*year2sec,t_steps) #years
         self.delta = self.t_span[1] - self.t_span[0]
-        self.T_record = np.zeros((t_steps//frame_refr,self.y_span.size)) 
         self.eta_record = np.zeros(t_steps//frame_refr) 
         milanko_t, milanko_ecc, milanko_obliq, milanko_l_peri = milanko_params.load_milanko('backward')
         krange = range(int(tmin//1000),2+max(1,int(tmax//1000)))
@@ -96,21 +94,24 @@ class Budyko:
         return y_ind
 
     def milanko_update(self, t):
-        self.eps = float(self.eps_func(t/year2sec/1000))
-        self.beta = float(self.beta_func(t/year2sec/1000))
+        eps = float(self.eps_func(t/year2sec/1000))
+        beta = float(self.beta_func(t/year2sec/1000))
         l_peri = float(self.l_peri_func(t/year2sec/1000))
-        self.rho = (3/2*np.pi - l_peri)%(2*np.pi)
+        rho = (3/2*np.pi - l_peri)%(2*np.pi)
+        return eps, beta, rho
         
     def iter_func(self):
         #Iter over all time points
         for frame, t in enumerate(self.t_span):
-            if frame%year_res==0: self.milanko_update(t)
-            if frame%10000==0:print(frame/t_steps)
-            self.Qs = Q_day((frame%year_res)*year_step, self.beta, self.rho, self.eps)
+            if frame%year_res==0:
+                if frame%(100*year_res)==0:print(frame/t_steps)
+                eps, beta, rho = self.milanko_update(t)
+                Qs_func = Q_days(year_span, beta, rho, eps)
+            day_of_year = (frame%year_res)/year_res*year
+            self.Qs = Qs_func(self.y_span, day_of_year)
             self.T += self.delta*self.dT_dt(self.T, self.y_span)
             self.T_eta += self.delta*self.dT_dt(self.T_eta, self.eta)
             self.eta = np.clip(self.eta + self.delta*(self.T_eta - T_ice)/S,0,1)
-            self.T_record[frame//frame_refr,:] = self.T
             self.eta_record[frame//frame_refr] = self.eta
             yield t
 
@@ -134,7 +135,7 @@ class Budyko:
         plt.show()
 
 if __name__ == '__main__':
-    anim_main()
+    main()
     """
     import cProfile, pstats
     profiler = cProfile.Profile()
