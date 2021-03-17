@@ -30,7 +30,7 @@ y = np.linspace(0,1,phi_n)
 # Longitudinal symmetry means we can save time just looking at one hemisphere
 # for Q_year
 gamma = np.linspace(0, np.pi, gamma_n) 
-year_res = 500
+year_res = 100
 
 rep_phi, rep_gamma = cartesian_product(phi,gamma)
 
@@ -82,7 +82,7 @@ def I_fast(mag, phase, theta):
 
 def Q_year(beta, rho, eps):
     # Returns Qs interpolated function 
-    t_span = np.linspace(0, year, year_res)
+    t_span = np.linspace(0, year, year_res)[:-1]
     mag, phase = trig_coefs(beta, rho)
     Is = np.zeros(phi_n*gamma_n)
     rs, thetas = polar_pos(eps, t_span)

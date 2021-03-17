@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 from matplotlib.animation import FuncAnimation
 from data import milanko_params # Values given in 1000 year time steps
-from numeric_Q import Q_year
+from numeric_Q_year import Q_year
 
 year2sec = 31556952 #Translate time dependent units to 'per year' instead of 'per second'
 
@@ -22,12 +22,12 @@ S = 2*10**12
 Q_0 = 340.327 #Wm^-2
         
 eta0 = 0.94 # Initial Iceline
-tmin = -400000#0000
+tmin = -40000#0000
 tmax = 0 # Years
 
 y_steps = 500
 t_steps = (tmax-tmin)//2
-frame_refr = 20
+frame_refr = 1
         
 def main():
     model = Budyko()
@@ -108,7 +108,7 @@ class Budyko:
             self.T_eta += self.delta*self.dT_dt(self.T_eta, self.eta)
             self.eta = np.clip(self.eta + self.delta*(self.T_eta - T_ice)/S,0,1)
             if frame%frame_refr==0 or t==self.t_span[-1]: 
-                print(frame/t_steps)
+                if frame%(100*frame_refr)==0:print(frame/t_steps)
                 #self.T_record[frame//frame_refr,:] = self.T
                 self.eta_record[frame//frame_refr] = self.eta
                 yield t
