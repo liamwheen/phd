@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 from matplotlib.animation import FuncAnimation
 from data import milanko_params # Values given in 1000 year time steps
-from numeric_Q_day import Q_days
+from numeric_Q_day import Q_day
 
 year2sec = 31556952 #Translate time dependent units to 'per year' instead of 'per second'
 year = 365.2425
@@ -28,14 +28,14 @@ tmax = 0 # Years
 year_res = 60 # Points per year
 year_span = np.linspace(0,year,year_res)[:-1] # Avoid repeating last point as first point
 
-y_steps = 200
+y_steps = 1000
 t_steps = (tmax-tmin)*year_res
 frame_refr = 1
         
 def main():
     model = Budyko()
     list(model.iter_func())
-    np.savetxt('budyko_numerical_day_eta.csv',model.eta_record,delimiter=',')
+    #np.savetxt('budyko_numerical_day_eta.csv',model.eta_record,delimiter=',')
 
 def anim_main():
     model = Budyko()
@@ -46,7 +46,7 @@ def anim_main():
 class Budyko:
     def __init__(self):
         self.y_span = np.linspace(0,1,y_steps)
-        self.y_delta = self.y_span[1]-self.y_span[0]
+        self.y_delta = self.y_span[1] - self.y_span[0]
         self.t_span = np.linspace(tmin*year2sec,tmax*year2sec,t_steps) #years
         self.delta = self.t_span[1] - self.t_span[0]
         self.eta_record = np.zeros(t_steps//frame_refr) 
@@ -57,10 +57,7 @@ class Budyko:
         self.l_peri_func = interp1d(milanko_t[krange], milanko_l_peri[krange])
         self.eta = eta0 #n initial
         self.milanko_update(tmin*year2sec)
-        #self.T = self.T_star(self.y_span) #set temp profile to eq profile
         self.T = np.zeros(self.y_span.size)
-        self.T_eta = self.T[self.y_ind(self.eta)]
-
 
     def a_eta(self, y):
         # Account for fp errors in ice line positions
@@ -69,20 +66,16 @@ class Budyko:
         return ((round_y!=round_eta)*0.5+0.5)*((round_y<=round_eta)*alpha_1+(round_y>=round_eta)*alpha_2)
 
     def int_T(self, T):
-        if isinstance(T,float):
-            # Tnj passed so will integrate over T_star
-            return np.trapz(self.T_star(self.y_span), self.y_span)
-
         return np.trapz(self.T,self.y_span)
 
-    def T_star(self, y):
-        In = np.sum(self.Qs*(1-self.a_eta(y)))*self.y_delta
-        T_bar = (In - A)/B
-        T_star = (self.Qs*(1-self.a_eta(y))- A + C*T_bar)/(B + C)
-        return T_star
+#    def T_star(self, y):
+#        In = np.sum(self.Qs(y)*(1-self.a_eta(y)))*self.y_delta
+#        T_bar = (In - A)/B
+#        T_star = (self.Qs(y)*(1-self.a_eta(y))- A + C*T_bar)/(B + C)
+#        return T_star
 
     def dT_dt(self, T, y):
-        f = self.Qs[self.y_ind(y)]*(1-self.a_eta(y)) - (A + B*T) - C*(T - self.int_T(T))
+        f = self.Qs(y)*(1-self.a_eta(y)) - (A + B*T) - C*(T - self.int_T(T))
         return f/R
 
     def y_ind(self, y):
@@ -99,6 +92,15 @@ class Budyko:
         l_peri = float(self.l_peri_func(t/year2sec/1000))
         rho = (3/2*np.pi - l_peri)%(2*np.pi)
         return eps, beta, rho
+
+    def RK4(self, T0, ddt, h):
+        "Apply Runge Kutta Formulas to find next value of T"
+        y = self.y_span
+        k1 = ddt(T0, y)
+        k2 = ddt(T0 + h*k1/2, y)
+        k3 = ddt(T0 + h*k2/2, y)
+        k4 = ddt(T0 + h*k3, y)
+        return h/6*(k1 + 2*k2 + 2*k3 + k4)
         
     def iter_func(self):
         #Iter over all time points
@@ -106,14 +108,14 @@ class Budyko:
             if frame%year_res==0:
                 if frame%(100*year_res)==0:print(frame/t_steps)
                 eps, beta, rho = self.milanko_update(t)
-                Qs_func = Q_days(year_span, beta, rho, eps)
             day_of_year = (frame%year_res)/year_res*year
-            self.Qs = Qs_func(self.y_span, day_of_year)
-            self.T += self.delta*self.dT_dt(self.T, self.y_span)
-            self.T_eta += self.delta*self.dT_dt(self.T_eta, self.eta)
-            self.eta = np.clip(self.eta + self.delta*(self.T_eta - T_ice)/S,0,1)
+            self.Qs = Q_day(day_of_year, beta, rho, eps)
+            self.T += self.RK4(self.T, self.dT_dt, self.delta)
+            T_eta = self.T[self.y_ind(self.eta)]
+            self.eta = np.clip(self.eta + self.delta*(T_eta - T_ice)/S,0,1)
             self.eta_record[frame//frame_refr] = self.eta
-            yield t
+            if frame%frame_refr==0:
+                yield t
 
     def update(self, t):
         self.ax.set_ylabel('$T(y$, {:.1e} years) (°C)'.format(t/year2sec))
@@ -135,7 +137,7 @@ class Budyko:
         plt.show()
 
 if __name__ == '__main__':
-    main()
+    anim_main()
     """
     import cProfile, pstats
     profiler = cProfile.Profile()
