@@ -16,16 +16,16 @@ alpha_1 = 0.32#0.279
 alpha_2 = 0.62
 A = 202.1#Wm^-2
 B = 1.9 #Wm^-2
-C = 2.185 #Wm^-2 K^-1
+C = 3.04 #Wm^-2 K^-1
 T_ice = -10 #degC
-R = 3*10**7 #some say e9 some say e8 #J m^-2 K^-1
-S = 8*10**9
+R = 2*10**7 #J m^-2 K^-1 (Temp damping)
+S = 2*10**9 # degC s (Ice line damping)
 Q_0 = 340.327 #Wm^-2
         
-eta0 = 0.94 # Initial Iceline
-tmin = -40000
+eta0 = 0.63 # Initial Iceline
+tmin = -60
 tmax = 0 # Years
-year_res = 60 # Points per year
+year_res = 50 # Points per year
 year_span = np.linspace(0,year,year_res)[:-1] # Avoid repeating last point as first point
 
 y_steps = 1000
@@ -35,6 +35,8 @@ frame_refr = 1
 def main():
     model = Budyko()
     list(model.iter_func())
+    #plt.plot(model.eta_record)
+    #plt.show()
     #np.savetxt('budyko_numerical_day_eta.csv',model.eta_record,delimiter=',')
 
 def anim_main():
@@ -61,22 +63,22 @@ class Budyko:
 
     def a_eta(self, y):
         # Account for fp errors in ice line positions
-        round_eta = self.y_delta*np.round(self.eta/self.y_delta) 
-        round_y = self.y_delta*np.round(y/self.y_delta) 
-        return ((round_y!=round_eta)*0.5+0.5)*((round_y<=round_eta)*alpha_1+(round_y>=round_eta)*alpha_2)
+        #round_eta = self.y_delta*np.round(self.eta/self.y_delta) 
+        #round_y = self.y_delta*np.round(y/self.y_delta) 
+        #return ((round_y<=round_eta)*alpha_1+(round_y>round_eta)*alpha_2)
+        M = 200
+        return 0.47 + 0.15 * (np.tanh(M*(y - self.eta)))
 
     def int_T(self, T):
         return np.trapz(self.T,self.y_span)
 
-#    def T_star(self, y):
-#        In = np.sum(self.Qs(y)*(1-self.a_eta(y)))*self.y_delta
-#        T_bar = (In - A)/B
-#        T_star = (self.Qs(y)*(1-self.a_eta(y))- A + C*T_bar)/(B + C)
-#        return T_star
-
-    def dT_dt(self, T, y):
-        f = self.Qs(y)*(1-self.a_eta(y)) - (A + B*T) - C*(T - self.int_T(T))
-        return f/R
+    def dX_dt(self, X):
+        y = self.y_span
+        T, eta = X[:-1],X[-1]
+        dT = self.Qs(y)*(1-self.a_eta(y)) - (A + B*T) - C*(T - self.int_T(T))
+        T_eta = T[self.y_ind(eta)]
+        deta = T_eta - T_ice
+        return np.append(dT/R, deta/S)
 
     def y_ind(self, y):
         if isinstance(y,float):
@@ -93,26 +95,25 @@ class Budyko:
         rho = (3/2*np.pi - l_peri)%(2*np.pi)
         return eps, beta, rho
 
-    def RK4(self, T0, ddt, h):
-        "Apply Runge Kutta Formulas to find next value of T"
+    def RK4(self, X0, ddt, h):
+        "Apply Runge Kutta Formulas to find next values of T and eta"
         y = self.y_span
-        k1 = ddt(T0, y)
-        k2 = ddt(T0 + h*k1/2, y)
-        k3 = ddt(T0 + h*k2/2, y)
-        k4 = ddt(T0 + h*k3, y)
-        return h/6*(k1 + 2*k2 + 2*k3 + k4)
-        
+        k1 = ddt(X0)
+        k2 = ddt(X0 + h*k1/2)
+        k3 = ddt(X0 + h*k2/2)
+        k4 = ddt(X0 + h*k3)
+        return X0 + h/6*(k1 + 2*k2 + 2*k3 + k4)
+
     def iter_func(self):
         #Iter over all time points
         for frame, t in enumerate(self.t_span):
             if frame%year_res==0:
-                if frame%(100*year_res)==0:print(frame/t_steps)
+                if frame%(t_steps//100)==0:print(frame/t_steps)
                 eps, beta, rho = self.milanko_update(t)
             day_of_year = (frame%year_res)/year_res*year
             self.Qs = Q_day(day_of_year, beta, rho, eps)
-            self.T += self.RK4(self.T, self.dT_dt, self.delta)
-            T_eta = self.T[self.y_ind(self.eta)]
-            self.eta = np.clip(self.eta + self.delta*(T_eta - T_ice)/S,0,1)
+            X = self.RK4(np.append(self.T,self.eta), self.dX_dt, self.delta)
+            self.T, self.eta = X[:-1],X[-1]
             self.eta_record[frame//frame_refr] = self.eta
             if frame%frame_refr==0:
                 yield t

@@ -23,9 +23,9 @@ beta0 = 0.4090
 eps0 = 0.0167
 rho0 = 2.9101
 eta0 = 0.94
-phi_n, gamma_n = 50, 100
-phi = np.arcsin(np.linspace(0,1,phi_n))
-y = np.linspace(0,1,phi_n)
+phi_n, gamma_n = 50, 50
+#phi = np.arcsin(np.linspace(0,1,phi_n))
+phi = np.linspace(0,np.pi/2,phi_n)
 gamma = np.linspace(0, 2*np.pi, gamma_n) 
 
 rep_phi, rep_gamma = cartesian_product(phi,gamma)
@@ -39,9 +39,9 @@ def Q_day(t, beta, rho, eps):
     # taking the mean
     r, theta = polar_pos(eps, t)
     I_day,_ = quad_vec(lambda gamma:I(gamma, phi, beta, rho,
-        theta),0,2*np.pi, epsabs=10)
+        theta),0,2*np.pi, epsabs=40)
     Q_day = K/(8*np.pi**2*r**2)*I_day
-    return interp1d(y, Q_day, 'cubic')
+    return interp1d(np.sin(phi), Q_day, 'cubic')
 
 def E_midpoint(E, M, eps):
     return E - eps*np.sin(E) - M
