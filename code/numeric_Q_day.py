@@ -23,32 +23,57 @@ beta0 = 0.4090
 eps0 = 0.0167
 rho0 = 2.9101
 eta0 = 0.94
-phi_n, gamma_n = 50, 50
-#phi = np.arcsin(np.linspace(0,1,phi_n))
-phi = np.linspace(0,np.pi/2,phi_n)
+phi_n, gamma_n = 60, 50
+phi = np.arcsin(np.linspace(-1,1,phi_n))
+#phi = np.linspace(-np.pi/2,np.pi/2,phi_n)
 gamma = np.linspace(0, 2*np.pi, gamma_n) 
 
 rep_phi, rep_gamma = cartesian_product(phi,gamma)
+
+def tester():
+    #Q_now = np.array([Q_day(t, beta0, rho0, eps0)(np.linspace(-1,1,100)) for t in
+    #        np.linspace(0,year,300)])
+    qgood = Q_day(100, beta0, rho0, eps0)(np.linspace(0,1,100))
+    #qbad= Q_day_bad(100, beta0, rho0, eps0)(np.linspace(0,1,100))
+    plt.plot(qgood)
+    #plt.plot(qbad)
+    plt.show()
+    Q_past = Q_day(year/2, beta0, rho0+np.pi, eps0)(np.linspace(0,1,100))
+    Q_now = Q_day(0, beta0, rho0, eps0)(np.linspace(0,1,100))
+    Q_max = Q_day(year/2, beta0, 0, eps0)(np.linspace(0,1,100))
+    plt.plot(Q_now)
+    plt.plot(Q_past)
+    plt.plot(Q_max)
+    #plt.plot(Q_past(np.linspace(-1,1,100)))
+    plt.show()
 
 def I(gamma, phi, beta, rho, theta):
     return np.maximum((np.sin(gamma)*np.sin(rho - theta) - np.cos(beta)*np.cos(gamma)*np.cos(rho -
                 theta))*np.cos(phi) - np.sin(beta)*np.sin(phi)*np.cos(rho - theta), 0)
 
-def Q_day(t, beta, rho, eps):
-    # Performs the same as Q_day but integrating over gamma rather than just
-    # taking the mean
-    r, theta = polar_pos(eps, t)
-    I_day,_ = quad_vec(lambda gamma:I(gamma, phi, beta, rho,
-        theta),0,2*np.pi, epsabs=40)
-    Q_day = K/(8*np.pi**2*r**2)*I_day
-    return interp1d(np.sin(phi), Q_day, 'cubic')
+def trig_coefs(beta, rho, theta):
+    # mag and phase for Asin(x)+Bcos(x) + c formula
+    mag = np.sqrt((-np.sin(beta)**2*np.cos(rho - theta)**2 + 1)*np.cos(phi)**2)
+    phase = -np.arctan(np.cos(beta)/np.tan(rho - theta))
+    c = -np.sin(beta)*np.sin(phi)*np.cos(rho-theta)
+    return mag, phase, c
 
-def E_midpoint(E, M, eps):
-    return E - eps*np.sin(E) - M
+def I_fast(gamma, mag, phase, c):
+    return np.maximum(mag*np.sin(gamma+phase) + c, 0)
+
+def Q_day(t, beta, rho, eps):
+    r, theta = polar_pos(eps, t)
+    mag, phase, c = trig_coefs(beta, rho, theta)
+    I_day =  quad_vec(lambda gamma: I_fast(gamma, mag, phase, c),
+                0,2*np.pi,epsrel=10)[0]
+    Q_day = K/(8*np.pi**2*r**2)*I_day
+    #return interp1d(np.sin(phi), Q_day, 'cubic')
+    return Q_day
 
 def calc_E(M, eps):
-    mid_E = root_scalar(E_midpoint, (M,eps), method='brentq', bracket=(M-eps,M+eps))
-    return mid_E.root
+    # Single iteration of newton method is sufficient
+    E = M + eps*np.sin(M)/(1-eps*np.cos(M))
+    return E
 
 def calc_theta(E, eps):
     sign = 1-2*(E>np.pi)
@@ -88,6 +113,7 @@ def anim_main():
 
 
 if __name__ == '__main__':
+    tester()
     """
     import cProfile, pstats
     profiler = cProfile.Profile()
