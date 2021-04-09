@@ -8,6 +8,7 @@ from scipy.interpolate import interp1d
 from matplotlib.animation import FuncAnimation
 from data import milanko_params # Values given in 1000 year time steps
 from numeric_Q_day import Q_day, phi_n
+import datetime as dt
 
 year2sec = 31556952 #Translate time dependent units to 'per year' instead of 'per second'
 year = 365.2425
@@ -32,13 +33,9 @@ year_span = np.linspace(0,year,year_res+1)[:-1] # Avoid repeating last point as 
 
 y_steps = phi_n#50
 t_steps = (tmax-tmin)*year_res
-frame_refr = 50
+frame_refr = 100
 
-dt = (tmax-tmin)*year2sec/(t_steps-1)
-dx = 2/(y_steps-1)
-k = R/(2*D)
-#stability calculation doesnt seem to work: (dt/dx**2-k)/k<1 was the guess but
-#not applicable for very different parameter values
+zeros_holder = np.zeros(y_steps)
 
 def main():
     model = Budyko()
@@ -61,14 +58,13 @@ class Budyko:
         self.t_span = np.linspace(tmin*year2sec,tmax*year2sec,t_steps) #years
         self.delta = self.t_span[1] - self.t_span[0]
         self.eta_record = np.zeros((t_steps//frame_refr,2)) 
-        self.max_T = np.zeros(t_steps//frame_refr)
+        #self.max_T = np.zeros(t_steps//frame_refr)
         milanko_t, milanko_ecc, milanko_obliq, milanko_l_peri = milanko_params.load_milanko('backward')
         krange = range(int(tmin//1000),2+max(1,int(tmax//1000)))
         self.eps_func = interp1d(milanko_t[krange], milanko_ecc[krange])
         self.beta_func = interp1d(milanko_t[krange], milanko_obliq[krange])
         self.l_peri_func = interp1d(milanko_t[krange], milanko_l_peri[krange])
         self.etas = np.array(etas0) #n initial
-        self.milanko_update(tmin*year2sec)
         self.T = np.zeros(self.y_span.size)
 
     def a_eta(self, y):
@@ -77,23 +73,23 @@ class Budyko:
         arg = (y>0)*(y - etaN) + (y<=0)*(-y + etaS)
         return (alpha_1+alpha_2)/2 + (alpha_2-alpha_1)/2 * (np.tanh(M*arg))
 
-    def diffuse(self):
+    def diffuse(self, T, y):
         dtdx = np.diff(self.T)/self.y_delta
         y_center = self.y_span[1:]-self.y_delta/2
-        return D*np.pad(np.diff((1-y_center**2)*dtdx)/self.y_delta,1)
+        zeros_holder[1:-1] = D*np.diff((1-y_center**2)*dtdx)/self.y_delta
+        return zeros_holder
     
     def transport(self, T):
         return -C*(T - np.trapz(T,self.y_span)/2)
 
-    def dX_dt(self, X):
+    def dX_dt(self, T, eta):
         y = self.y_span
-        T, eta = X[:-2],X[-2:]
-        dT = self.Qs*(1-self.a_eta(y)) - (A + B*T) + D*self.diffuse()#self.transport(T)#
+        dT = self.Qs*(1-self.a_eta(y)) - (A + B*T) + D*self.diffuse(T,y)#self.transport(T)#
         dT[[0,-1]]=dT[[1,-2]]
         T_eta = T[self.y_ind(eta)]
         deta = np.array([-1,1])*T_eta - T_ice_shift
         #deta += (deta>0)*deta*2
-        return np.append(dT/R, deta/S)
+        return dT/R, deta/S
 
     def y_ind(self, y):
         y = (y+1)/2
@@ -107,13 +103,15 @@ class Budyko:
         rho = (3/2*np.pi - l_peri)%(2*np.pi)
         return eps, beta, rho
 
-    def RK4(self, X0, ddt, h):
+    def RK4(self, T, eta, ddt, h):
         "Apply Runge Kutta Formulas to find next values of T and eta"
-        k1 = ddt(X0)
-        k2 = ddt(X0 + h*k1/2)
-        k3 = ddt(X0 + h*k2/2)
-        k4 = ddt(X0 + h*k3)
-        return X0 + h/6*(k1 + 2*k2 + 2*k3 + k4)
+        k1T, k1eta = ddt(T, eta)
+        k2T, k2eta = ddt(T + h*k1T/2, eta + h*k1eta/2)
+        k3T, k3eta = ddt(T + h*k2T/2, eta + h*k2eta/2)
+        k4T, k4eta = ddt(T+ h*k3T, eta + h*k3eta)
+        dT = h/6*(k1T + 2*k2T + 2*k3T + k4T)
+        deta = h/6*(k1eta + 2*k2eta + 2*k3eta + k4eta)
+        return T+dT, eta+deta
 
     def iter_func(self):
         #Iter over all time points
@@ -126,11 +124,13 @@ class Budyko:
                 day_of_year = (frame%year_res)/year_res*year
                 Q_year[frame%year_res,:] = Q_day(day_of_year, beta, rho, eps)
             self.Qs = Q_year[frame%year_res]
-            X = self.RK4(np.append(self.T,self.etas), self.dX_dt, self.delta)
-            self.T, self.etas = X[:-2],np.clip(X[-2:],-1,1)
-            self.eta_record[frame//frame_refr,:] = self.etas
-            self.max_T[frame//frame_refr] = max(self.T)
+            self.T, etas_open = self.RK4(self.T, self.etas, self.dX_dt, self.delta)
+            self.etas = np.clip(etas_open,-1,1)
             if frame%frame_refr==0:
+                #day = int((frame%year_res/year_res*year+185)%year)
+                #input(dt.datetime.strptime(f'{day}', '%j').strftime('%d %B'))
+                self.eta_record[frame//frame_refr,:] = self.etas
+                #self.max_T[frame//frame_refr] = max(self.T)
                 yield t
 
     def update(self, t):
@@ -160,8 +160,8 @@ class Budyko:
         plt.show()
 
 if __name__ == '__main__':
-    #main()
-    anim_main()
+    main()
+    #anim_main()
     """
     import cProfile, pstats
     profiler = cProfile.Profile()
