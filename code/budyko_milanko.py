@@ -26,8 +26,8 @@ tmin = -100000
 tmax = 0 # Years
 
 y_steps = 500
-t_steps = 100000
-frame_refr = 10
+t_steps = (tmax-tmin)//5
+frame_refr = 50
         
 def main():
     model = Budyko()

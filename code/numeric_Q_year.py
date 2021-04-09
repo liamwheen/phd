@@ -4,7 +4,7 @@ allows for albedo function with SZA dependance to be incorporated. It might
 also be used in the sub-year resolution model."""
 import numpy as np
 from scipy.optimize import root_scalar
-from scipy.integrate import dblquad
+from scipy.integrate import quad_vec
 from scipy.interpolate import interp1d, interp2d
 from insol_sympy import calc_yearly_average
 from matplotlib import pyplot as plt
@@ -24,35 +24,22 @@ beta0 = 0.4090
 eps0 = 0.0167
 rho0 = 2.9101
 eta0 = 0.94
-phi_n, gamma_n = 50, 200
-phi = np.arcsin(np.linspace(0,1,phi_n))
+phi_n, gamma_n = 50, 50
+#phi = np.arcsin(np.linspace(0,1,phi_n))
+phi = np.linspace(0,np.pi/2,phi_n)
 y = np.linspace(0,1,phi_n)
 # Longitudinal symmetry means we can save time just looking at one hemisphere
 # for Q_year
 gamma = np.linspace(0, np.pi, gamma_n) 
-year_res = 100
+year_res = 20
+t_span = np.linspace(0, year, year_res)[:-1]
 
 rep_phi, rep_gamma = cartesian_product(phi,gamma)
 
 def main():
-    num_Q = Q_year(beta0, rho0, eps0)
-    print(np.mean(num_Q))
-    ice_inds = int((1-eta0)*phi_n)
-    c_b = (5/16)*(3*np.sin(beta0)**2 - 2)
-    Qs = 0.722*(1 + 0.58*c_b*(3*np.sin(phi)**2 -
-        1))*K/(16*np.pi*au**2*np.sqrt(1-eps0**2))
-    Qs[-ice_inds:] = 0.522*(1 + 0.68*c_b*(3*np.sin(phi[-ice_inds:])**2 -
-        1))*K/(16*np.pi*au**2*np.sqrt(1-eps0**2))
-    print(np.mean(Qs))
-    #ana_Q = calc_yearly_average(beta, phi, eps)*(1-0.29)
-    #print(np.mean(num_Q))
-    #print(np.mean(ana_Q))
-    plt.plot(np.linspace(0,1,phi_n), num_Q)
-    plt.plot(np.linspace(0,1,phi_n), Qs)
-    #plt.plot(np.linspace(0,1,phi_n), ana_Q)
+    Q = Q_year(beta0,rho0,eps0)(y)
+    plt.plot(Q)
     plt.show()
-    print('Mean Error: ',np.mean((abs(num_Q-Qs)/num_Q)))
-    print('Mean Grad Error: ',np.mean(abs(np.diff(num_Q)-np.diff(Qs))/np.diff(num_Q)))
 
 def sza_albedo(I):
     albedo = (1+1.21)/(1+1.57*I)*0.25
@@ -74,24 +61,20 @@ def trig_coefs(beta, rho):
             (-np.sin(beta)*np.sin(rep_phi)*np.sin(rho) -
             np.sin(rep_gamma)*np.cos(rep_phi)*np.cos(rho) -
             np.sin(rho)*np.cos(beta)*np.cos(rep_gamma)*np.cos(rep_phi)))
-
     return mag, phase
 
 def I_fast(mag, phase, theta):
-    return mag*np.sin(theta+phase)
+    return np.maximum(mag*np.sin(theta+phase),0)
 
 def Q_year(beta, rho, eps):
     # Returns Qs interpolated function 
-    t_span = np.linspace(0, year, year_res)[:-1]
     mag, phase = trig_coefs(beta, rho)
     Is = np.zeros(phi_n*gamma_n)
     rs, thetas = polar_pos(eps, t_span)
     for r, theta in zip(rs,thetas):
-        I = I_fast(mag, phase, theta)
-        I[I<0] = 0
-        Is+=I/r**2
+        Is += I_fast(mag, phase, theta)/r**2
     Is = Is.reshape(phi_n,gamma_n)/len(t_span)
-    return interp1d(np.linspace(0,1,phi_n),K/(4*np.pi)*np.mean(Is,1))
+    return interp1d(np.sin(phi),K/(4*np.pi)*np.mean(Is,1),'cubic')
 
 def midpoint_E(M, eps):
     E_func = lambda E: E - eps*np.sin(E) - M

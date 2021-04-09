@@ -71,20 +71,20 @@ class Insolation:
         return self.I_lat_ave(lats,t), t
 
 if __name__ =="__main__":
-    tmin = -3e4*k2day
+    tmin = -200*k2day
     tmax = 0
-    num_steps = 10
+    num_steps = 1000
     t_span = np.linspace(tmin,tmax,num_steps)
     model = Insolation(tmin, tmax, 'backward')
-    insol_vals = np.zeros((num_steps,1))
+    lat_vals = [65]
+    insol_vals = np.zeros((num_steps,len(lat_vals)))
     #r_vals = np.zeros(num_steps)
     for i, t in enumerate(t_span):
         print(i/len(t_span))
         #insol_vals[i,:] = model.update(t,180/np.pi*np.arcsin(np.linspace(-1,1,insol_vals.shape[1])))
-        insol_vals[i],_ = model.update(t,[0])
+        insol_vals[i],_ = model.update(t,lat_vals)
         #r_vals[i] = q/model.polar_pos(t)[0]**2
-    print(max(insol_vals))
-    #np.savetxt('insol_vals.csv',insol_vals,delimiter=',')
+    np.savetxt('insol_vals.csv',insol_vals,delimiter=',')
     
     #print(min(r_vals),max(r_vals))
     #print(np.mean(r_vals))

@@ -15,7 +15,7 @@ alpha_1 = 0.32#0.279
 alpha_2 = 0.62#0.6
 A = 202.1#Wm^-2
 B = 1.9 #Wm^-2
-C = 2.185 #Wm^-2 K^-1
+C = 3.04 #Wm^-2 K^-1
 T_ice = -10 #degC
 R = 4*10**8 #some say e9 some say e8 #J m^-2 K^-1
 S = 2*10**12
@@ -133,7 +133,7 @@ class Budyko:
         plt.show()
 
 if __name__ == '__main__':
-    main()
+    anim_main()
     """
     import cProfile, pstats
     profiler = cProfile.Profile()
