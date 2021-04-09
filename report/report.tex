@@ -216,8 +216,8 @@ important role in this particular insolation measure, with a secondary
 contribution from obliquity. Importantly, the power spectrum shows that
 the variation of eccentricity has no significant effect on this insolation
 measure. However, this is not to say that eccentricity does not play an
-important role in this insolation measure. The presence of eccentricity means
-that Earth's distance from the sun varies over its orbit. The strength of the
+important role. The presence of eccentricity means that Earth's distance from
+the sun varies over its orbit. The strength of the
 irradiance that reaches Earth is proportional to $1/r^2$, so also varies over
 the orbit. Hence the only way in which precession effects the insolation
 measure is by placing the summer solstice at differing distances from the sun.
@@ -591,7 +591,7 @@ $B$                & 1.9           & Wm$^{-2}$\,$^\circ$C$^{-1}$ &  North \cite{
 $C$                & 3.04          & Wm$^{-2}$\,$^\circ$C$^{-1}$ &  Tung \cite{tung2007topics}\\\hline
 $T_{\mathrm{ice}}$ & -10           & $^\circ$C   &  Tung \cite{tung2007topics}\\\hline
 $\alpha_1$         & 0.32          & None        &  Tung \cite{tung2007topics}\\\hline
-$\alpha_2$         & 0.63          & None        &  Tung \cite{tung2007topics}\\\hline
+$\alpha_2$         & 0.62          & None        &  Tung \cite{tung2007topics}\\\hline
 $R$                & $4\times10^8$ & Jm$^{-2}$\,$^\circ$C$^{-1}$ &  Widiasih \cite{c_beta}\\\hline
 $S$                & $10^{13}$       & C$^\circ$s &  Widiasih \cite{widiasih2013}
 \end{tabular}
@@ -1247,20 +1247,22 @@ The proportion of $^{18}$O isotopes present in the ocean positively correlates
 with global ice volume. This is because the molecules containing the lighter
 $^{16}$O evaporate more easily, which then returns to the surface as
 precipitation and compacts to form ice caps. With proportionally more $^{16}$O
-present in the ice caps, the ocean is $^{18}$O rich. The $\delta^{18}$O ratio
-within the foraminifera shells can therefore act as a good indication of global
-ice volume over time. Importantly, a second factor that effects this ratio is
-the temperature of the deep ocean water in which the foraminifera lived.
+present in the ice caps, the ocean holds a higher proportion of $^{18}$O. The
+foraminifera shells can therefore serve as a record for the $\delta^{18}$O
+ratio within the deep sea from up to 5 million years ago. Importantly, a
+second factor that effects the $\delta^{18}$O ratio within foraminifera is
+the temperature of the deep ocean water in which the they lived.
 Chappell found that the water temperature can contribute up to 50\% of the
 benthic $\delta^{18}$O ratio, although this is more significant before the
 MPT \cite{benthic_to_ice_vol}.
 
 Elderfield estimated the $\delta^{18}$O (per mille, \textperthousand) of the deep
 ocean water using other sedimentary data, and related temperature ($^\circ$C)
-to $^{18}$O (\textperthousand) with the linear model
+to $\delta^{18}$O (\textperthousand) with the linear model
 \[
   T = 16.1 - 4.76(\delta^{18}\mathrm{O}_{\mathrm{bf}} -
-  \delta^{18}\mathrm{O}_{\mathrm{sw}}),
+  \delta^{18}\mathrm{O}_{\mathrm{sw}}),\numberthis
+  \label{eq:benth_to_T}
 \]
 where $\delta^{18}\mathrm{O}_{\mathrm{bf}}$ relates to the benthic
 foraminifera, and $\delta^{18}\mathrm{O}_{\mathrm{sw}}$ relates to the
@@ -1282,39 +1284,130 @@ circulation, in which poleward sea water freezes, transferring its salt to the
 unfrozen water below. The increased density from the salt then causes the water
 to sink, feeding into the deep ocean water cycle.
 
-%
-%---write about how the ice volume is related to the benthic, read and use (and ref)
-%Elderfield, and explain the link. Then finish explaining the grey bars. Look at
-%what we can deduce from the q_day_400k data, it seems that hot summers lead to
-%more ice and vice versa? seems odd, maybe double check, if true, work out why
-%that could happen and try to compare with yearly simulations
-%
-It is well understood that for approximately the past 1 million years,
-a glacial-interglacial cycle has lasted around 100\,k years. This is correlated
-with the period of Earth's eccentricity cycle. However, the relatively fast 
-transition from glacial to interglacial periods also correlates to the amount of insolation present
-during the northern hemisphere's summer. Because the Budyko model averages the
-insolation over the year, the peak insolation during summer is
-omitted from the current simulation.
+The $\delta^{18}$O data for the past 3 million years can be seen in Figure
+\ref{fig:benthic_3m}. Alongside this plot is the estimated temperature of the
+deep sea, according to (\ref{eq:benth_to_T}). The duration spanned by the
+arrows covers the Quaternary period, which started around 2.588 million
+years ago and is ongoing. This period is defined by the beginning of observable
+glacial cycles, in which ice sheets at the poles encroach towards the equator,
+and then retreat back to the poles. This initially occurred with a period of
+approximately 41\,kyr, matching the dominant period of obliquity. However,
+between 1250\,kya and 700\,kya, this period transitioned to approximately
+100\,kyr, matching the dominant frequency of eccentricity \cite{mpt_duration}.
 
-Figure \ref{fig:Q65_benthic} shows the eccentricity of Earth's orbit over the
-past 1 million years. Below this is the insolation on June 21$^{\mathrm{st}}$
-at 65$^\circ$ north. Last is the benthic $\delta^{18}\mathrm{O}$ data with
-the estimated deep see temperature shown on the opposite axis.
-
-The grey bars highlight the periods over which a significant rise in
-temperature has occurred in the $\delta^{18}\mathrm{O}$ plot. This highlights
-the synchronisation of the temperature rises with eccentricity, with major rises
-occurring approximately every 100\,k years. Also shown is the correlation
-between summer insolation in the northern hemisphere and the temperature rises. 
+explain the mpt frequency changes in the power spec plot. The explain the grey
+bars and how the 100k period syncs with q65 but that it didnt really before.
+Then look at the Qday data, work out what it means etc. Then mention/read about
+the paper (elderfield?) that says the mpt happened due to a surge of antarctic
+ice, link to 2 hemi model? try adding ice?------
 
 \begin{figure}
   \centering
-  \includegraphics[width=\linewidth]{Q65_benth.pdf}
-  \caption{}
-  \label{fig:Q65_benthic}
+  \includegraphics[width=\linewidth]{benthic_3m_years.pdf}
+  \caption{Benthic $\delta^{18}$O data for the past 3 million years. Within the
+    Quaternary period are two glacial cycle lengths, 41.1\,kyr and 100\,kyr, with
+    a transitional period of 550\,kyr between them. The $y$-axis is inverted to
+    more clearly convey how this corresponds to deep sea temperature, for which
+    the approximate values are shown to the right of the plot.}
+    \label{fig:benthic_3m}
+\end{figure}
+\begin{figure}
+  \centering
+  \includegraphics[width=\linewidth]{mpt_power_specs.pdf}
+  \caption{Power spectra for the benthic $\delta^{18}$O data shown in Figure
+    \ref{fig:benthic_3m}. The top plot shows the power spectrum for the entire
+    Quaternary period, measured from 2.588 million years ago until
+    present. The middle plot is for the portion of the Quaternary period that
+    occurs before 1.25 million years ago, which marks the beginning of the MPT. The
+  bottom plot spans from the end of the MPT, 700\,kyr ago, until present.}
+  \label{fig:mpt_power_specs}
 \end{figure}
 
+The power spectra shown in Figure \ref{fig:mpt_power_specs} demonstrate this
+change of period. The top plot shows the frequencies present over
+the entire Quaternary, with the peaks shown to correspond to both obliquity and
+eccentricity. Below this is the power spectrum for just Quaternary period before
+1.25 million years ago, which approximately marks the start of the MPT. Here we
+see a distinct absence of the frequency corresponding to eccentricity,
+supporting the notion that eccentricity has only played a role in the glacial
+cycles after the MPT. The bottom plot shows the power spectrum for the last
+700\,kyr, which is considered to be after the MPT. The obliquity frequency is
+still represented in this data, however eccentricity is now more dominant.
+
+Focussing first on the post MPT Quaternary period, Figure \ref{fig:Q65_benthic}
+shows the eccentricity of Earth's orbit over the past 1 million years. Below
+this is the insolation over the summer solstice (June 21$^{\mathrm{st}}$) at
+65$^\circ$ north, whilst the bottom plot shows the last 1 million years of the benthic
+$\delta^{18}\mathrm{O}$ data. The grey bars highlight the periods over which a
+significant rise in temperature has occurred in the $\delta^{18}\mathrm{O}$
+plot. This highlights the synchronisation between temperature rises and
+eccentricity, with major rises occurring approximately every 100\,k years, as
+eccentricity is increasing. Also visible is the correlation between temperature
+rises and summer insolation in the northern hemisphere. This is represented by
+the insolation averaged over the summer solstice (June 21$^{\mathrm{st}}$) at
+65$^\circ$ north, denoted by $Q^{65^\circ\mathrm{N}}$. Almost every
+steep rise aligns directly with a peak in the Q$^{65^\circ\mathrm{N}}$ plot,
+suggesting the orbitally dependent insolation value contributes to the forcing
+of interglacial transitions.
+
+The significance of the northern hemisphere is due to the latitudinal
+distribution of land across Earth. Figure \ref{fig:land_distribution} shows a
+sinusoidal projection of Earth with the latitudinal land proportion along the
+side. If we examine the Arctic Circle, we see its ocean at the centre, with land
+appearing from approximately 83$^\circ$ north onwards. In comparison, the
+Antarctic Circle has land at its centre, with ocean appearing more towards the
+edge. This is significant because the specific heat capacity of water is
+higher than that of land, meaning that land can gain and lose heat much faster
+than water. As a result, the permanent ice sheets that cover most of the
+Arctic ocean are able to grow onto the surrounding land more easily than the
+permanent ice sheets on Antarctica are able to grow onto the surrounding ocean.
+get some stats about antarctic ice sheet movement vs arctic perhaps----
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\linewidth]{sea_ice_march_sept.pdf}
+  \caption{Average sea ice concentration for March (left) and September
+    (right). This data spans from 1870 to 2003 and is taken from the Met Office
+  Hadley Centre \cite{sea_ice_data}.}
+  \label{fig:sea_ice_march_sept}
+\end{figure}
+\begin{figure}
+  \centering
+  \includegraphics[width=0.6\linewidth]{monthly_eta_1870_2003.pdf}
+  \caption{Approximate latitude of sea ice line, corresponding to $\eta$ in the Budyko
+    model, using Met Office data spanning from 1870 to 2003 \cite{sea_ice_data}.
+    The boundary is defined as the latitude at which the longitudinally
+    averaged sea ice concentration drops below 75\%. The individual month
+    averages are shown in green with the mean shown in blue.}
+  \label{fig:monthly_eta}
+\end{figure}
+
+Antarctica is $\sim98\%$ covered in permanent ice sheets, formed
+through compacted precipitation \cite{antarctic_ice_amount}.
+
+Because the Budyko model averages the insolation over the
+year, the peak insolation during summer is
+omitted from the current simulation.
+\begin{figure}
+  \centering
+  \includegraphics[width=\linewidth]{Q65_benth.pdf}
+  \caption{Time series plots over the past 1 million years showing the
+  correlation between eccentricity (top), summer solstice insolation at
+  65$^\circ$ north, denoted by $Q^{65^\circ\mathrm{N}}$ (middle), and benthic
+  $\delta^{18}\mathrm{O}$ data (bottom). The grey bars highlight the periods over
+  which significant temperature rises are shown to occur in the
+  $\delta^{18}\mathrm{O}$ data.}
+  \label{fig:Q65_benthic}
+\end{figure}
+\begin{figure}
+  \centering
+  \includegraphics[width=0.85\linewidth]{land_distribution.pdf}
+  \caption{Distribution of land density across latitude. The reference map
+    shown on the right uses the Gall-Peters projection
+    \cite{gall_peters_image}. This preserves area, as well as maintaining the
+    latitudinal spacing used in the Budyko model $y = \sin{\varphi}$.}
+  \label{fig:land_distribution}
+\end{figure}
 The Budyko model uses an albedo value of 0.32 for the entire ice-free portion of
 Earth. This is a significantly oversimplified representation of the Earth's
 albedo, hence we will attempt to improve this aspect of the model.
@@ -1462,20 +1555,61 @@ We will now introduce latitude dependent land proportion, with a domain
 that spans both the southern and northern hemisphere. 
 
 
+\section{Diffusion Derivation}
+A diffusion term in the Budyko model works as a replacement for the 
+latitudinal transport term, $C(\bar{T}(t) - T(y,t))$, which distributes
+temperature towards the global average $\bar{T}(t)$. The diffusion term takes
+the form
+\[
+  \nabla^2T = \frac{\partial^2 T}{\partial x^2} +\frac{\partial^2 T}{\partial y^2}
+  +\frac{\partial^2 T}{\partial z^2} 
+\]
+where $\nabla^2$ is the Laplace operator and represents the second derivative
+in the spatial domain.
+
+The Laplace operator is based in Cartesian coordinates. It is therefore
+necessary to derive the operator using our coordinate system instead, as
+described in Section \ref{sec:budyko}. This coordinate system is based on
+spherical polar coordinates, for which the Laplace operator is given as
+\[
+  \nabla^2T = \frac{1}{r^{2}} \frac{\partial}{\partial r}\left(r^{2} \frac{\partial
+  T}{\partial r}\right)+\frac{1}{r^{2} \sin \theta} \frac{\partial}{\partial
+  \theta}\left(\sin \theta \frac{\partial T}{\partial
+  \theta}\right)+\frac{1}{r^{2} \sin ^{2} \theta} \frac{\partial^{2}
+  T}{\partial \phi^{2}},
+\]
+where $r$ is the radial distance, $\theta$ is the polar angle measured from the
+$z$-axis, and $\phi$ is the azimuthal angle measured from the $x$-axis.
+For the Budyko model, we treat $T$ as constant in $r$ and $\phi$, representing a
+constant Earth radius and no longitudinal variation in temperature. This
+simplifies the Laplace operator to
+\[
+  \nabla^2T = \frac{1}{r^{2} \sin \theta} \frac{\partial}{\partial
+  \theta}\left(\sin \theta \frac{\partial T}{\partial
+  \theta}\right).
+\]
+Since $\theta$ is measured from the $z$-axis, we can express latitude as
+$\varphi = \frac{\pi}{2}-\theta$. Hence the Budyko spatial
+variable becomes $y=\sin(\frac{\pi}{2}-\theta)=\cos\theta$.
+
+Using the chain rule, we have that
+\begin{align*}
+  \frac{\partial}{\partial \theta} &= \frac{\partial y}{\partial \theta}
+  \frac{\partial }{\partial y}\\
+  &= -\sin\theta\frac{\partial }{\partial y}.
+\end{align*}
+Substituting this into our expression for $\nabla^2T$ gives
+\begin{align*}
+  \nabla^2T &= \frac{-\sin \theta}{r^{2} \sin \theta} \frac{\partial}{\partial
+  y}\left(-\sin^2\theta \frac{\partial T}{\partial y}\right)\\
+  &= \frac{1}{r^2}\frac{\partial}{\partial y}\left((1-\cos^2\theta)
+  \frac{\partial T}{\partial y}\right)\\
+  &= \frac{1}{r^2}\frac{\partial}{\partial y}\left((1-y^2)
+  \frac{\partial T}{\partial y}\right)
+\end{align*}
 
 
 
-
-
-\begin{figure}
-  \centering
-  \includegraphics[width=0.85\linewidth]{land_distribution.pdf}
-  \caption{Distribution of land density across latitude. The reference map
-    shown on the right uses the Gall-Peters projection
-    \cite{gall_peters_image}. This preserves area, as well as maintaining the
-    latitudinal spacing used in the Budyko model $y = \sin{\varphi}$.}
-  \label{fig:land_distribution}
-\end{figure}
 
 \bibliographystyle{ieeetr}
 \bibliography{refs}
