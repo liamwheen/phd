@@ -1,10 +1,10 @@
-co2.csv             :https://www.nature.com/articles/nature06949
-giovani_albedo      :check file
-milanko_20P.csv     :Laskar
-milanko_50N.csv     :''
-milanko_params.py   :''
-benthic.csv         :https://lorraine-lisiecki.com/LisieckiRaymo2005.pdf
-delta_temp.csv      :https://www.nature.com/articles/nature06015#rightslink
-land_cover.csv      :https://commons.wikimedia.org/wiki/File:Peters_projection,_blank.svg
-air_temp_month_annual.csv :“Mean seasonal and spatial variability in global surface air temperature”
- 
+co2.csv                     :https://www.nature.com/articles/nature06949
+giovani_albedo              :check file
+milanko_20P.csv             :Laskar
+milanko_50N.csv             :''
+milanko_params.py           :''
+benthic.csv                 :https://lorraine-lisiecki.com/LisieckiRaymo2005.pdf
+delta_temp.csv              :https://www.nature.com/articles/nature06015#rightslink
+land_cover.csv              :https://commons.wikimedia.org/wiki/File:Peters_projection,_blank.svg
+air_temp_month_annual.csv   :“Mean seasonal and spatial variability in global surface air temperature”
+sea_surf_temp_1850_2020.csv : https://psl.noaa.gov/data/gridded/data.cobe2.html
