@@ -31,20 +31,8 @@ gamma = np.linspace(0, 2*np.pi, gamma_n)
 rep_phi, rep_gamma = cartesian_product(phi,gamma)
 
 def tester():
-    #Q_now = np.array([Q_day(t, beta0, rho0, eps0)(np.linspace(-1,1,100)) for t in
-    #        np.linspace(0,year,300)])
-    qgood = Q_day(100, beta0, rho0, eps0)(np.linspace(0,1,100))
-    #qbad= Q_day_bad(100, beta0, rho0, eps0)(np.linspace(0,1,100))
-    plt.plot(qgood)
-    #plt.plot(qbad)
-    plt.show()
-    Q_past = Q_day(year/2, beta0, rho0+np.pi, eps0)(np.linspace(0,1,100))
-    Q_now = Q_day(0, beta0, rho0, eps0)(np.linspace(0,1,100))
-    Q_max = Q_day(year/2, beta0, 0, eps0)(np.linspace(0,1,100))
-    plt.plot(Q_now)
-    plt.plot(Q_past)
-    plt.plot(Q_max)
-    #plt.plot(Q_past(np.linspace(-1,1,100)))
+    q = Q_days(0, beta0, rho0, eps0)
+    plt.plot(q)
     plt.show()
 
 def I(gamma, phi, beta, rho, theta):
@@ -62,11 +50,12 @@ def I_fast(gamma, mag, phase, c):
     return np.maximum(mag*np.sin(gamma+phase) + c, 0)
 
 def Q_day(t, beta, rho, eps):
+    # Takes either single or list of days to calculate insol for
     r, theta = polar_pos(eps, t)
-    mag, phase, c = trig_coefs(beta, rho, theta)
+    mag, phase, c = trig_coefs(beta, rho, theta.reshape(-1,1))
     I_day =  quad_vec(lambda gamma: I_fast(gamma, mag, phase, c),
                 0,2*np.pi,epsrel=10)[0]
-    Q_day = K/(8*np.pi**2*r**2)*I_day
+    Q_day = K/(8*np.pi**2*r**2)*I_day.T
     #return interp1d(np.sin(phi), Q_day, 'cubic')
     return Q_day
 
@@ -76,7 +65,9 @@ def calc_E(M, eps):
     return E
 
 def calc_theta(E, eps):
-    sign = 1-2*(E>np.pi)
+    #sign = 1-2*(E>np.pi)
+    sign = np.ones(np.size(E))
+    sign[(E>np.pi)] = -1
     return np.pi+2*sign*np.arctan(np.sqrt((1+eps)/(1-eps)*(np.tan(E/2))**2))
 
 def polar_pos(eps, t):
