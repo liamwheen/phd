@@ -30,7 +30,7 @@ year_span = np.linspace(0,year,year_res+1)[:-1] # Avoid repeating last point as 
 
 y_steps = 800
 t_steps = (tmax-tmin)*year_res
-frame_refr = 5#year_res*5
+frame_refr = year_res*500
 
 def main():
     model = Budyko()
@@ -89,9 +89,9 @@ class Budyko:
         return min(y_steps-1,y_ind)
 
     def milanko_update(self, t):
-        eps = float(self.eps_func(t/year2sec/1000))
-        beta = float(self.beta_func(t/year2sec/1000))
-        l_peri = float(self.l_peri_func(t/year2sec/1000))
+        eps = float(self.eps_func(t/1000))
+        beta = float(self.beta_func(t/1000))
+        l_peri = float(self.l_peri_func(t/1000))
         rho = (3/2*np.pi - l_peri)%(2*np.pi)
         return eps, beta, rho
 
@@ -109,6 +109,7 @@ class Budyko:
 
     def iter_func(self):
         #Iter over all time points
+        T_year = np.empty((year_res, y_steps))
         for frame, t in enumerate(self.t_span):
             if frame%(t_steps//100)==0:print(frame/t_steps,end='\r')
             if frame%(100*year_res)==0:
@@ -116,9 +117,12 @@ class Budyko:
             self.Qs = Q_year[frame%year_res]
             self.T, eta = self.RK4(self.T,self.eta, self.dX_dt, self.delta)
             self.eta = min(eta,1)
-            if frame%frame_refr==0:
-                self.T_record[frame//frame_refr] = self.T
-                yield t
+            #Take average temperature for first year in frame_refr period
+            if frame%frame_refr < year_res:
+                T_year[frame%frame_refr] = self.T
+                if frame%frame_refr == 0: yield t
+            elif frame%frame_refr == year_res:
+                self.T_record[frame//frame_refr] = np.mean(T_year,0)
 
     def get_Q_year(self, year):
         f_name = f'.Q_year_cache/{year_res}_{y_steps}_{year}'
@@ -156,7 +160,7 @@ class Budyko:
         plt.show()
 
 if __name__ == '__main__':
-    anim_main()
+    main()
     """
     import cProfile, pstats
     profiler = cProfile.Profile()
