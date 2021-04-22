@@ -62,7 +62,6 @@ class Budyko:
         self.beta_func = interp1d(milanko_t[krange], milanko_obliq[krange])
         self.l_peri_func = interp1d(milanko_t[krange], milanko_l_peri[krange])
         self.eta = eta0 #n initial
-        self.milanko_update(tmin*year2sec)
         self.T = np.zeros(self.y_span.size)
 
     def a_eta(self, y):
