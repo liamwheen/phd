@@ -575,7 +575,7 @@ latitudes and the ice line at $\eta=0.5$. The model parameters used are shown
 in Table \ref{tab:budyko_params} whilst the initial orbital parameters are in
 Table \ref{tab:orbital_params}. We first see the temperature profile
 equilibrate within 10 years. The ice line then recedes 
-towards the stable equilibrium point at $y=0.9544$, getting within 3\% of this
+towards the stable equilibrium point at $y=0.9268$, getting within 3\% of this
 value after 10\,000 years.}
 \label{fig:budyko_demo}
 \end{figure}
@@ -1123,8 +1123,7 @@ implemented into Budyko's energy balance model, which demonstrates the positive
 feedback effect of polar ice cap albedo. However they were found to make no
 significant difference to the dynamics of the ice line. In reality, the dynamics of
 Earth's ice line closely match the frequency of the orbital parameters,
-matching the 41\,k year period of obliquity before the MPT, and the 100\,k
-year period of eccentricity since. This leads us to conclude that there must be
+matching the 41\,kyr period of obliquity before the MPT, and the 100\,kyr period of eccentricity since. This leads us to conclude that there must be
 other feedback mechanisms at play, allowing the small external forcing from
 orbital parameters to play a large role in Earth's climate.
 
@@ -1158,90 +1157,21 @@ between 10\% and 15\% less cloud cover on land than there is on the sea
 The net radiative effect of clouds on global mean insolation is
 -17.1$\pm$4.2\,Wm$^{-2}$ \cite{cloud_radiative_effect} out of a total
 340\,Wm$^{-2}$ incoming from the sun. The altitude, and
-therefore type, of cloud has a significant effect on the net radiative effect.
+type, of cloud has a significant effect on the net radiative effect.
 Cirrus clouds warm the atmosphere by 2\,Wm$^{-2}$, whilst all other cloud types
 have a net cooling effect, with stratocumulus exerting the largest at
 -8.2\,Wm${^-2}$. 
 
-\section{Budyko Augmentations}
-The Budyko model shows how ice albedo can cause a positive feedback in global
-temperature. This is useful to provide a possible explanation of how the minor
-forcing from the Milankovitch cycles can lead to significant climatological
-shifts. 
-
-We will now explore the effect of adding previously ignored components to the
-model, with hopes of producing different behaviour. We will first begin with
-the original Budyko model, with eccentricity and obliquity being updated throughout. 
-
-The temperature profile in Figure \ref{fig:budyko_milanko_T} shows how the
-global temperature varies over the past 800,000 years, with blue representing
-ice cover. The position of the ice line is initialised at 30$^\circ$, however
-this quickly equilibrates to around 68$^\circ$. The ice line then oscillates
-between approximately 66$^\circ$ and 70$^\circ$. This is caused by the
-varying obliquity $\beta$, which affects the distribution of annual insolation,
-\[
-  s_\beta(y) = 1 + \frac{1}{2}c_\beta(3y^2-1),
-\]
-where $c_\beta = \frac{5}{16}(3\sin^2\beta - 2)$.
-
-The power spectrum of the ice line dynamics can be seen in Figure
-\ref{fig:budyko_milanko_eta}. Here we see the prominent period for the
-oscillation is 41.3\,kyr, closely matching that of obliquity.
-
-There are two very small bumps in this plot that occur at 0.0026\,kyr$^{-1}$
-and 0.0102\,kyr$^{-1}$, corresponding to 392\,kyr and 98\,kyr respectively.
-These closely match the prominent frequencies of eccentricity, which affects
-the total annual insolation to reach Earth,
-\[
-  Q_\varepsilon = \frac{Q_0}{\sqrt{1-\varepsilon^2}},
-\]
-where $Q_0$ is the annual insolation that would reach Earth if it had an orbit
-with no eccentricity.
-
-However, these bumps are insignificant compared the dominant frequency from
-obliquity, this is demonstrated in Figure \ref{fig:beta_eps_effect}.
-
-Importantly, the ice line is known to have oscillated with the period of
-obliquity approximately 1.25\,mya, however it now oscillates with a period of
-approximately 100\,kyr, which relates to the period of eccentricity. This
-switch in periods is know as The Mid-Pleistocene Transition as it occurred
-approximately half way through the Pleistocene epoch.
-
-By adding components to the Budyko model, we will attempt to capture behaviour
-that was initially ignored, in hopes of producing more prominent frequencies
-relating to eccentricity. This may shed light on what played a role in the
-Mid-Pleistocene transition.
-\begin{figure}
-  \centering
-  \includegraphics[width=0.55\linewidth]{budyko_milanko_T.pdf}
-  \caption{The simulated temperature profile for the past 800,000 years using
-  the Budyko model with updated orbital parameters. Starting at 30$^\circ$, the
-ice line mostly oscillates between 66$^\circ$ and 70$^\circ$.}
-  \label{fig:budyko_milanko_T}
-\end{figure}
-\begin{figure}
-  \centering
-  \includegraphics[width=0.9\linewidth]{budyko_milanko_eta.pdf}
-  \caption{Power spectrum for the ice line from the simulation shown in Figure
-    \ref{fig:budyko_milanko_T}. The prominent frequency is 0.0242\,kyr$^{-1}$,
-    indicating a strong dependence on obliquity, which also varies at this
-  frequency.}
-  \label{fig:budyko_milanko_eta}
-\end{figure}
-
-\subsection{Sub-Year Resolution}
-The Budyko model is designed to work with annual time steps, averaging the
-seasonal variations of Earth's insolation. As a result, the fluctuations in the
-temperature profile and ice line on a sub-year timescale are ignored. To
-understand the significance of sub-year resolution, we introduce
-the $\delta^{18}$O data produced by Lisiecki and Raymo \cite{benthic_data}.
-This data reflects the ratio of the two stable isotopes of oxygen, $^{18}$O and
-$^{16}$O, in the calcium carbonate shells of benthic foraminifera.
-Benthic foraminifera are single celled organisms that live
-on, or within, the ocean floor sediment, as opposed to planktonic foraminifera,
-which float at various depths. Benthic foraminifera were chosen because the
-deep ocean is more uniform in temperature and salinity, reducing uncertainty
-across measurements. 
+\section{Paleothermometery}
+In order to gauge how the ice extent and global temperature has varied over the
+past Quaternary period, we introduce the $\delta^{18}$O data produced by Lisiecki
+and Raymo \cite{benthic_data}. This aggregate dataset reflects the ratio of the
+two stable isotopes of oxygen, $^{18}$O and $^{16}$O, in the calcium carbonate
+shells of benthic foraminifera. Benthic foraminifera are single celled
+organisms that live on, or within, the ocean floor sediment, as opposed to
+planktonic foraminifera, which float at various depths. Benthic foraminifera
+were chosen because the deep ocean is more uniform in temperature and salinity,
+reducing uncertainty across measurements. 
 
 The proportion of $^{18}$O isotopes present in the ocean positively correlates
 with global ice volume. This is because the molecules containing the lighter
@@ -1294,13 +1224,6 @@ and then retreat back to the poles. This initially occurred with a period of
 approximately 41\,kyr, matching the dominant period of obliquity. However,
 between 1250\,kya and 700\,kya, this period transitioned to approximately
 100\,kyr, matching the dominant frequency of eccentricity \cite{mpt_duration}.
-
-explain the mpt frequency changes in the power spec plot. The explain the grey
-bars and how the 100k period syncs with q65 but that it didnt really before.
-Then look at the Qday data, work out what it means etc. Then mention/read about
-the paper (elderfield?) that says the mpt happened due to a surge of antarctic
-ice, link to 2 hemi model? try adding ice?------
-
 \begin{figure}
   \centering
   \includegraphics[width=\linewidth]{benthic_3m_years.pdf}
@@ -1315,79 +1238,14 @@ ice, link to 2 hemi model? try adding ice?------
   \centering
   \includegraphics[width=\linewidth]{mpt_power_specs.pdf}
   \caption{Power spectra for the benthic $\delta^{18}$O data shown in Figure
-    \ref{fig:benthic_3m}. The top plot shows the power spectrum for the entire
-    Quaternary period, measured from 2.588 million years ago until
-    present. The middle plot is for the portion of the Quaternary period that
-    occurs before 1.25 million years ago, which marks the beginning of the MPT. The
-  bottom plot spans from the end of the MPT, 700\,kyr ago, until present.}
-  \label{fig:mpt_power_specs}
+    \ref{fig:benthic_3m}, rescaled to account for the differing amplitude after
+    the MPT. The blue plot denotes the power spectrum for the entire
+    Quaternary period, starting 2.588 million years ago. The orange plot
+    corresponds to the first part of the Quaternary, which ends at the start of
+    the MPT, 1.25 million years ago. The green plot corresponds to the last
+  700\,kyr, after the MPT has occurred.}
+    \label{fig:mpt_power_specs}
 \end{figure}
-
-The power spectra shown in Figure \ref{fig:mpt_power_specs} demonstrate this
-change of period. The top plot shows the frequencies present over
-the entire Quaternary, with the peaks shown to correspond to both obliquity and
-eccentricity. Below this is the power spectrum for just Quaternary period before
-1.25 million years ago, which approximately marks the start of the MPT. Here we
-see a distinct absence of the frequency corresponding to eccentricity,
-supporting the notion that eccentricity has only played a role in the glacial
-cycles after the MPT. The bottom plot shows the power spectrum for the last
-700\,kyr, which is considered to be after the MPT. The obliquity frequency is
-still represented in this data, however eccentricity is now more dominant.
-
-Focussing first on the post MPT Quaternary period, Figure \ref{fig:Q65_benthic}
-shows the eccentricity of Earth's orbit over the past 1 million years. Below
-this is the insolation over the summer solstice (June 21$^{\mathrm{st}}$) at
-65$^\circ$ north, whilst the bottom plot shows the last 1 million years of the benthic
-$\delta^{18}\mathrm{O}$ data. The grey bars highlight the periods over which a
-significant rise in temperature has occurred in the $\delta^{18}\mathrm{O}$
-plot. This highlights the synchronisation between temperature rises and
-eccentricity, with major rises occurring approximately every 100\,k years, as
-eccentricity is increasing. Also visible is the correlation between temperature
-rises and summer insolation in the northern hemisphere. This is represented by
-the insolation averaged over the summer solstice (June 21$^{\mathrm{st}}$) at
-65$^\circ$ north, denoted by $Q^{65^\circ\mathrm{N}}$. Almost every
-steep rise aligns directly with a peak in the Q$^{65^\circ\mathrm{N}}$ plot,
-suggesting the orbitally dependent insolation value contributes to the forcing
-of interglacial transitions.
-
-The significance of the northern hemisphere is due to the latitudinal
-distribution of land across Earth. Figure \ref{fig:land_distribution} shows a
-sinusoidal projection of Earth with the latitudinal land proportion along the
-side. If we examine the Arctic Circle, we see its ocean at the centre, with land
-appearing from approximately 83$^\circ$ north onwards. In comparison, the
-Antarctic Circle has land at its centre, with ocean appearing more towards the
-edge. This is significant because the specific heat capacity of water is
-higher than that of land, meaning that land can gain and lose heat much faster
-than water. As a result, the permanent ice sheets that cover most of the
-Arctic ocean are able to grow onto the surrounding land more easily than the
-permanent ice sheets on Antarctica are able to grow onto the surrounding ocean.
-get some stats about antarctic ice sheet movement vs arctic perhaps----
-
-\begin{figure}
-  \centering
-  \includegraphics[width=\linewidth]{sea_ice_march_sept.pdf}
-  \caption{Average sea ice concentration for March (left) and September
-    (right). This data spans from 1870 to 2003 and is taken from the Met Office
-  Hadley Centre \cite{sea_ice_data}.}
-  \label{fig:sea_ice_march_sept}
-\end{figure}
-\begin{figure}
-  \centering
-  \includegraphics[width=0.6\linewidth]{monthly_eta_1870_2003.pdf}
-  \caption{Approximate latitude of sea ice line, corresponding to $\eta$ in the Budyko
-    model, using Met Office data spanning from 1870 to 2003 \cite{sea_ice_data}.
-    The boundary is defined as the latitude at which the longitudinally
-    averaged sea ice concentration drops below 75\%. The individual month
-    averages are shown in green with the mean shown in blue.}
-  \label{fig:monthly_eta}
-\end{figure}
-
-Antarctica is $\sim98\%$ covered in permanent ice sheets, formed
-through compacted precipitation \cite{antarctic_ice_amount}.
-
-Because the Budyko model averages the insolation over the
-year, the peak insolation during summer is
-omitted from the current simulation.
 \begin{figure}
   \centering
   \includegraphics[width=\linewidth]{Q65_benth.pdf}
@@ -1399,6 +1257,238 @@ omitted from the current simulation.
   $\delta^{18}\mathrm{O}$ data.}
   \label{fig:Q65_benthic}
 \end{figure}
+The power spectra shown in Figure \ref{fig:mpt_power_specs} demonstrate this
+change of period. The top plot shows the frequencies present over
+the entire Quaternary, with the peaks shown to correspond to both obliquity and
+eccentricity. Below this is the power spectrum for just Quaternary period before
+1.25 million years ago, which approximately marks the start of the MPT. Here we
+see a distinct absence of the frequency corresponding to eccentricity,
+supporting the notion that eccentricity has only played a role in the glacial
+cycles after the MPT. The bottom plot shows the power spectrum for the last
+700\,kyr, which is considered to be after the MPT. The obliquity frequency is
+still represented in this data, however eccentricity is now dominant.
+
+Focussing on the post MPT Quaternary period, Figure \ref{fig:Q65_benthic}
+shows the eccentricity of Earth's orbit over the past 1 million years. Below
+this is the insolation over the summer solstice (June 21$^{\mathrm{st}}$) at
+65$^\circ$ north, $Q^{65^\circ \mathrm{N}}$, whilst the bottom plot shows the last 1 million years of the benthic
+$\delta^{18}\mathrm{O}$ data. The grey bars highlight the periods over which a
+significant rise in temperature has occurred in the $\delta^{18}\mathrm{O}$
+plot. This highlights the synchronisation between temperature rises and
+eccentricity, with major rises occurring approximately every 100\,k years, as
+eccentricity is increasing. Also visible is the correlation between temperature
+rises and summer insolation in the northern hemisphere, shown by $Q^{65^\circ
+\mathrm{N}}$. Almost every steep rise aligns directly with a peak in
+$Q^{65^\circ\mathrm{N}}$, suggesting the orbitally dependent insolation
+value contributes to the forcing of interglacial transitions.
+
+\subsection{Precession Dependence}
+The precession of Earth's axis, along with eccentricity, governs the severity
+of the seasons. This is because the point at which summer
+occurs on Earth's orbit rotates with precession.
+With an eccentric orbit, the closer to the perihelion that one hemisphere's
+summer occurs, the greater the insolation will be. As shown in Figure
+\ref{fig:Q65_benthic}, there is a strong correlation between the northern
+hemisphere's summer insolation and global temperature rise, leading to
+significant climate shifts in some cases. From the derivation in Section
+\ref{sec:insolation}, we know that annual insolation is independent of
+precession, due to orbital symmetry. Since the Budyko model uses annual time
+steps, precession is completely omitted from the model. This is a problem as
+there is a clear dependence on the northern summer insolation, which is
+controlled by precession.
+
+\section{Sub-Year Resolution}
+The Budyko model is designed to work with annual time steps, averaging the
+seasonal variations of Earth's insolation. Since we know that specifically
+northern summer insolation is of significance to global climate changes, we
+must decrease the time step used in the Budyko model to capture the
+intra-annual dynamics. 
+
+The Budyko model will therefore use daily averaged values as opposed to yearly
+averaged. This means the function used to approximate insolation in the original model
+is no longer applicable, and we will instead use a numerical method to solve
+for $Q_\mathrm{day}$ from Section \ref{sec:insolation}. In order to validate
+that this is still a good representation of insolation, we compare the Budyko
+approximation and the numerical method with the actual analytical value for
+$Q_\mathrm{day}$, which is impractically slow for implementation. The
+analytical and numerical calculations of $Q_\mathrm{day}$ are averaged over a
+year in order to produce an annual average of insolation, as is used in
+the Budyko approximation. Figure \ref{fig:compare_numeric_budyko} shows the
+difference of the two methods from ground truth when simulating a 10\,kyr
+period, over which the ice line has an initial latitude of 30$^\circ$ and
+settles to approximately 68$^\circ$. The smaller discrepancy in the numerical
+method, shows this to be an even more accurate approximation to the actual
+insolation function. 
+\begin{figure}
+  \hspace{-45pt}
+  \includegraphics[width=1.2\linewidth]{compare_numeric_budyko.pdf}
+  \caption{The simulated temperature profile for the past 10,000 years,
+    starting with the ice line at 30$^\circ$, using the analytical expression
+    from (\ref{eq:q_year_budyko}) for insolation (left). Alongside is the same
+    simulation, using the original Budyko approximation for insolation (centre)
+  and the numerical approximation of insolation (right), with the analytical
+profile subtracted from both.}
+  \label{fig:compare_numeric_budyko}
+\end{figure}
+
+With a functioning numerical approach to calculate the daily insolation, a new
+version of the Budyko model can be implemented, in which the intra-annual
+behaviour of the ice line is captured. Due to the increased temporal
+resolution, the timescale parameters of the Budyko system much change, allowing
+for seasonal dynamics to occur during a year. To tune these parameters, we look
+at real world data.
+
+We first look at the global temperature variation between seasons, as shown in
+Figure \ref{fig:surf_temp_jan_jul}. Here we see a map of monthly averaged
+surface temperature for the months of January and July, when the most extreme
+temperature difference occurs across the hemispheres. The summer
+solstice is the day on which the most insolation reaches one of the
+hemispheres. In the southern hemisphere, this occurs during December, and in
+the northern hemisphere, July. However, due to seasonal lag, the warmest period
+follows approximately one month after the summer solstice. Seasonal lag is
+predominantly caused by the high specific heat capacity of water, taking
+significantly longer than the land to heat up and cool down. This regulates
+the Earth's temperature, dampening the effect of maximum and minimum
+insolation.
+
+The average temperature according to latitude for given months is shown in
+Figure \ref{fig:lats_ave_surf_temp}. Importantly, it is clear that the presence
+of ice does not significantly shift the temperature at polewards latitudes.
+This is contradictory to the temperature profile shown in the original Budyko
+model, as in Figure \ref{fig:budyko_demo}. The discontinuous temperature
+profile is partly as a result of the albedo function, which also has a
+discontinuity, and the latitudinal heat transport term, which allows for steep
+temperature gradients. This suggests the need for a new augmentation that could
+improve the realism of the model, and will be discussed in Section
+\ref{sec:budyko_augmentations}.
+
+From this figure, we can expect that over the year, the equator should remain
+approximately constant at 25$^\circ$C, whilst the surface temperature at the
+north pole ranges between $-25^\circ$C and $0^\circ$C, with an average of
+$-15^\circ$C. 
+
+The plots in Figure \ref{fig:lats_ave_surf_temp} show that surface temperature
+is asymmetric across the equator. This is due to the land distribution towards
+the poles, as shown in Figure \ref{fig:land_distribution}. The south pole is
+covered by Antarctica, which is surrounded by sea, whilst the north
+pole is covered by sea, which is then surrounded by land. The north pole has very
+little permanent sea ice, as this grows and recedes throughout the year.
+Whilst still moving throughout the year, Antarctica's glacial ice is multiple
+kilometres thick in places and covers most of the land all year round. This
+reduces the south pole's average surface temperature by 10$^\circ$C when
+compared to the north pole.
+\begin{figure}
+  \hspace{-45pt}
+  \includegraphics[width=1.2\linewidth]{surf_temp_jan_jul.pdf}
+  \caption{Average surface temperature for January (left) and July (right).
+    This data spans from 2000 to 2010 and is taken from The C3S Climate Data
+    Store \cite{surface_temp_data}.}
+  \label{fig:surf_temp_jan_jul}
+\end{figure}
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\linewidth]{lats_ave_surf_temp.pdf}
+  \caption{The average surface temperature for different months of the year
+    averaged over longitude (left) and annual average surface temperature
+    (right). The data spans from 2000 to 2010 and is taken from The C3S Climate
+    Data Store \cite{surface_temp_data}.}
+  \label{fig:lats_ave_surf_temp}
+\end{figure}
+
+In addition to capturing the surface temperature dynamics throughout a year,
+the new model should also aim to represent the ice line dynamics with some
+realism. The maps in Figure \ref{fig:sea_ice_march_sept} show the sea ice
+concentration averaged over the months of March and September, with the colour
+gradient representing the proportion of each pixel in which sea ice is present.
+Due to the high specific heat capacity of water, the minimum ice concentration
+lags behind maximum temperature by approximately two months. With temperature
+lagging approximately one month behind insolation, minimum ice concentration in
+the northern hemisphere occurs in September, three months after the northern
+summer solstice.
+
+An approximation of the northern ice boundary throughout the year can be seen
+in Figure \ref{fig:monthly_eta}. For this figure, the ice boundary is defined
+as the highest latitude at which longitudinally averaged sea ice concentration
+drops below 75\%, ignoring land mass.
+\begin{figure}
+  \hspace{-45pt}
+  \includegraphics[width=1.2\linewidth]{sea_ice_march_sept.pdf}
+  \caption{Average sea ice concentration for March (left) and September
+    (right). This data spans from 1870 to 2003 and is taken from the Met Office
+  Hadley Centre \cite{sea_ice_data}.}
+  \label{fig:sea_ice_march_sept}
+\end{figure}
+\begin{figure}
+  \centering
+  \includegraphics[width=0.6\linewidth]{monthly_eta_1870_2003.pdf}
+  \caption{Approximate latitude of northern  sea ice line, corresponding to
+    $\eta$ in the Budyko model, using Met Office data spanning from 1870 to
+    2003 \cite{sea_ice_data}. The boundary is defined as the latitude at which
+    the longitudinally averaged sea ice concentration drops below 75\%. The
+  individual month averages are shown in green with the mean shown in blue.}
+  \label{fig:monthly_eta}
+\end{figure}
+
+With this data as a basis, we can aim to tune the two timescale parameters of
+the Budyko model to simulate the seasonal changes in temperature and ice volume
+that occur throughout a year. ----  ADD PART ABOUT THE C PARAMETER ALSO NEEDING
+CHANGING (ASSUMING THE NEW SIMULATION IS MORE ACCURATE ----
+Talk about the decrease in amplitude of numeric_yearly being due to the
+different Q curve gradient compared to budyko approximation. make clear that
+the only change here is the Q_year value is made more accurate. Then add the
+updated plot for numeric_day (assuming its better) and explain how the inverse
+effect of Q65 is happening, due to the longer winter situation. Then maybe make
+plot with -Q65 overlaid on top of numeric_day. Explain how this is showing new
+behaviour that was missing from the original model, and how Q65 is a function
+of eccentricity, obliquity, and precession, however precession was averaged out
+before.
+\begin{figure}
+  \centering
+  \includegraphics[width=\linewidth]{compare_budyko_400k_sim.pdf}
+  \caption{Comparison of three different Budyko-like model temperature
+    profiles. The original model (left) uses the annual insolation
+    approximation developed by Widiasih. The yearly averaged numerical model
+    (middle) uses insolation function integrated over the year. The daily
+    averaged numerical model (right) uses the insolation function integrated over
+    the day, updating the model throughout the year. In this plot the average
+  yearly temperature is shown in order to be comparable to the other plots.}
+  \label{fig:compare_budyko_400k_sim}
+\end{figure}
+
+\section{Budyko Augmentations}
+\label{sec:budyko_augmentations}
+The Budyko model shows how ice albedo can cause a positive feedback in global
+temperature. This is useful to provide a possible explanation of how the minor
+forcing from the Milankovitch cycles can lead to significant climatological
+shifts. However this does not address how the Earth is able to return to the
+original state, without unrealistic external forcing---[Add section showing the
+necessary Q, eps, beta? change needed to undo an ice age]
+
+We will now explore the effect of adding previously ignored components to the
+model, with hopes of producing different behaviour.
+
+
+
+-------The significance of the northern hemisphere is due to the latitudinal
+distribution of land across Earth. Figure \ref{fig:land_distribution} shows a
+sinusoidal projection of Earth with the latitudinal land proportion along the
+side. If we examine the Arctic Circle, we see its ocean at the centre, with land
+appearing from approximately 83$^\circ$ north onwards. In comparison, the
+Antarctic Circle has land at its centre, with ocean appearing more towards the
+edge. This is significant because the specific heat capacity of water is
+higher than that of land, meaning that land can gain and lose heat much faster
+than water. As a result, the permanent ice sheets that cover most of the
+Arctic ocean are able to grow onto the surrounding land more easily than the
+permanent ice sheets on Antarctica are able to grow onto the surrounding ocean.
+get some stats about Antarctic ice sheet movement vs arctic perhaps----
+
+
+Antarctica is $\sim98\%$ covered in permanent ice sheets, formed
+through compacted precipitation \cite{antarctic_ice_amount}.
+
+Because the Budyko model averages the insolation over the
+year, the peak insolation during summer is
+omitted from the current simulation.
 \begin{figure}
   \centering
   \includegraphics[width=0.85\linewidth]{land_distribution.pdf}
@@ -1502,7 +1592,7 @@ found to produce an Earth albedo of 0.29. This suggests that the average albedo
 of Earth from a SZA of 0$^\circ$ is 0.257, with the increased albedo resulting
 from the increasing SZA away from the tropics.
 
-With this 
+With this-------- 
 
 
 In order to append this to the current Budyko model, we will continue
@@ -1527,17 +1617,6 @@ orbital parameters.
 
 
 
-\begin{figure}
-  \hspace{-45pt}
-  \includegraphics[width=1.2\linewidth]{compare_numeric_budyko.pdf}
-  \caption{The simulated temperature profile for the past 10,000 years, starting
-    with the ice line at 30$^\circ$, using the
-    analytical expression from (\ref{eq:q_year_budyko}) for insolation (left). Alongside is the
-  same simulation, using the original Budyko approximation for
-  insolation (centre) and the numerical approximation of insolation (right),
-with the analytical profile subtracted from both.}
-  \label{fig:compare_numeric_budyko}
-\end{figure}
 
 
 
@@ -1554,10 +1633,12 @@ be $202.1+1.9T$\,Wm$^{-2}$ \cite{linear_reradiation}.
 We will now introduce latitude dependent land proportion, with a domain
 that spans both the southern and northern hemisphere. 
 
+Another addition to consider is from Elderfield \cite{benthic_to_ice_vol} who
+suggests the MPT occurred as a result of a surge in Antarctic ice.
 
 \section{Diffusion Derivation}
-A diffusion term in the Budyko model works as a replacement for the 
-latitudinal transport term, $C(\bar{T}(t) - T(y,t))$, which distributes
+The diffusion term in the Budyko model works as a replacement for the 
+latitudinal transport term, ${C(\bar{T}(t) - T(y,t))}$, which distributes
 temperature towards the global average $\bar{T}(t)$. The diffusion term takes
 the form
 \[
@@ -1605,12 +1686,63 @@ Substituting this into our expression for $\nabla^2T$ gives
   &= \frac{1}{r^2}\frac{\partial}{\partial y}\left((1-\cos^2\theta)
   \frac{\partial T}{\partial y}\right)\\
   &= \frac{1}{r^2}\frac{\partial}{\partial y}\left((1-y^2)
-  \frac{\partial T}{\partial y}\right)
+  \frac{\partial T}{\partial y}\right).
 \end{align*}
 
-
-
-
+% NOT SURE ABOUT WHETHER ITS WORTH USING THIS ANALYSIS OF THE BASIC MODEL
+%We will first begin with
+%the original Budyko model, with eccentricity and obliquity being updated throughout. 
+%
+%The temperature profile in Figure \ref{fig:budyko_milanko_T} shows how the
+%global temperature varies over the past 800,000 years, with blue representing
+%ice cover. The position of the ice line is initialised at 30$^\circ$, however
+%this quickly equilibrates to around 68$^\circ$. The ice line then oscillates
+%between approximately 66$^\circ$ and 70$^\circ$. This is caused by the
+%varying obliquity $\beta$, which affects the distribution of annual insolation,
+%\[
+  %s_\beta(y) = 1 + \frac{1}{2}c_\beta(3y^2-1),
+%\]
+%where $c_\beta = \frac{5}{16}(3\sin^2\beta - 2)$.
+%
+%The power spectrum of the ice line dynamics can be seen in Figure
+%\ref{fig:budyko_milanko_eta}. Here we see the prominent period for the
+%oscillation is 41.3\,kyr, closely matching that of obliquity.
+%
+%There are two very small bumps in this plot that occur at 0.0026\,kyr$^{-1}$
+%and 0.0102\,kyr$^{-1}$, corresponding to 392\,kyr and 98\,kyr respectively.
+%These closely match the prominent frequencies of eccentricity, which affects
+%the total annual insolation to reach Earth,
+%\[
+  %Q_\varepsilon = \frac{Q_0}{\sqrt{1-\varepsilon^2}},
+%\]
+%where $Q_0$ is the annual insolation that would reach Earth if it had an orbit
+%with no eccentricity.
+%
+%However, these bumps are insignificant compared the dominant frequency from
+%obliquity, this is demonstrated in Figure \ref{fig:beta_eps_effect}.
+%
+%%Replace these with the 400k plots for milanko,numeric_year, and numeric day,
+%%then show the power spectrum for all three (or maybe just numerics or
+%%something)
+%\begin{figure}
+  %\centering
+  %\includegraphics[width=0.55\linewidth]{budyko_milanko_T.pdf}
+  %\caption{The simulated temperature profile for the past 800,000 years using
+  %the Budyko model with updated orbital parameters. Starting at 30$^\circ$, the
+%ice line mostly oscillates between 66$^\circ$ and 70$^\circ$.}
+  %\label{fig:budyko_milanko_T}
+%\end{figure}
+%\begin{figure}
+  %\centering
+  %\includegraphics[width=0.9\linewidth]{budyko_milanko_eta.pdf}
+  %\caption{Power spectrum for the ice line from the simulation shown in Figure
+    %\ref{fig:budyko_milanko_T}. The prominent frequency is 0.0242\,kyr$^{-1}$,
+    %indicating a strong dependence on obliquity, which also varies at this
+  %frequency.}
+  %\label{fig:budyko_milanko_eta}
+%\end{figure}
+%
+%
 \bibliographystyle{ieeetr}
 \bibliography{refs}
 \end{document}
