@@ -1,0 +1,50 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import rc,cm
+rc('text', usetex=True)
+rc('font', family='serif',size=15)
+
+jan = np.loadtxt('../data/surf_temp_ave_2000_2010_jan.csv',delimiter=',') 
+jul = np.loadtxt('../data/surf_temp_ave_2000_2010_jul.csv',delimiter=',') 
+lats = np.loadtxt('../data/lats_surf_temp_2000_2010_3rd_months.csv',delimiter=',')
+#plt.imshow(jan)
+#plt.figure()
+#plt.imshow(jul)
+#plt.figure()
+#plt.plot(lats.T)
+#plt.show()
+
+imfig, (jan_ax, jul_ax, cbar_ax) = plt.subplots(1,3,constrained_layout=True,
+        gridspec_kw={'width_ratios':[8,8,0.3]},figsize=(12.9,3))
+
+jan_plot = jan_ax.imshow(jan,cmap=cm.coolwarm,interpolation='nearest',vmin=-45,vmax=45)
+jul_plot = jul_ax.imshow(jul,cmap=cm.coolwarm,interpolation='nearest',vmin=-45,vmax=45)
+cbar = imfig.colorbar(jan_plot, cax=cbar_ax)
+cbar.set_label('Surface Temperature ($^\circ$C)',rotation=270,labelpad=17)
+jan_ax.set_yticks(np.linspace(0,jan.shape[0],7))
+jul_ax.set_yticks(np.linspace(0,jan.shape[0],7))
+jan_ax.set_xticks(np.linspace(0,jan.shape[1],7))
+jul_ax.set_xticks(np.linspace(0,jan.shape[1],7))
+jan_ax.set_yticklabels(['{}$^\circ$'.format(i) for i in np.linspace(90,-90,7)])
+jul_ax.set_yticklabels(['{}$^\circ$'.format(i) for i in np.linspace(90,-90,7)])
+jan_ax.set_xticklabels(['{}$^\circ$'.format(i) for i in np.linspace(-180,180,7)])
+jul_ax.set_xticklabels(['{}$^\circ$'.format(i) for i in np.linspace(-180,180,7)])
+jan_ax.set_ylabel('Latitude')
+jan_ax.set_xlabel('Longitude')
+jul_ax.set_xlabel('Longitude')
+
+meanfig, (mean_ax,ave_mean_ax) = plt.subplots(1,2,constrained_layout=True,figsize=(10,4))
+mean_ax.plot(np.sin(np.linspace(-np.pi/2,np.pi/2,len(lats.T))),np.fliplr(lats).T,linewidth=3)
+mean_ax.set_xticks(np.sin(np.array([-90,-45,-20,0,20,45,90])*np.pi/180))
+mean_ax.set_xticklabels(['{}$^\circ$'.format(i) for i in [-90,-45,-20,0,20,45,90]])
+ave_mean_ax.plot(np.sin(np.linspace(-np.pi/2,np.pi/2,len(lats.T))),np.mean(np.fliplr(lats).T,1),'k',linewidth=3)
+ave_mean_ax.set_xticks(np.sin(np.array([-90,-45,-20,0,20,45,90])*np.pi/180))
+ave_mean_ax.set_xticklabels(['{}$^\circ$'.format(i) for i in [-90,-45,-20,0,20,45,90]])
+ave_mean_ax.set_ylim(mean_ax.get_ylim())
+mean_ax.set_xlabel('Latitude')
+ave_mean_ax.set_xlabel('Latitude')
+mean_ax.set_ylabel('Surface Temperature ($^\circ$C)')
+mean_ax.legend(['January','April','July','October'])
+imfig.savefig('../surf_temp_jan_jul.pdf')
+meanfig.savefig('../lats_ave_surf_temp.pdf')
+
