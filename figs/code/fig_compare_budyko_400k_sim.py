@@ -7,7 +7,7 @@ rc('font', family='serif',size=18)
 
 orig_T = np.loadtxt('../data/budyko_milanko_400k_T.csv', delimiter=',')
 num_year_T = np.loadtxt('../data/budyko_num_year_400k_T.csv', delimiter=',')
-num_day_T = np.loadtxt('../data/budyko_num_day_400k_T.csv', delimiter=',') 
+num_day_T = np.loadtxt('../data/budyko_num_day_R_4.2_S_1_C_4.2.csv', delimiter=',') 
 vmax = np.amax(np.concatenate((orig_T,num_year_T,num_day_T)))
 vmin = np.amin(np.concatenate((orig_T,num_year_T,num_day_T)))
 
