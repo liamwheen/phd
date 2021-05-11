@@ -1,6 +1,7 @@
 \documentclass[a4paper]{article}
 \setlength{\parskip}{\baselineskip}
 
+%\usepackage{refcheck}
 \usepackage[a4paper,margin=25mm]{geometry}    % page layout
 \usepackage{setspace} \onehalfspacing         % line spacing
 \usepackage{amsfonts,amssymb,amsmath}         % useful math extensions
@@ -1181,12 +1182,13 @@ present in the ice caps, the ocean holds a higher proportion of $^{18}$O. The
 foraminifera shells can therefore serve as a record for the $\delta^{18}$O
 ratio within the deep sea from up to 5 million years ago. Importantly, a
 second factor that effects the $\delta^{18}$O ratio within foraminifera is
-the temperature of the deep ocean water in which the they lived.
-Chappell found that the water temperature can contribute up to 50\% of the
+the temperature of the deep ocean water in which the they lived
+\cite{sea_temp_on_benthic}.
+Elderfield found that the water temperature can contribute up to 50\% of the
 benthic $\delta^{18}$O ratio, although this is more significant before the
 MPT \cite{benthic_to_ice_vol}.
 
-Elderfield estimated the $\delta^{18}$O (per mille, \textperthousand) of the deep
+Cramer estimated the $\delta^{18}$O (per mille, \textperthousand) of the deep
 ocean water using other sedimentary data, and related temperature ($^\circ$C)
 to $\delta^{18}$O (\textperthousand) with the linear model
 \[
@@ -1429,26 +1431,26 @@ drops below 75\%, ignoring land mass.
   \label{fig:monthly_eta}
 \end{figure}
 
-With this data as a basis, we can aim to tune the two timescale parameters of
-the Budyko model to simulate the seasonal changes in temperature and ice volume
-that occur throughout a year. ----  ADD PART ABOUT THE C PARAMETER ALSO NEEDING
-CHANGING (ASSUMING THE NEW SIMULATION IS MORE ACCURATE ----
-Talk about the decrease in amplitude of numeric_yearly being due to the
-different Q curve gradient compared to budyko approximation. make clear that
-the only change here is the Q_year value is made more accurate. Then add the
-updated plot for numeric_day (assuming its better) and explain how the inverse
-effect of Q65 is happening, due to the longer winter situation. Then maybe make
-plot with -Q65 overlaid on top of numeric_day. Explain how this is showing new
-behaviour that was missing from the original model, and how Q65 is a function
-of eccentricity, obliquity, and precession, however precession was averaged out
-before.
+%With this data as a basis, we can aim to tune the two timescale parameters of
+%the Budyko model to simulate the seasonal changes in temperature and ice volume
+%that occur throughout a year. ----  ADD PART ABOUT THE C PARAMETER ALSO NEEDING
+%CHANGING (ASSUMING THE NEW SIMULATION IS MORE ACCURATE ----
+%Talk about the decrease in amplitude of numeric_yearly being due to the
+%different Q curve gradient compared to budyko approximation. make clear that
+%the only change here is the Q_year value is made more accurate. Then add the
+%updated plot for numeric_day (assuming its better) and explain how the inverse
+%effect of Q65 is happening, due to the longer winter situation. Then maybe make
+%plot with -Q65 overlaid on top of numeric_day. Explain how this is showing new
+%behaviour that was missing from the original model, and how Q65 is a function
+%of eccentricity, obliquity, and precession, however precession was averaged out
+%before.
 \begin{figure}
   \centering
   \includegraphics[width=\linewidth]{compare_budyko_400k_sim.pdf}
   \caption{Comparison of three different Budyko-like model temperature
     profiles. The original model (left) uses the annual insolation
     approximation developed by Widiasih. The yearly averaged numerical model
-    (middle) uses insolation function integrated over the year. The daily
+    (middle) uses the insolation function integrated over the year. The daily
     averaged numerical model (right) uses the insolation function integrated over
     the day, updating the model throughout the year. In this plot the average
   yearly temperature is shown in order to be comparable to the other plots.}
@@ -1635,6 +1637,24 @@ that spans both the southern and northern hemisphere.
 
 Another addition to consider is from Elderfield \cite{benthic_to_ice_vol} who
 suggests the MPT occurred as a result of a surge in Antarctic ice.
+
+In line with this, as discussed by Rubincam \cite{precession_index_opposite},
+the energy balance model points towards longer, temperate summers in the
+northern hemisphere having a global warming effect, as opposed to short but
+more extreme summers, as suggested by Milankovitch. This suggests that in fact
+the southern hemisphere's summer peak temperature has more of an impact,
+citing Imbrie et al, who show that northern ocean temperatures indeed lag
+behind the southern. This matches with our current findings from using the
+Budyko model, as shown in Figure --figure showing ecc*sin(prec) overlay on temp
+profile--. 
+
+This is supported by Cluett's study of Greenland's interglacial behaviour
+\cite{greenland_long_summer_effect}. Here she uses sedimentary analysis to show
+that Greenland's most severe ice retreat occurred during Marine Isotope Stage
+(MIS) 11, an interglacial period of only moderate warmth, but sustained over an
+especially long period. This is compared to MIS 5e, in which strong northern
+hemisphere summer insolation occurred for a comparatively short duration, and
+resulted in significantly less ice retreat.
 
 \section{Diffusion Derivation}
 The diffusion term in the Budyko model works as a replacement for the 
