@@ -29,15 +29,11 @@ phi = np.arcsin(np.linspace(-1,1,phi_n))
 gamma = np.linspace(0, 2*np.pi, gamma_n) 
 
 def tester():
-    q = Q_day(np.linspace(0,year,10000), beta0, rho0, eps0)
-    print(np.mean(q[0,:]), max(q[0,:]))
-    print(np.mean(q[-1,:]),max(q[-1,:]))
-    print(len(np.where(q[0,:]==0)[0]))
-    print(len(np.where(q[-1,:]==0)[0]))
-    print((len(np.where(q[0,:]==0)[0])-len(np.where(q[-1,:]==0)[0]))/len(np.where(q[0,:]==0)[0]))
-    print((max(q[0,:])-max(q[-1,:]))/max(q[0,:]))
-    #plt.plot(q)
-    #plt.show()
+    q = Q_day(np.linspace(0,year,10), beta0, rho0, eps0)
+    q1 = Q_day(np.linspace(0,year,10), 1.2*beta0, rho0, eps0)
+    plt.plot(q)
+    plt.plot(q1)
+    plt.show()
 
 def I(gamma, phi, beta, rho, theta):
     return np.maximum((np.sin(gamma)*np.sin(rho - theta) - np.cos(beta)*np.cos(gamma)*np.cos(rho -

@@ -33,7 +33,7 @@ year_span = np.linspace(0,year,year_res+1)[:-1] # Avoid repeating last point as 
 
 y_steps = phi_n#50
 t_steps = (tmax-tmin)*year_res
-frame_refr = 100
+frame_refr = 10
 
 zeros_holder = np.zeros(y_steps)
 
@@ -122,7 +122,7 @@ class Budyko:
                 if frame%(100*year_res) == 0:
                     eps, beta, rho = self.milanko_update(t)
                 day_of_year = (frame%year_res)/year_res*year
-                Q_year[frame%year_res,:] = Q_day(day_of_year, beta, rho, eps)
+                Q_year[frame%year_res,:] = Q_day(day_of_year, beta, rho,eps)[:,0]
             self.Qs = Q_year[frame%year_res]
             self.T, etas_open = self.RK4(self.T, self.etas, self.dX_dt, self.delta)
             self.etas = np.clip(etas_open,-1,1)
@@ -160,8 +160,8 @@ class Budyko:
         plt.show()
 
 if __name__ == '__main__':
-    main()
-    #anim_main()
+    #main()
+    anim_main()
     """
     import cProfile, pstats
     profiler = cProfile.Profile()

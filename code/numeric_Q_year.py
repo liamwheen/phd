@@ -36,9 +36,17 @@ t_span = np.linspace(0, year, year_res)[:-1]
 
 rep_phi, rep_gamma = cartesian_product(phi,gamma)
 
+def s_b(beta):
+    c_b = (5/16)*(3*np.sin(beta)**2 - 2)
+    return 1 + 0.5*c_b*(3*y**2 - 1)
+Q_0 = 340.327
+
 def main():
+    Q_e = Q_0/(np.sqrt(1-eps0**2))
     Q = Q_year(beta0,rho0,eps0)(y)
+    Q_bud = Q_e*s_b()
     plt.plot(Q)
+    plt.plot(Q_bud)
     plt.show()
 
 def sza_albedo(I):
@@ -67,6 +75,8 @@ def I_fast(mag, phase, theta):
     return np.maximum(mag*np.sin(theta+phase),0)
 
 def Q_year(beta, rho, eps):
+    Q_e = Q_0/(np.sqrt(1-eps**2))
+    return interp1d(y,s_b(beta)*Q_e)
     # Returns Qs interpolated function 
     mag, phase = trig_coefs(beta, rho)
     Is = np.zeros(phi_n*gamma_n)

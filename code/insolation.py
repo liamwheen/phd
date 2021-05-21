@@ -62,7 +62,8 @@ class Insolation:
         """ Tracks back over the past year to find the day of the summer solstice"""
         for t_summer in np.linspace(t,t+366,1000):
             theta = self.polar_pos(t_summer)[1]
-            if abs((theta-self.rho)-np.pi)%(2*np.pi) < 0.007:
+            #theta-rho for southern summer, -pi for northern summer
+            if abs(theta-self.rho-np.pi)%(2*np.pi) < 0.007:
                 return t_summer
 
     def update(self, t, lats):
@@ -71,16 +72,16 @@ class Insolation:
         return self.I_lat_ave(lats,t), t
 
 if __name__ =="__main__":
-    tmin = -200*k2day
+    tmin = -100*k2day
     tmax = 0
-    num_steps = 1000
+    num_steps = 400
     t_span = np.linspace(tmin,tmax,num_steps)
     model = Insolation(tmin, tmax, 'backward')
-    lat_vals = [65]
+    lat_vals = np.linspace(-90,90,21)
     insol_vals = np.zeros((num_steps,len(lat_vals)))
     #r_vals = np.zeros(num_steps)
     for i, t in enumerate(t_span):
-        print(i/len(t_span))
+        print(i/len(t_span),end='\r')
         #insol_vals[i,:] = model.update(t,180/np.pi*np.arcsin(np.linspace(-1,1,insol_vals.shape[1])))
         insol_vals[i],_ = model.update(t,lat_vals)
         #r_vals[i] = q/model.polar_pos(t)[0]**2

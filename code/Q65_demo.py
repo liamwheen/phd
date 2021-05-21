@@ -30,7 +30,7 @@ carbon_func = interp1d(carbon[:,0],carbon[:,1])
 
 plt.figure(figsize=(9,3))
 plt.plot(np.linspace(-3e3,0,3000),norm(N_insol))
-plt.plot(np.linspace(-3e3,0,3000),np.roll(norm(ecc_fun(np.linspace(-3e3,0,3000)))))
+plt.plot(np.linspace(-3e3,0,3000),np.roll(norm(ecc_fun(np.linspace(-3e3,0,3000))),0))
 plt.plot(np.linspace(-3e3,0,3000),norm(-ben_fun(np.linspace(-3e3,0,3000))),linewidth=1)
 plt.plot(np.linspace(-8e2,0,1000),norm(carbon_func(np.linspace(-8e5,0,1000))),linewidth=1)
 plt.xlim([-1000,0])
