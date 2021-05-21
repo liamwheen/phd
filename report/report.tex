@@ -783,7 +783,7 @@ where a positive value corresponds to more insolation in the second plot.
     maximum for Earth's orbit. The third plot shows how these two cases differ,
     where a positive value corresponds to more insolation in the second plot.
   The $y$-axis uses the domain $y=\sin \varphi$ as is used in the Budyko
-model, however the corresponding lattiudes are shown for reference.}
+model, however the corresponding latitudes are shown for reference.}
   \label{fig:daily_ave_insol_all_lats}
 \end{figure}
 
@@ -981,6 +981,7 @@ effect. Their actual ranges are give in Table \ref{tab:orbital_params}.}
   \label{fig:beta_eps_effect}
 \end{figure}
 
+
 By breaking the insolation expression into two terms, $Q(\varepsilon)$ and
 $s(\beta,y)$, the effect of obliquity and eccentricity on yearly insolation can
 be isolated. This is shown in Figure \ref{fig:beta_eps_effect}, where each plot
@@ -996,9 +997,9 @@ We can see how these orbital parameters take effect in Figure
 insolation, over the past 150 thousand years. 
 \begin{figure}
   \centering
-  \includegraphics[width=0.6\linewidth]{yearly_average_insol_150kN.pdf}
-  \caption{Contour showing the difference in yearly average insolation from the
-  average insolation over the 150k year period at each latitude. Above this is
+  \includegraphics[width=0.7\linewidth]{yearly_average_insol_150kN.pdf}
+  \caption{Contour showing the yearly average insolation anomaly
+  over the 150k year period at each latitude. Above this is
   eccentricity $\varepsilon$, whilst obliquity $\beta$ is shown below. These
   are the two orbital parameters that govern the yearly average insolation.}
   \label{fig:yearly_ave_insol_all_lats}
@@ -1335,10 +1336,12 @@ profile subtracted from both.}
 
 With a functioning numerical approach to calculate the daily insolation, a new
 version of the Budyko model can be implemented, in which the intra-annual
-behaviour of the ice line is captured. Due to the increased temporal
-resolution, the timescale parameters of the Budyko system much change, allowing
-for seasonal dynamics to occur during a year. To tune these parameters, we look
-at real world data.
+behaviour of the ice line is captured. In order to allow for seasonal dynamics
+to occur during a year, some parameters of the Budyko system much change. These
+are the two timescale parameters, $R$ and $S$, which govern the rate of
+temperature and ice line change respectively. Also changed is the free parameter $C$,
+which governs the rate of latitudinal heat transport. To tune these parameters,
+we use real world data to constrain both the temperature profile and ice line.
 
 We first look at the global temperature variation between seasons, as shown in
 Figure \ref{fig:surf_temp_jan_jul}. Here we see a map of monthly averaged
@@ -1423,17 +1426,74 @@ drops below 75\%, ignoring land mass.
 \begin{figure}
   \centering
   \includegraphics[width=0.6\linewidth]{monthly_eta_1870_2003.pdf}
-  \caption{Approximate latitude of northern  sea ice line, corresponding to
+  \caption{Approximate latitude of northern sea ice line, corresponding to
     $\eta$ in the Budyko model, using Met Office data spanning from 1870 to
     2003 \cite{sea_ice_data}. The boundary is defined as the latitude at which
     the longitudinally averaged sea ice concentration drops below 75\%. The
-  individual month averages are shown in green with the mean shown in blue.}
+    monthly averages are shown for each year, starting as yellow and turning to
+    red, with the average of all years is shown in black.}
   \label{fig:monthly_eta}
 \end{figure}
+\begin{figure}
+  \hspace{-45pt}
+  \includegraphics[width=1.2\linewidth]{compare_budyko_400k_sim.pdf}
+  \caption{Comparison of three different Budyko-like model temperature
+    profiles. The original model (left) uses the annual insolation
+    approximation developed by Widiasih. The yearly averaged numerical model
+    (middle) uses the insolation function integrated over the year. The daily
+    averaged numerical model (right) uses the insolation function integrated over
+    the day, updating the model throughout the year. In this plot the average
+  yearly temperature is shown in order to be comparable to the other plots.}
+  \label{fig:compare_budyko_400k_sim}
+\end{figure}
 
-%With this data as a basis, we can aim to tune the two timescale parameters of
-%the Budyko model to simulate the seasonal changes in temperature and ice volume
-%that occur throughout a year. ----  ADD PART ABOUT THE C PARAMETER ALSO NEEDING
+The approximated northern ice line follows a sinusoidal path, with maximum ice
+reaching around 73$^\circ$C and minimum ice around 80$^\circ$C.
+
+With this data as a basis, we can aim to tune the two timescale parameters, and
+the free parameter $C$, to simulate the seasonal changes in temperature and
+ice volume that occur throughout a year. The tuned parameter values are shown
+in Table \ref{tab:budyko_day_params}. To verify this model, a 10 year
+simulation is run, shown in Figure \ref{fig:example_num_day_10_year_T}, which
+is then compared against real data for accuracy. A comparison of 3 key values
+from the simulation is shown in Figure
+\ref{fig:example_num_day_10_year_compare}. Here we see the average daily temperature at
+90$^\circ$C and 0$^\circ$C latitudes, along with the ice line position, each
+compared with real data for those values. The ice line data is approximated
+using the same approach shown in Figure \ref{fig:monthly_eta}.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.6\linewidth]{example_num_day_10_year_T.pdf}
+  \caption{Temperature profile for example 10 year simulation using tuned
+    parameters values as shown in Table \ref{tab:budyko_day_params}. Overlaid
+  in black is the ice line position over the same duration.}
+  \label{fig:example_num_day_10_year_T}
+\end{figure}
+\begin{figure}
+  \centering
+  \includegraphics[width=0.6\linewidth]{example_num_day_10_year_compare.pdf}
+  \caption{Key values from the 10 year example simulation, shown
+    in Figure \ref{fig:example_num_day_10_year_T}. The simulated values are
+    shown with solid lines, whilst the real surface temperature data
+    \cite{surface_temp_data} and ice line data \cite{sea_ice_data} are shown in
+    dashed lines. The top plot shows the simulated and real temperatures at the
+    north pole and at the equator. The bottom plot shows the ice line from the
+    simulation along with the ice line approximated from real data.}
+  \label{fig:example_num_day_10_year_compare}
+\end{figure}
+\begin{table}
+\centering
+\caption{Table of new parameter values used for sub-year resolution model.}
+\label{tab:budyko_day_params}
+\begin{tabular}{c|c|cl}
+Parameter          & Value         & Unit        &  \\ \hline\hline
+$C$                & 4.35          & Wm$^{-2}$\,$^\circ$C$^{-1}$ &\\\hline
+$R$                & $4.6\times10^7$ & Jm$^{-2}$\,$^\circ$C$^{-1}$ &  \\\hline
+$S$                & $2.2\times10^9$       & C$^\circ$s 
+\end{tabular}
+\end{table}
+
 %CHANGING (ASSUMING THE NEW SIMULATION IS MORE ACCURATE ----
 %Talk about the decrease in amplitude of numeric_yearly being due to the
 %different Q curve gradient compared to budyko approximation. make clear that
@@ -1444,18 +1504,6 @@ drops below 75\%, ignoring land mass.
 %behaviour that was missing from the original model, and how Q65 is a function
 %of eccentricity, obliquity, and precession, however precession was averaged out
 %before.
-\begin{figure}
-  \centering
-  \includegraphics[width=\linewidth]{compare_budyko_400k_sim.pdf}
-  \caption{Comparison of three different Budyko-like model temperature
-    profiles. The original model (left) uses the annual insolation
-    approximation developed by Widiasih. The yearly averaged numerical model
-    (middle) uses the insolation function integrated over the year. The daily
-    averaged numerical model (right) uses the insolation function integrated over
-    the day, updating the model throughout the year. In this plot the average
-  yearly temperature is shown in order to be comparable to the other plots.}
-  \label{fig:compare_budyko_400k_sim}
-\end{figure}
 
 \section{Budyko Augmentations}
 \label{sec:budyko_augmentations}
@@ -1655,6 +1703,14 @@ that Greenland's most severe ice retreat occurred during Marine Isotope Stage
 especially long period. This is compared to MIS 5e, in which strong northern
 hemisphere summer insolation occurred for a comparatively short duration, and
 resulted in significantly less ice retreat.
+
+
+-------NEXT TO DO:
+per Ian: put a land ice sheet variable as well as sea ice sheet, give v
+different movement rates, have the albedo be a combination of hte two amounts,
+and have the ratio depend on the land ratio.
+look at the models he sent, it may be that the budyko cant be put on the
+intra-year timescale as its not dewsigned for it.
 
 \section{Diffusion Derivation}
 The diffusion term in the Budyko model works as a replacement for the 

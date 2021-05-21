@@ -4,6 +4,7 @@ import calendar
 import copy
 import matplotlib.pyplot as plt
 from matplotlib import rc,cm
+from matplotlib.lines import Line2D
 rc('text', usetex=True)
 rc('font', family='serif',size=15)
 
@@ -32,16 +33,25 @@ march_ax.set_ylabel('Latitude')
 march_ax.set_xlabel('Longitude')
 sept_ax.set_xlabel('Longitude')
 
-[mean_ax.scatter(np.arange(1,13),monthly[i,:], s=25, c='C2', linewidths=0, alpha=0.3) for i in range(monthly.shape[0])]
+cm = plt.get_cmap('autumn_r')
+mean_ax.set_prop_cycle(color=[cm(1.*i/len(monthly)) for i in range(len(monthly))])
+mean_ax.plot(np.arange(1,13),monthly.T,alpha=0.4)
+#[mean_ax.scatter(np.arange(1,13),monthly[i,:], s=25, c='C2', linewidths=0, alpha=0.3) for i in range(monthly.shape[0])]
 mean = np.mean(monthly, 0)
-fun = interp1d(np.arange(1,13), mean)
-x = np.linspace(1,12,200)
+#fun = interp1d(np.arange(1,13), mean)
+#x = np.linspace(1,12,200)
 mean_ax.set_xticks(np.arange(1,13))
 mean_ax.set_xticklabels(calendar.month_abbr[1:],rotation=45,ha='right')
-mean_ax.plot(x,fun(x),linewidth=3)
-mean_ax.set_yticks(np.linspace(50,85,8))
-mean_ax.set_yticklabels(['{}$^\circ$'.format(i) for i in np.linspace(50,85,8)])
-mean_ax.legend(['Mean','Single Month'])
+mean_ax.plot(np.arange(1,13),mean,'k',linewidth=3)
+mean_ax.set_yticks(np.linspace(70,85,7))
+mean_ax.set_yticklabels(['{}$^\circ$'.format(i) for i in np.linspace(70,85,7)])
+mean_ax.set_ylim(69,86)
+#mean_ax.legend(['Mean','Single Month'])
+custom_lines = [Line2D([0], [0], color='k', lw=3),
+                Line2D([0], [0], color=cm(1.), alpha=0.4, lw=2),
+                Line2D([0], [0], color=cm(0.), alpha=0.4, lw=2)]
+mean_ax.legend(custom_lines,['Mean','2003','1870'],loc='upper left')
 
+#plt.show()
 imfig.savefig('../sea_ice_march_sept.pdf')
 meanfig.savefig('../monthly_eta_1870_2003.pdf')
