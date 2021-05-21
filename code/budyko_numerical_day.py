@@ -16,36 +16,57 @@ alpha_1 = 0.32#0.279
 alpha_2 = 0.62
 A = 202.1#Wm^-2
 B = 1.9 #Wm^-2
-C = 3.04 #Wm^-2 K^-1
+C = 4.35 #Wm^-2 K^-1
 T_ice = -10 #degC
-R = 1*10**7 #J m^-2 K^-1 (Temp damping)
-S = 4*10**9 # degC s (Ice line damping)
+R = 4.6e7 #J m^-2 K^-1 (Temp damping)
+S = 2.2e9 # degC s (Ice line damping)
 Q_0 = 340.327 #Wm^-2
 
-eta0 = 0.94 # Initial Iceline
-tmin = -400000
-tmax = 0 # Years
-year_res = 250 # Points per year
+eta0 = 0.97 # Initial Iceline
+tmin = -40
+tmax = tmin+40 # Years
+year_res = 400 # Points per year
 year_span = np.linspace(0,year,year_res+1)[:-1] # Avoid repeating last point as first point
 
 y_steps = 800
 t_steps = (tmax-tmin)*year_res
-frame_refr = year_res*500
+frame_refr = 5
 
 def main():
+    """
+    from scipy.optimize import minimize
+    from scipy.optimize import LinearConstraint
+    def run(C_R_S_):
+        global C, R, S
+        C,R,S = C_R_S_
+        R*=1e7
+        S*=1e9
+        model = Budyko()
+        list(model.iter_func())
+        return sum(np.array([min(model.T_record[-300:,0])-25,max(model.T_record[-300:,0])-25,
+                         min(model.T_record[-300:,-1])+25,max(model.T_record[-300:,-1]),
+                         120*(min(model.eta_record[-300:])-0.95),120*(max(model.eta_record[-300:])-0.99)])**2)
+    #print(run(4,4e7,1.2e7))
+    linear_constraint = LinearConstraint([[1,0,0],[0,1,0],[0,0,1]],[1,0.4,0.004],[8,40,40])
+    res = minimize(run, np.array([4,1,4]),
+            method='trust-constr',constraints=linear_constraint)
+    print(res.x)
+    print(res.message)
+    """
     model = Budyko()
     list(model.iter_func())
-    #np.savetxt('budyko_numerical_day_eta.csv',model.eta_record,delimiter=',')
-    np.savetxt('budyko_numerical_day_T.csv',model.T_record,delimiter=',')
+    plt.plot(model.T_record[:,0])
+    plt.plot(model.T_record[:,-1])
+    plt.figure()
+    plt.plot(model.eta_record)
+    plt.show()
+    np.savetxt('budyko_numerical_day_T.csv',model.T_record[-800:,:],delimiter=',')
+    np.savetxt('budyko_numerical_day_eta.csv',model.eta_record[-800:],delimiter=',')
+    
 
 def anim_main():
     model = Budyko()
     model.animate()
-    #model.eta_record[model.eta_record==0] = np.nan
-    #print(np.nanmean(model.eta_record))
-    #print(max(model.max_T))
-    #plt.plot(model.eta_record)
-    #plt.show()
 
 class Budyko:
     def __init__(self):
@@ -53,8 +74,8 @@ class Budyko:
         self.y_delta = self.y_span[1] - self.y_span[0]
         self.t_span = np.linspace(tmin*year2sec,tmax*year2sec,t_steps) #years
         self.delta = self.t_span[1] - self.t_span[0]
-        self.eta_record = np.zeros(t_steps//frame_refr)
         self.T_record = np.zeros((t_steps//frame_refr,y_steps))
+        self.eta_record = np.zeros(t_steps//frame_refr)
         self.max_T = np.zeros(t_steps//frame_refr)
         milanko_t, milanko_ecc, milanko_obliq, milanko_l_peri = milanko_params.load_milanko('backward')
         krange = range(int(tmin//1000),2+max(1,int(tmax//1000)))
@@ -80,7 +101,7 @@ class Budyko:
         dT = self.Qs*(1-self.a_eta(y)) - (A + B*T) - C*(T - self.int_T(T))
         T_eta = T[self.y_ind(eta)]
         deta = (T_eta - T_ice)**1
-        #deta += (deta>0)*deta*2
+        #deta = (1+((T_eta-T_ice)>0))*(T_eta-T_ice)
         return dT/R, deta/S
 
     def y_ind(self, y):
@@ -110,18 +131,20 @@ class Budyko:
         #Iter over all time points
         T_year = np.empty((year_res, y_steps))
         for frame, t in enumerate(self.t_span):
-            if frame%(t_steps//100)==0:print(frame/t_steps,end='\r')
+            if frame%(t_steps//100)==0:print(f'{100*frame//t_steps}%',end='\r')
             if frame%(100*year_res)==0:
                 Q_year = self.get_Q_year(t//year2sec)
             self.Qs = Q_year[frame%year_res]
             self.T, eta = self.RK4(self.T,self.eta, self.dX_dt, self.delta)
             self.eta = min(eta,1)
             #Take average temperature for first year in frame_refr period
-            if frame%frame_refr < year_res:
-                T_year[frame%frame_refr] = self.T
-                if frame%frame_refr == 0: yield t
-            elif frame%frame_refr == year_res:
-                self.T_record[frame//frame_refr] = np.mean(T_year,0)
+            #if frame%frame_refr < year_res:
+            #    T_year[frame%frame_refr] = self.T
+            #    if frame%frame_refr == 0: 
+            if frame%frame_refr == 0:
+                self.T_record[frame//frame_refr] = self.T
+                self.eta_record[frame//frame_refr] = self.eta
+                yield t
 
     def get_Q_year(self, year):
         f_name = f'.Q_year_cache/{year_res}_{y_steps}_{year}'
@@ -159,7 +182,7 @@ class Budyko:
         plt.show()
 
 if __name__ == '__main__':
-    main()
+    anim_main()
     """
     import cProfile, pstats
     profiler = cProfile.Profile()
