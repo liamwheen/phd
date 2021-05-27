@@ -27,8 +27,8 @@ S = 10**9 # degC s (Ice line damping)
 Q_0 = 340.327 #Wm^-2
         
 etas0 = [-0.97,0.97] # Initial Icelines
-tmin = -10
-tmax = 0 # Years
+tmin = -10-151000
+tmax = 0-151000 # Years
 year_res = 400 # Points per year
 year_span = np.linspace(0,year,year_res+1)[:-1] # Avoid repeating last point as first point
 
@@ -38,7 +38,7 @@ t_steps = (tmax-tmin)*year_res
 y_delta = y_span[1] - y_span[0]
 t_span = np.linspace(tmin*year2sec,tmax*year2sec,t_steps) #years
 delta = t_span[1] - t_span[0]
-frame_refr = 4#00
+frame_refr = 10#0
 
 def run_long_term(tmin=tmin, tmax=tmax, jump=500):
     model = Budyko()
@@ -58,8 +58,8 @@ def main():
 def anim_main():
     model = Budyko()
     model.animate()
-    model.eta_record[model.eta_record==0] = np.nan
-    print(np.nanmean(model.eta_record[:,1]))
+    #model.eta_record[model.eta_record==0] = np.nan
+    #print(np.nanmean(model.eta_record[:,1]))
     #print(max(model.max_T))
     #plt.plot(model.eta_record)
     #plt.show()
@@ -144,10 +144,8 @@ class Budyko:
     def get_year_temp(self, end_year, run_time=10):
         T_year = np.empty((year_res, y_steps))
         Q_year = self.get_Q_year(end_year)
-        self.etas = np.array(etas0) #n initial
-        self.T = np.zeros(y_steps)
         for i in range(year_res*run_time):
-            self.Qs = Q_year[i%year_res]
+            self.Qs = Q_year[i%year_res,:]
             self.T, etas= self.euler(self.T, self.etas, self.dX_dt, delta)
             etas[etas>1]=1
             etas[etas<-1]=-1
@@ -196,9 +194,9 @@ class Budyko:
         plt.show()
 
 if __name__ == '__main__':
-    #main()
+    main()
     #anim_main()
-    run_long_term(-5000,0)
+    #run_long_term(-100000,0,1000)
     """
     import cProfile, pstats
     profiler = cProfile.Profile()

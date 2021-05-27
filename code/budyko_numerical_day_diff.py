@@ -19,11 +19,11 @@ alpha_2 = 0.62
 A = 202.1#Wm^-2
 B = 1.9 #Wm^-2
 C = 3.04 #Wm^-2 K^-1
-D = 0.6 #Wm^-2 K^-1
+D = 0.7 #Wm^-2 K^-1
 T_ice = -10 #degC
 T_ice_shift = np.array([-T_ice,T_ice])
-R = 1.3*10**7 #J m^-2 K^-1 (Temp damping)
-S = 2.2*10**9 # degC s (Ice line damping)
+R = 4.2*10**7 #J m^-2 K^-1 (Temp damping)
+S = 1.2*10**9 # degC s (Ice line damping)
 Q_0 = 340.327 #Wm^-2
         
 etas0 = [-0.9,0.9] # Initial Icelines
@@ -44,8 +44,6 @@ dd1 = np.diag(np.ones(y_steps-1),1) + np.diag(-np.ones(y_steps-1),-1)
 dd1[0,1]=0
 dd1[-1,-2]=0
 dd2 = -2*np.eye(y_steps) + np.diag(np.ones(y_steps-1),1) + np.diag(np.ones(y_steps-1),-1)
-#dd2[0,1]=2
-#dd2[-1,-2]=2
 diffuse_mat = y_delta*np.diag(-y_span)@dd1 + np.diag(1-y_span**2)@dd2
 diffuse_mat*=1/y_delta**2
 diffuse_mat = csr_matrix(diffuse_mat)
@@ -154,7 +152,7 @@ class Budyko:
         T_year = np.empty((year_res, y_steps))
         Q_year = self.get_Q_year(end_year)
         for i in range(year_res*run_time):
-            self.Qs = Q_year[i%year_res]
+            self.Qs = Q_year[i%year_res,:]
             self.T, etas = self.euler(self.T, self.etas, self.dX_dt, delta)
             etas[etas>1]=1
             etas[etas<-1]=-1
@@ -173,7 +171,7 @@ class Budyko:
                 eps, beta, rho = self.milanko_update(year)
                 Q_year = Q_day(year_span, beta, rho, eps, np.arcsin(y_span)).T
                 Q_year.tofile(f)
-        return Q_year.astype(np.float32)
+        return Q_year
 
 
     def update(self, t):
@@ -204,8 +202,8 @@ class Budyko:
 
 if __name__ == '__main__':
     #main()
-    #anim_main()
-    run_long_term(-1000,0)
+    anim_main()
+    #run_long_term(-100000,0)
     """
     import cProfile, pstats
     profiler = cProfile.Profile()
