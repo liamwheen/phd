@@ -1,44 +1,17 @@
 import numpy as np
-import csv
 import os
 wd = os.path.dirname(os.path.realpath(__file__))
 
 def load_milanko(direction):
     if direction == 'forward':
-        data_file = wd+'/milanko_20P.csv'
+        data_file = wd+'/bin_milanko_20P'
     else:
-        data_file = wd+'/milanko_50N.csv'
+        data_file = wd+'/bin_milanko_50N'
 
-    with open(data_file) as f:
-        csv_data = csv.reader(f)
-        next(csv_data)
-        t, ecc, obliq, l_peri = [],[],[],[]
-        for line in csv_data:
-            t.append(int(line[0]))
-            ecc.append(float(line[1]))
-            obliq.append(float(line[2]))
-            l_peri.append(float(line[3]))
+    with open(data_file,'rb') as f:
+        t, ecc, obliq, l_peri = np.fromfile(f).reshape(4,-1)
 
-    t = np.array(t)
-    ecc = np.array(ecc)
-    obliq = np.array(obliq)
-    l_peri = np.array(l_peri)
-
-    if direction == 'forward':
-        #Make l_peri continuous to allow for interpolation later
-        inds = np.where(np.diff(l_peri)<0)[0]+1
-        for ind in inds:
-            l_peri[ind:]+=2*np.pi
-        return t, ecc, obliq, l_peri
-
-    #Make l_peri continuous to allow for interpolation later
-    inds = np.where(np.diff(l_peri)>0)[0]+1
-    for ind in inds:
-        l_peri[ind:]-=2*np.pi
-
-    return np.flip(t), np.flip(ecc), np.flip(obliq), np.flip(l_peri)
-
-
+    return t, ecc, obliq, l_peri
 #import matplotlib.pyplot as plt
 #tf,_,_,pf= load_milanko('forward')
 #tb,e,_,pb= load_milanko('backward')
