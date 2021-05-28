@@ -41,13 +41,14 @@ delta = t_span[1] - t_span[0]
 frame_refr = 10#0
 
 def run_long_term(tmin=tmin, tmax=tmax, jump=500):
-    model = Budyko()
+    model = Budyko(tmin=tmin, tmax=tmax)
     years = np.arange(tmin, tmax, jump)
     Ts = np.empty((len(years),year_res,y_steps))
+    etas = np.empty((len(years),year_res,2))
     for i,year in enumerate(years):
-        Ts[i,...] = model.get_year_temp(year,10)
+        Ts[i,...], etas[i,...] = model.get_year_temp(year,10)
         print(year, end='\r')
-    return Ts
+    return Ts, etas
 
 def main():
     model = Budyko()
@@ -65,7 +66,7 @@ def anim_main():
     #plt.show()
 
 class Budyko:
-    def __init__(self):
+    def __init__(self, etas0=etas0, tmin=tmin, tmax=tmax):
         self.eta_record = np.zeros((t_steps//frame_refr,2)) 
         self.T_record = np.zeros((t_steps//frame_refr,y_steps)) 
         #self.max_T = np.zeros(t_steps//frame_refr)
@@ -142,17 +143,19 @@ class Budyko:
                 yield t
 
     def get_year_temp(self, end_year, run_time=10):
+        etas_year = np.empty((year_res,2))
         T_year = np.empty((year_res, y_steps))
         Q_year = self.get_Q_year(end_year)
         for i in range(year_res*run_time):
             self.Qs = Q_year[i%year_res,:]
-            self.T, etas= self.euler(self.T, self.etas, self.dX_dt, delta)
+            self.T, etas = self.euler(self.T, self.etas, self.dX_dt, delta)
             etas[etas>1]=1
             etas[etas<-1]=-1
             self.etas = etas
             if i >= (year_res*(run_time-1)):
+                etas_year[i%year_res,:] = self.etas
                 T_year[i%year_res,:] = self.T
-        return T_year
+        return Q_year, etas_year
 
     def get_Q_year(self, year):
         f_name = f'.Q_year_cache/{int(np.ptp(y_span))}_{year_res}_{y_steps}_{year}'

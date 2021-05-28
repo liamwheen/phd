@@ -49,7 +49,7 @@ diffuse_mat*=1/y_delta**2
 diffuse_mat = csr_matrix(diffuse_mat)
 
 def run_long_term(tmin=tmin, tmax=tmax, jump=500):
-    model = Budyko()
+    model = Budyko(tmin=tmin, tmax=tmax)
     years = np.arange(tmin, tmax, jump)
     Ts = np.empty((len(years),y_steps))
     for i,year in enumerate(years):
@@ -73,7 +73,7 @@ def anim_main():
     #plt.show()
 
 class Budyko:
-    def __init__(self):
+    def __init__(self, etas0=etas0, tmin=tmin, tmax=tmax):
         self.eta_record = np.zeros((t_steps//frame_refr,2)) 
         self.T_record = np.zeros((t_steps//frame_refr,y_steps)) 
         #self.max_T = np.zeros(t_steps//frame_refr)

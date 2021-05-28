@@ -31,18 +31,8 @@ eta0 = 0.97 # Initial Iceline
 tmin = -400000
 tmax = 0 # Years
 
-"""
-This new method works and drastically speeds up the simulation (confirmed with
-comparing to S_1_R_4.2_C_4.2 case in ipython) now use transport term in
-diffusion model to use 2 hemispheres but keep everything else the same, and see
-if the iceline curve is flipped (supporting that the southern hemisphere being
-the governing hemi). Then try with updated param values and also try
-with diffusion. hopefully these all yield some form of the correct q65 looking
-iceline curve. May need to tweak params for diffusion model.
-"""
-
 def run_long_term(tmin=tmin, tmax=tmax, jump=500):
-    model = Budyko()
+    model = Budyko(tmin=tmin, tmax=tmax)
     years = np.arange(tmin, tmax, jump)
     Ts = np.empty((len(years),year_res,y_steps))
     for i,year in enumerate(years):
@@ -124,6 +114,9 @@ class Budyko:
         deta = h/6*(k1eta + 2*k2eta + 2*k3eta + k4eta)
         return T+dT, eta+deta
 
+    def euler(self, T, eta, ddt, h):
+        dT, deta = ddt(T,eta)
+        return T+h*dT, eta+h*deta
 
     def iter_func(self):
         #Iter over all time points
@@ -133,7 +126,7 @@ class Budyko:
             if frame%(100*year_res)==0:
                 Q_year = self.get_Q_year(t//year2sec)
             self.Qs = Q_year[frame%year_res]
-            self.T, eta = self.RK4(self.T,self.eta, self.dX_dt, self.delta)
+            self.T, eta = self.euler(self.T,self.eta, self.dX_dt, self.delta)
             self.eta = min(eta,1)
             #Take average temperature for first year in frame_refr period
             #if frame%frame_refr < year_res:
@@ -148,8 +141,8 @@ class Budyko:
         T_year = np.empty((year_res, y_steps))
         Q_year = self.get_Q_year(end_year)
         for i in range(year_res*run_time):
-            self.Qs = Q_year[i%year_res]
-            self.T, eta = self.RK4(self.T, self.eta, self.dX_dt, self.delta)
+            self.Qs = Q_year[i%year_res,:]
+            self.T, eta = self.euler(self.T, self.eta, self.dX_dt, self.delta)
             self.eta = min(eta,1)
             if i >= (year_res*(run_time-1)):
                 T_year[i%year_res,:] = self.T
