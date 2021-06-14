@@ -7,9 +7,9 @@ frame_refr = 1
 year = 365.2425
 au = 149597870700 # metres
 k2day = int(year*1000)
-tmin = -3e6*year
+tmin = -0.8e6*year
 tmax = 0#-2.6e6*year
-num_steps = 3000
+num_steps = 400
 t_span = np.linspace(tmin,tmax,num_steps)
 
 class Animate:
@@ -40,7 +40,7 @@ class Animate:
 
     def iter_func(self):
         for frame, t in enumerate(t_span):
-            self.insol_vals[frame,:], t = self.sim.update(t, [-65])
+            self.insol_vals[frame,:], t = self.sim.update(t, [65])
             if frame%frame_refr==0 or t==t_span[-1]:
                 yield t
 
@@ -83,7 +83,7 @@ class Animate:
         self.ax.set_xlim([-1.5*au,1.5*au])
         self.ax.set_ylim([-1.5*au,1.5*au])
         self.ax.set_aspect('equal')
-        self.insol_ax.set_ylim([100,1000])
+        self.insol_ax.set_ylim([400,600])
         return self.ellipse, self.earth, self.latlon0, self.insol_plot
 
     def animate(self):
