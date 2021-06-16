@@ -24,16 +24,26 @@ eps0 = 0.0167
 rho0 = 2.9101
 eta0 = 0.94
 phi_n, gamma_n = 50, 50
-phi = np.arcsin(np.linspace(-1,1,phi_n))
+phis = np.arcsin(np.linspace(-1,1,phi_n))
 #phi = np.linspace(-np.pi/2,np.pi/2,phi_n)
 gamma = np.linspace(0, 2*np.pi, gamma_n) 
 
 def tester():
-    q = Q_day(np.linspace(0,year,10), beta0, rho0, eps0)
-    q1 = Q_day(np.linspace(0,year,10), 1.2*beta0, rho0, eps0)
-    plt.plot(q)
-    plt.plot(q1)
+    from insol_sympy import calc_daily_average
+    q = np.empty((1000,1000))
+    the = np.linspace(0,2*np.pi,1000)
+    for i in range(1000):
+        q[:,i] = calc_daily_average(rho0,beta0,
+                the[i],np.linspace(-np.pi/2,np.pi/2,1000),0)
+    qd = Q_day(np.linspace(0,year,1000), beta0, rho0, 0,
+            np.linspace(-np.pi/2,np.pi/2,1000))
+    plt.imshow(qd-q)
+    print(np.amax(abs(qd-q)))
     plt.show()
+    #q1 = Q_day(np.linspace(0,year,10), 1.2*beta0, rho0, eps0)
+    #plt.plot(q)
+    #plt.plot(q1)
+    #plt.show()
 
 def I(gamma, phi, beta, rho, theta):
     return np.maximum((np.sin(gamma)*np.sin(rho - theta) - np.cos(beta)*np.cos(gamma)*np.cos(rho -
@@ -51,19 +61,21 @@ def I_fast(gamma, mag, phase, c):
     I[I<0] = 0
     return I
 
-def Q_day(t, beta, rho, eps, phi=phi):
+def Q_day(t, beta, rho, eps, phi=phis):
     # Takes either single or list of days to calculate insol for
     r, theta = polar_pos(eps, t)
     mag, phase, c = trig_coefs(beta, rho, theta.reshape(-1,1), phi)
     I_day =  quad_vec(lambda gamma: I_fast(gamma, mag, phase, c),
-                0,2*np.pi,epsrel=10)[0]
+                0,2*np.pi,epsrel=1)[0]
     Q_day = K/(8*np.pi**2*r**2)*I_day.T
     return Q_day
 
+def E_midpoint(E, M, eps):
+    return E - eps*np.sin(E) - M
+
 def calc_E(M, eps):
-    # Single iteration of newton method is sufficient
-    E = M + eps*np.sin(M)/(1-eps*np.cos(M))
-    return E
+    mid_E = root_scalar(E_midpoint, (M,eps), method='brentq', bracket=(M-eps,M+eps))
+    return mid_E.root
 
 def calc_theta(E, eps):
     sign = np.ones(np.size(E))
@@ -76,7 +88,7 @@ def polar_pos(eps, t):
     """
     t = (t+year/2)%year # Equations assume theta=0 at perihelion 
     M = t*2*np.pi/year
-    E = calc_E(M, eps)
+    E = np.array([calc_E(M, eps) for M in M])
     r = au*(1 - eps*np.cos(E))
     theta = calc_theta(E,eps)
     return r, theta
@@ -98,7 +110,7 @@ def anim_main():
         for t in np.linspace(0,year,300):
             yield I_t(t, mag, phase)
     fig, ax = plt.subplots()
-    im = plt.imshow(np.zeros((len(phi),len(gamma))),vmin=0, vmax=1)
+    im = plt.imshow(np.zeros((phi_n,gamma_n)),vmin=0, vmax=1)
     ani = animation.FuncAnimation(fig,anim,frames=frames,interval=1,repeat=True)
     plt.show()
 
