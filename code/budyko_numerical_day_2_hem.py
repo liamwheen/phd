@@ -27,8 +27,8 @@ S = 10**9 # degC s (Ice line damping)
 Q_0 = 340.327 #Wm^-2
         
 etas0 = [-0.97,0.97] # Initial Icelines
-tmin = -10-151000
-tmax = 0-151000 # Years
+tmin = -50
+tmax = 0 # Years
 year_res = 400 # Points per year
 year_span = np.linspace(0,year,year_res+1)[:-1] # Avoid repeating last point as first point
 
@@ -42,7 +42,7 @@ frame_refr = 10#0
 
 def run_long_term(tmin=tmin, tmax=tmax, jump=500):
     model = Budyko(tmin=tmin, tmax=tmax)
-    years = np.arange(tmin, tmax, jump)
+    years = np.arange(tmin, tmax+1, jump)
     Ts = np.empty((len(years),year_res,y_steps))
     etas = np.empty((len(years),year_res,2))
     for i,year in enumerate(years):
@@ -53,14 +53,16 @@ def run_long_term(tmin=tmin, tmax=tmax, jump=500):
 def main():
     model = Budyko()
     list(model.iter_func())
+    model.eta_record[model.eta_record==0] = np.nan
+    print(np.nanmean(model.eta_record[:,1]))
     np.savetxt('budyko_numerical_day_2_hem_eta.csv',model.eta_record,delimiter=',')
     np.savetxt('budyko_numerical_day_2_hem_T.csv',model.T_record,delimiter=',')
 
 def anim_main():
     model = Budyko()
     model.animate()
-    #model.eta_record[model.eta_record==0] = np.nan
-    #print(np.nanmean(model.eta_record[:,1]))
+    model.eta_record[model.eta_record==0] = np.nan
+    print(np.nanmean(model.eta_record[:,1]))
     #print(max(model.max_T))
     #plt.plot(model.eta_record)
     #plt.show()
@@ -113,7 +115,7 @@ class Budyko:
         k3T, k3eta = ddt(T + h*k2T/2, eta + h*k2eta/2)
         k4T, k4eta = ddt(T+ h*k3T, eta + h*k3eta)
         dT = h/6*(k1T + 2*k2T + 2*k3T + k4T)
-        dT[[0,-1]] = dT[[1,-2]]
+        #dT[[0,-1]] = dT[[1,-2]]
         deta = h/6*(k1eta + 2*k2eta + 2*k3eta + k4eta)
         return T+dT, eta+deta
 
@@ -129,7 +131,7 @@ class Budyko:
             if frame%(100*year_res)==0:
                 Q_year = self.get_Q_year(t//year2sec)
             self.Qs = Q_year[frame%year_res]
-            self.T, etas= self.euler(self.T, self.etas, self.dX_dt, delta)
+            self.T, etas = self.euler(self.T, self.etas, self.dX_dt, delta)
             etas[etas>1]=1
             etas[etas<-1]=-1
             self.etas = etas
@@ -155,10 +157,10 @@ class Budyko:
             if i >= (year_res*(run_time-1)):
                 etas_year[i%year_res,:] = self.etas
                 T_year[i%year_res,:] = self.T
-        return Q_year, etas_year
+        return T_year, etas_year
 
     def get_Q_year(self, year):
-        f_name = f'.Q_year_cache/{int(np.ptp(y_span))}_{year_res}_{y_steps}_{year}'
+        f_name = f'.Q_year_cache/{int(np.ptp(y_span))}_{year_res}_{y_steps}_{int(year)}'
         try:
             with open(f_name,'rb') as f:
                 Q_year = np.fromfile(f).reshape(year_res,y_steps)

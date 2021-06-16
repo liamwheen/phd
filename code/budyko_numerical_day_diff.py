@@ -26,13 +26,13 @@ R = 4.2*10**7 #J m^-2 K^-1 (Temp damping)
 S = 1.2*10**9 # degC s (Ice line damping)
 Q_0 = 340.327 #Wm^-2
         
-etas0 = [-0.9,0.9] # Initial Icelines
+etas0 = [-0.841,0.841] # Initial Icelines
 tmin = -100
 tmax = 0 # Years
-year_res = 7400 # Points per year
+year_res = 15000 # Points per year
 year_span = np.linspace(0,year,year_res+1)[:-1] # Avoid repeating last point as first point
 
-y_steps = 100
+y_steps = 201
 y_span = np.linspace(-1,1,y_steps)
 t_steps = (tmax-tmin)*year_res
 y_delta = y_span[1] - y_span[0]
@@ -40,17 +40,17 @@ t_span = np.linspace(tmin*year2sec,tmax*year2sec,t_steps) #years
 delta = t_span[1] - t_span[0]
 frame_refr = 140
 
-dd1 = np.diag(np.ones(y_steps-1),1) + np.diag(-np.ones(y_steps-1),-1)
+dd1 =  np.eye(y_steps,k=1) + -np.eye(y_steps,k=-1)
 dd1[0,1]=0
 dd1[-1,-2]=0
 dd2 = -2*np.eye(y_steps) + np.diag(np.ones(y_steps-1),1) + np.diag(np.ones(y_steps-1),-1)
-diffuse_mat = y_delta*np.diag(-y_span)@dd1 + np.diag(1-y_span**2)@dd2
-diffuse_mat*=1/y_delta**2
-diffuse_mat = csr_matrix(diffuse_mat)
+diffuse_mat1 = np.diag(-2*y_span)@dd1*1/(2*y_delta)
+diffuse_mat2 = np.diag(1-y_span**2)@dd2*1/y_delta**2
+diffuse_mat = csr_matrix(diffuse_mat1+diffuse_mat2)
 
 def run_long_term(tmin=tmin, tmax=tmax, jump=500):
     model = Budyko(tmin=tmin, tmax=tmax)
-    years = np.arange(tmin, tmax, jump)
+    years = np.arange(tmin, tmax+1, jump)
     Ts = np.empty((len(years),y_steps))
     for i,year in enumerate(years):
         print(f'{year:8}',end='\r')
@@ -85,6 +85,7 @@ class Budyko:
         self.etas = np.array(etas0) #n initial
         self.T = np.zeros(y_steps)
 
+
     def a_eta(self, y):
         etaS, etaN = self.etas
         M = 200
@@ -96,7 +97,6 @@ class Budyko:
 
     def dX_dt(self, T, eta):
         dT = self.Qs*(1-self.a_eta(y_span)) - (A + B*T) + D*diffuse_mat.dot(T) #self.transport(T)#
-        #dT[[0,-1]]=dT[[1,-2]]
         T_eta = T[self.y_ind(eta)]
         deta = np.array([-1,1])*T_eta - T_ice_shift
         #deta += (deta>0)*deta*2
@@ -162,7 +162,7 @@ class Budyko:
         return T_year
 
     def get_Q_year(self, year):
-        f_name = f'.Q_year_cache/{int(np.ptp(y_span))}_{year_res}_{y_steps}_{year}'
+        f_name = f'.Q_year_cache/{int(np.ptp(y_span))}_{year_res}_{y_steps}_{int(year)}'
         try:
             with open(f_name,'rb') as f:
                 Q_year = np.fromfile(f).reshape(year_res,y_steps)

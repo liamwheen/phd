@@ -24,7 +24,7 @@ Q_0 = 340.327 #Wm^-2
 year_res = 400 # Points per year
 year_span = np.linspace(0,year,year_res+1)[:-1] # Avoid repeating last point as first point
 
-y_steps = 800
+y_steps = 400
 frame_refr = year_res*500
 
 eta0 = 0.97 # Initial Iceline
@@ -33,12 +33,13 @@ tmax = 0 # Years
 
 def run_long_term(tmin=tmin, tmax=tmax, jump=500):
     model = Budyko(tmin=tmin, tmax=tmax)
-    years = np.arange(tmin, tmax, jump)
+    years = np.arange(tmin, tmax+1, jump)
     Ts = np.empty((len(years),year_res,y_steps))
+    eta = np.empty((len(years),year_res))
     for i,year in enumerate(years):
-        Ts[i,...] = model.get_year_temp(year,10)
+        Ts[i,...], eta[i,:] = model.get_year_temp(year,10)
         print(year, end='\r')
-    return Ts
+    return Ts, eta
 
 def main():
     model = Budyko()
@@ -138,6 +139,7 @@ class Budyko:
                 yield t
     
     def get_year_temp(self, end_year, run_time=10):
+        eta_year = np.empty(year_res)
         T_year = np.empty((year_res, y_steps))
         Q_year = self.get_Q_year(end_year)
         for i in range(year_res*run_time):
@@ -145,11 +147,12 @@ class Budyko:
             self.T, eta = self.euler(self.T, self.eta, self.dX_dt, self.delta)
             self.eta = min(eta,1)
             if i >= (year_res*(run_time-1)):
+                eta_year[i%year_res] = self.eta
                 T_year[i%year_res,:] = self.T
-        return T_year
+        return T_year, eta_year
 
     def get_Q_year(self, year):
-        f_name = f'.Q_year_cache/{int(np.ptp(self.y_span))}_{year_res}_{y_steps}_{year}'
+        f_name = f'.Q_year_cache/{int(np.ptp(self.y_span))}_{year_res}_{y_steps}_{int(year)}'
         try:
             with open(f_name,'rb') as f:
                 Q_year = np.fromfile(f).reshape(year_res,y_steps)

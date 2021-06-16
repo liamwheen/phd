@@ -18,34 +18,40 @@ alpha_1 = 0.32#0.279
 alpha_2 = 0.62
 A = 202.1#Wm^-2
 B = 1.9 #Wm^-2
-C = 3.04 #Wm^-2 K^-1
-D = 0.7 #Wm^-2 K^-1
+D = 0.5 #Wm^-2 K^-1
 T_ice = -10 #degC
-R = 1*10**7 #J m^-2 K^-1 (Temp damping)
-S = 1.23*10**9 # degC s (Ice line damping)
+R = 3*10**7 #J m^-2 K^-1 (Temp damping)
+S = 1*10**9 # degC s (Ice line damping)
 Q_0 = 340.327 #Wm^-2
         
-TMIN = -10
+TMIN = -100
 TMAX = 0 # Years
 YEAR_RES = 3000 # Points per year
 YEAR_SPAN = np.linspace(0,year,YEAR_RES+1)[:-1] # Avoid repeating last point as first point
 
 Y_STEPS = phi_n
 T_STEPS = (TMAX-TMIN)*YEAR_RES
-FRAME_REFR = 100
+FRAME_REFR = 50
 
 Y_SPAN = np.linspace(-1,1,Y_STEPS)
 Y_DELTA = Y_SPAN[1] - Y_SPAN[0]
 T_SPAN = np.linspace(TMIN*year2sec,TMAX*year2sec,T_STEPS) #years
 DELTA = T_SPAN[1] - T_SPAN[0]
 
-dd1 = np.zeros((Y_STEPS,Y_STEPS)) + np.diag(np.ones(Y_STEPS-1),1) + np.diag(-np.ones(Y_STEPS-1),-1)
+dd1 = np.diag(np.ones(Y_STEPS-1),1) + np.diag(-np.ones(Y_STEPS-1),-1)
+dd1[0,1]=0
+dd1[-1,-2]=0
+#dd1[0,0]=-1
+#dd1[-1,-1]=1
 dd2 = -2*np.eye(Y_STEPS) + np.diag(np.ones(Y_STEPS-1),1) + np.diag(np.ones(Y_STEPS-1),-1)
-#dd1[[0,-1],[1,-2]]=0
-#dd1[[0,-1],[0,-1]]=-1
-#dd2[[0,-1],[1,-2]]=2
+dd2[0,1]=2
+dd2[-1,-2]=2
 DIFFUSE_MAT = Y_DELTA*np.diag(-Y_SPAN)@dd1 + np.diag(1-Y_SPAN**2)@dd2
 DIFFUSE_MAT*=1/Y_DELTA**2
+#The element changes are to use neumann boundary conds, but because of 1-y^2,
+#the diffuse mat (which is multiplied by 1-y^2) is 0 along top and bottom rows.
+#This seems like it's messing up the boundary stuff.
+print(DIFFUSE_MAT)
 DIFFUSE_MAT = csr_matrix(DIFFUSE_MAT)
 
 
@@ -71,18 +77,19 @@ class Budyko:
         self.beta_func = interp1d(milanko_t[krange], milanko_obliq[krange])
         self.l_peri_func = interp1d(milanko_t[krange], milanko_l_peri[krange])
         self.ice = np.zeros(Y_STEPS)
+        self.ice[[0,1,2,3,-4,-3,-2,-1]]=1
         self.T = np.zeros(Y_STEPS)
         self.ice_record = np.zeros((T_STEPS//FRAME_REFR,Y_STEPS))
 
     def a_ice(self):
-        return alpha_1 + self.ice*alpha_2
+        return alpha_1 + self.ice*(alpha_2-alpha_1)
 
     def diffuse(self, T):
         return DIFFUSE_MAT@T
 
     def dX_dt(self, T, ice):
         dT = self.Qs*(1-self.a_ice()) - (A + B*T) + D*self.diffuse(T)
-        dice = T_ice - T
+        dice = T_ice - T# - 0.1*(self.Qs-220)
         return dT/R, dice/S
 
     def milanko_update(self, t):
@@ -99,14 +106,15 @@ class Budyko:
         k3T, k3ice = ddt(T + h*k2T/2, ice + h*k2ice/2)
         k4T, k4ice = ddt(T+ h*k3T, ice + h*k3ice)
         dT = h/6*(k1T + 2*k2T + 2*k3T + k4T)
-        dT[[0,-1]] = dT[[1,-2]]
         dice = h/6*(k1ice + 2*k2ice + 2*k3ice + k4ice)
+        #dT = h*k1T
+        #dice = h*k1ice
         return T+dT, ice+dice
 
     def iter_func(self):
         #Iter over all time points
         for frame, t in enumerate(T_SPAN):
-            #if frame%(T_STEPS//100)==0:print(frame/T_STEPS)
+            if frame%(T_STEPS//100)==0:print(frame/T_STEPS,end='\r')
             if frame%(100*YEAR_RES) == 0:
                 Q_year = self.get_Q_year(t//year2sec)
             self.Qs = Q_year[frame%YEAR_RES]
