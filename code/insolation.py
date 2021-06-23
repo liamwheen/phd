@@ -12,15 +12,14 @@ k2day = year*1000
 
 class Insolation:
 
+    @profile
     def __init__(self, tmin=0, tmax=100*k2day, milanko_direction='forward', north_solst=True):
         self.north_solst = north_solst
         # Interpolate milankovitch data to fit timescale
         milanko_t, milanko_ecc, milanko_obliq, milanko_l_peri = milanko_params.load_milanko(milanko_direction)
-        krange = range(int(tmin//k2day),2+max(1,int(tmax//k2day)))
-        self.eps_func = interp1d(milanko_t[krange], milanko_ecc[krange])
-        self.beta_func = interp1d(milanko_t[krange], milanko_obliq[krange])
-        self.l_peri_func = interp1d(milanko_t[krange], milanko_l_peri[krange])
-        self.milanko_update(tmin)
+        self.eps_func = interp1d(milanko_t, milanko_ecc)
+        self.beta_func = interp1d(milanko_t, milanko_obliq)
+        self.l_peri_func = interp1d(milanko_t, milanko_l_peri)
 
     def milanko_update(self, t):
         self.eps = float(self.eps_func(t/k2day))
@@ -71,28 +70,26 @@ class Insolation:
         return self.I_lat_ave(lats,t_sum), t_sum
 
 if __name__ =="__main__":
-    tmin = -400*k2day
-    tmax = 0
-    num_steps = 400
+    import sys
+    if len(sys.argv) == 1:
+        tmin = -400*k2day
+        tmax = 0
+    else:
+        tmin = int(sys.argv[1])*k2day
+        tmax = int(sys.argv[2])*k2day
+    if len(sys.argv) == 4:
+        north_solst = True if 'n' in sys.argv[3] else False
+        model = Insolation(tmin, tmax, 'backward', north_solst=north_solst)
+        lat_vals = np.linspace(0,180*north_solst-90,10)
+    else:
+        model = Insolation(tmin, tmax, 'backward', north_solst=True)
+        lat_vals = np.linspace(0,90,10)
+    
+    num_steps = int(10*(tmax-tmin)/k2day)
     t_span = np.linspace(tmin,tmax,num_steps)
-    model = Insolation(tmin, tmax, 'backward', north_solst=True)
-    lat_vals = np.linspace(0,-90,10)
     insol_vals = np.zeros((num_steps,len(lat_vals)))
-    #r_vals = np.zeros(num_steps)
     for i, t in enumerate(t_span):
         print(i/len(t_span),end='\r')
-        #insol_vals[i,:] = model.update(t,180/np.pi*np.arcsin(np.linspace(-1,1,insol_vals.shape[1])))
         insol_vals[i],_ = model.update(t,lat_vals)
-        #r_vals[i] = q/model.polar_pos(t)[0]**2
     np.savetxt('insol_vals.csv',insol_vals,delimiter=',')
     
-    #print(min(r_vals),max(r_vals))
-    #print(np.mean(r_vals))
-    #print(au)
-    #print(np.trapz(np.trapz(insol_vals, t_span,
-    #    axis=0)/365.25,np.sin(np.linspace(-np.pi/2,np.pi/2,181))/2))
-    #plt.plot(np.linspace(0,365.25,500),np.mean(insol_vals,axis=1))
-    #plt.plot(np.linspace(-np.pi/2,np.pi/2,181), np.trapz(insol_vals, t_span,
-    #    axis=0)/365.25)
-    #plt.show()
-    #np.savetxt('insol_vals.csv',insol_vals,delimiter=',')
