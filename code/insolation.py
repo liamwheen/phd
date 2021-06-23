@@ -12,7 +12,6 @@ k2day = year*1000
 
 class Insolation:
 
-    @profile
     def __init__(self, tmin=0, tmax=100*k2day, milanko_direction='forward', north_solst=True):
         self.north_solst = north_solst
         # Interpolate milankovitch data to fit timescale
