@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """
-Budyko model with milankovitch parameters and numerical Q_year implementation,
-useful for adding albedo SZA dependance."""
+Buydko model with diffusion method for heat transport. Does not work very well
+due to the boundary conditions being removed due to (1-y^2) multiplication.
+Latitude domain works better and can have the results transferred onto y domain
+if needed, also provide better resolution around ice line than in y domain"""
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
@@ -18,8 +20,8 @@ alpha_1 = 0.32#0.279
 alpha_2 = 0.62
 A = 202.1#Wm^-2
 B = 1.9 #Wm^-2
-C = 3.04 #Wm^-2 K^-1
-D = 0.7 #Wm^-2 K^-1
+C = 4.2 #Wm^-2 K^-1
+D = .5 #Wm^-2 K^-1
 T_ice = -10 #degC
 T_ice_shift = np.array([-T_ice,T_ice])
 R = 4.2*10**7 #J m^-2 K^-1 (Temp damping)
@@ -29,10 +31,10 @@ Q_0 = 340.327 #Wm^-2
 etas0 = [-0.841,0.841] # Initial Icelines
 tmin = -100
 tmax = 0 # Years
-year_res = 15000 # Points per year
+year_res = 3000 # Points per year
 year_span = np.linspace(0,year,year_res+1)[:-1] # Avoid repeating last point as first point
 
-y_steps = 201
+y_steps = 101
 y_span = np.linspace(-1,1,y_steps)
 t_steps = (tmax-tmin)*year_res
 y_delta = y_span[1] - y_span[0]
@@ -51,11 +53,15 @@ diffuse_mat = csr_matrix(diffuse_mat1+diffuse_mat2)
 def run_long_term(tmin=tmin, tmax=tmax, jump=500):
     model = Budyko(tmin=tmin, tmax=tmax)
     years = np.arange(tmin, tmax+1, jump)
-    Ts = np.empty((len(years),y_steps))
+    Ts = np.empty((len(years),year_res,y_steps))
+    etas = np.zeros((len(years),year_res,2))
+    last_eta_ave = np.array(etas0)
     for i,year in enumerate(years):
+        Ts[i,...], etas[i,...] = model.get_year_temp(year,50,last_eta_ave)
+        last_eta_ave = np.mean(etas[i,...],0)
         print(f'{year:8}',end='\r')
-        Ts[i,...] = np.mean(model.get_year_temp(year,10),0)
-    return Ts
+    return Ts, etas
+
 
 def main():
     model = Budyko()
@@ -148,9 +154,11 @@ class Budyko:
                 #self.max_T[frame//frame_refr] = max(self.T)
                 yield t
 
-    def get_year_temp(self, end_year, run_time=10):
+    def get_year_temp(self, end_year, run_time, last_etas_ave):
+        etas_year = np.empty((year_res,2))
         T_year = np.empty((year_res, y_steps))
         Q_year = self.get_Q_year(end_year)
+        self.etas = last_etas_ave
         for i in range(year_res*run_time):
             self.Qs = Q_year[i%year_res,:]
             self.T, etas = self.euler(self.T, self.etas, self.dX_dt, delta)
@@ -158,8 +166,9 @@ class Budyko:
             etas[etas<-1]=-1
             self.etas = etas
             if i >= (year_res*(run_time-1)):
+                etas_year[i%year_res,:] = self.etas
                 T_year[i%year_res,:] = self.T
-        return T_year
+        return T_year, etas_year
 
     def get_Q_year(self, year):
         f_name = f'.Q_year_cache/{int(np.ptp(y_span))}_{year_res}_{y_steps}_{int(year)}'
