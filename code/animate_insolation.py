@@ -6,15 +6,14 @@ import insolation
 frame_refr = 1
 year = 365.2425
 au = 149597870700 # metres
-k2day = int(year*1000)
-tmin = -0.8e6*year
-tmax = 0#-2.6e6*year
+tmin = -400 #kyr
+tmax = 0
 num_steps = 400
 t_span = np.linspace(tmin,tmax,num_steps)
 
 class Animate:
     def __init__(self):
-        self.sim = insolation.Insolation(tmin, tmax, milanko_direction='backward')
+        self.sim = insolation.Insolation(milanko_direction='backward')
         self.insol_vals = np.array([[np.nan]*1]*num_steps)
 
     def pol2cart(self, r, theta):
@@ -40,12 +39,13 @@ class Animate:
 
     def iter_func(self):
         for frame, t in enumerate(t_span):
-            self.insol_vals[frame,:], t = self.sim.update(t, [65])
+            self.insol_vals[frame,:], t_sum = self.sim.update(t, [65])
             if frame%frame_refr==0 or t==t_span[-1]:
-                yield t
+                yield (t, t_sum)
 
-    def update(self, t):
-        self.ax.set_title('Days Since Aphelion: {:.1f}'.format(t%year))
+    def update(self, t_t_sum):
+        t, t_sum = t_t_sum
+        self.ax.set_title('Days Since Aphelion: {:.1f}'.format(t_sum%year))
         self.ax.set_ylabel('Semi-minor axis')
         self.ax.set_xlabel('Semi-major axis')
         theta = np.linspace(0, 2*np.pi, 100)
@@ -54,18 +54,18 @@ class Animate:
         sun = np.sqrt(a**2-b**2)
         self.ellipse.set_xdata(sun+a*np.cos(theta))
         self.ellipse.set_ydata(b*np.sin(theta))
-        earthx, earthy, _ = self.pol2cart(*self.sim.polar_pos(t))
+        earthx, earthy, _ = self.pol2cart(*self.sim.polar_pos(t_sum))
         self.earth.set_xdata(earthx)
         self.earth.set_ydata(earthy)
         latlon_unit = self.latlon2unit(0,0)
         lon0x, lon0y, _ = self.rotate_mat(self.sim.beta, self.sim.rho).dot(latlon_unit)
         self.latlon0.set_xdata([earthx,earthx+1e11*lon0x])
         self.latlon0.set_ydata([earthy,earthy+1e11*lon0y])
-        self.insol_plot.set_xdata(np.linspace(tmin/year,tmax/year,len(self.insol_vals)))
+        self.insol_plot.set_xdata(np.linspace(tmin,tmax,len(self.insol_vals)))
         self.insol_plot.set_ydata(self.insol_vals[:,0])
         #self.insol_plot2.set_xdata(np.linspace(tmin/year,tmax/year,len(self.insol_vals)))
         #self.insol_plot2.set_ydata(self.insol_vals[:,1])
-        self.insol_ax.set_xlim([tmin/year,max(t/year,tmin/year+1)])
+        self.insol_ax.set_xlim([tmin,max(t,tmin+1)])
         #self.insol_ax.set_ylim([400,600])
 
     def init(self):
@@ -73,8 +73,8 @@ class Animate:
         self.earth, = self.ax.plot([],[],'co')
         self.latlon0, = self.ax.plot([],[],'b')
         self.insol_ax = self.fig.add_subplot(333)
-        self.insol_ax.set_xlabel('Years')
-        self.insol_ax.set_ylabel('Ave Insol')
+        self.insol_ax.set_xlabel('kyrs')
+        self.insol_ax.set_ylabel('Daily Insol')
         self.insol_ax.yaxis.tick_right()
         self.insol_plot, = self.insol_ax.plot([],[],'b')
         #self.insol_plot2, = self.insol_ax.plot([],[],'r')
