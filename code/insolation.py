@@ -67,12 +67,12 @@ class Insolation:
         days_since_aph = self.last_sum_solstice()
         return self.I_lat_ave(lats,days_since_aph), days_since_aph
 
-    def run_insol(self, lat_vals, tmin=-400, tmax=0):
-        num_steps = int(10*(tmax-tmin))
+    def run_insol(self, lat_vals, tmin=-400, tmax=0, num_steps=None):
+        if not num_steps: num_steps = int(10*(tmax-tmin))
         t_span = np.linspace(tmin,tmax,num_steps)
         insol_vals = np.zeros((num_steps,len(lat_vals)))
         for i, t in enumerate(t_span):
-            insol_vals[i],_ = model.update(t,lat_vals)
+            insol_vals[i],_ = self.update(t,lat_vals)
         return insol_vals
 
 
