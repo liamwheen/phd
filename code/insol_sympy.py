@@ -1,10 +1,17 @@
-from numpy import pi, cos, sin, sqrt, arctan2, tan, greater, less, select, nan, logical_and
+from numpy import pi, cos, sin, sqrt, arctan2, tan, greater, less, select, nan, logical_and, asarray
 from scipy.integrate import quad_vec
 #K is calculated as 4pi*Q0*a**2
 K = 3.8284e+26 # Total sun power
 a = 149597870700 # Semi-major axis (1au)
 
 def calc_daily_average(rho, beta, theta, phi, eps):
+    #Shift dimensions to allow for iteration over orbital parameters,
+    #time of year, and latitude
+    theta = asarray(theta).reshape(-1,1)
+    phi = asarray(phi).reshape(1,-1)
+    rho = asarray(rho).reshape(-1,1)
+    beta = asarray(beta).reshape(-1,1)
+    eps = asarray(eps).reshape(-1,1)
     x0 = rho - theta
     x1 = sin(x0)
     x2 = sin(beta)
@@ -38,9 +45,9 @@ def calc_daily_average(rho, beta, theta, phi, eps):
     x29 = select([x24,greater(x3*cos(beta - phi), 0),True], [select([less(x26,
         -x21 + x28),greater(x21, x28),True], [-x26 + x28,x26 + x28,x28],
         default=nan),0,x26], default=nan)
-    return K*(-eps*cos(theta) + 1)**2*(-x22*(-x1*cos(x25) - x16*sin(x25)) +
+    return (K*(-eps*cos(theta) + 1)**2*(-x22*(-x1*cos(x25) - x16*sin(x25)) +
             x22*(-x1*cos(x29) - x16*sin(x29)) + x25*x7 -
-            x29*x7)/(8*pi**2*a**2*(1 - eps**2)**2)
+            x29*x7)/(8*pi**2*a**2*(1 - eps**2)**2)).squeeze()
 
 def calc_yearly_average(beta, phi, eps):
     def g(theta):

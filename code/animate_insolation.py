@@ -39,26 +39,28 @@ class Animate:
 
     def iter_func(self):
         for frame, t in enumerate(t_span):
-            self.insol_vals[frame,:], t_sum = self.sim.update(t, [65])
+            self.insol_vals[frame,:], t_sum = self.sim.insol_at_solstice([t], [65])
             if frame%frame_refr==0 or t==t_span[-1]:
-                yield (t, t_sum)
+                yield (t, t_sum[0])
 
     def update(self, t_t_sum):
         t, t_sum = t_t_sum
+        beta, rho, eps = self.sim.milanko_update(t)
         self.ax.set_title('Days Since Aphelion: {:.1f}'.format(t_sum%year))
         self.ax.set_ylabel('Semi-minor axis')
         self.ax.set_xlabel('Semi-major axis')
         theta = np.linspace(0, 2*np.pi, 100)
         a = au
-        b = a*np.sqrt(1-self.sim.eps**2)
+        b = a*np.sqrt(1-eps**2)
         sun = np.sqrt(a**2-b**2)
         self.ellipse.set_xdata(sun+a*np.cos(theta))
         self.ellipse.set_ydata(b*np.sin(theta))
-        earthx, earthy, _ = self.pol2cart(*self.sim.polar_pos(t_sum))
+        r, theta, = self.sim.polar_pos(np.array([t_sum]),eps)
+        earthx, earthy, _ = self.pol2cart(r[0], theta[0])
         self.earth.set_xdata(earthx)
         self.earth.set_ydata(earthy)
         latlon_unit = self.latlon2unit(0,0)
-        lon0x, lon0y, _ = self.rotate_mat(self.sim.beta, self.sim.rho).dot(latlon_unit)
+        lon0x, lon0y, _ = self.rotate_mat(beta, rho).dot(latlon_unit)
         self.latlon0.set_xdata([earthx,earthx+1e11*lon0x])
         self.latlon0.set_ydata([earthy,earthy+1e11*lon0y])
         self.insol_plot.set_xdata(np.linspace(tmin,tmax,len(self.insol_vals)))
